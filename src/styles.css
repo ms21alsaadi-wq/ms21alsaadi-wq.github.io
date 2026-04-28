@@ -183,3 +183,51 @@
     border-radius: 14px;
   }
 }
+
+
+/* ===== GREEN HAVEN PLANT STORE THEME ===== */
+.store {
+  background:
+    radial-gradient(circle at top right, rgba(143,188,143,.22), transparent 35%),
+    var(--bg);
+}
+
+.pill {
+  color: #1f4d2b;
+  background: rgba(255,255,255,.78);
+  border-color: rgba(31,77,43,.16);
+}
+
+.hero h1 {
+  color: #1f4d2b;
+}
+
+.primary,
+.cart-main,
+.product-foot button,
+.cart-foot button {
+  background: #1f4d2b;
+}
+
+.luxe-cart-icon span {
+  background: #1f4d2b;
+}
+
+.feature div,
+.product-top em {
+  background: rgba(143,188,143,.22);
+  color: #1f4d2b;
+}
+
+.promo {
+  background: linear-gradient(90deg, rgba(31,77,43,.92), rgba(31,77,43,.55));
+}
+
+.section-title h2 {
+  color: #1f4d2b;
+}
+
+.logo b,
+.luxe-logo b {
+  color: #1f4d2b;
+}

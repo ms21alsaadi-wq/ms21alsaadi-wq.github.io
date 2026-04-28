@@ -21,33 +21,35 @@ import { auth, db } from "./firebase.js";
 const STORE_WHATSAPP = "966508983003";
 
 const defaultSettings = {
-  storeName: "LUXE SOLE",
-  tagline: "global footwear",
-  heroTitle: "متجر شوزات بتصميم فاخر",
-  heroSubtitle: "اختر من أشهر البراندات العالمية مع تجربة تسوق راقية، فلاتر ذكية، مقاسات، وسلة شراء أنيقة.",
-  primaryColor: "#000000",
-  accentColor: "#d4af37",
-  backgroundColor: "#f6f3ee",
+  storeName: "GREEN HAVEN",
+  tagline: "indoor plants & gifts",
+  heroTitle: "متجر نباتات منزلية بتجربة فاخرة",
+  heroSubtitle: "اكتشف نباتات داخلية وخارجية، أصص أنيقة، مستلزمات العناية، وهدايا خضراء تضيف حياة وجمالاً لكل مساحة.",
+  primaryColor: "#1f4d2b",
+  accentColor: "#8fbc8f",
+  backgroundColor: "#f4f8f1",
   cardColor: "#ffffff",
   fontFamily: "Cairo",
   logo: "",
-  heroImage: "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&w=1400&q=80",
+  heroImage: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1400&q=80",
   heroHeight: 520,
-  bannerTitle: "عروض موسمية على البراندات المميزة",
-  bannerSubtitle: "خصومات حصرية على مجموعات مختارة من الشوزات العالمية.",
+  bannerTitle: "عروض خضراء على النباتات والأصص",
+  bannerSubtitle: "مجموعة مختارة من النباتات المنزلية ومستلزمات العناية بخصومات مميزة.",
   bannerImage: "",
   productImageHeight: 280
 };
 
 const defaultProducts = [
-  { id: "1", name: "Nike Air Max Pulse", brand: "Nike", category: "Running", price: 749, oldPrice: 899, rating: 4.8, sizes: "40,41,42,43,44", tag: "Best Seller", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80" },
-  { id: "2", name: "Adidas Ultraboost Light", brand: "Adidas", category: "Running", price: 829, oldPrice: 999, rating: 4.9, sizes: "40,41,42,43", tag: "Premium", image: "https://images.unsplash.com/photo-1543508282-6319a3e2621f?auto=format&fit=crop&w=1200&q=80" },
-  { id: "3", name: "Jordan 1 Retro High", brand: "Jordan", category: "Sneakers", price: 1299, oldPrice: 1499, rating: 5, sizes: "41,42,43,44,45", tag: "Collectors", image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=1200&q=80" },
-  { id: "4", name: "Gucci Ace Leather", brand: "Gucci", category: "Luxury", price: 2499, oldPrice: 2899, rating: 4.9, sizes: "40,41,42,43", tag: "Luxury", image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=1200&q=80" }
+  { id: "1", name: "نبتة مونستيرا", brand: "Green Haven", category: "نباتات داخلية", price: 149, oldPrice: 189, rating: 4.9, sizes: "صغير,متوسط,كبير", tag: "الأكثر طلباً", image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80" },
+  { id: "2", name: "نبتة زاميا", brand: "Zamioculcas", category: "نباتات سهلة العناية", price: 119, oldPrice: 149, rating: 4.8, sizes: "متوسط,كبير", tag: "مناسبة للمبتدئين", image: "https://images.unsplash.com/photo-1593482892290-f54927ae2b65?auto=format&fit=crop&w=1200&q=80" },
+  { id: "3", name: "نبتة سانسيفيريا", brand: "Sansevieria", category: "نباتات داخلية", price: 99, oldPrice: 129, rating: 4.7, sizes: "صغير,متوسط", tag: "تنقية هواء", image: "https://images.unsplash.com/photo-1593691509543-c55fb32d8de5?auto=format&fit=crop&w=1200&q=80" },
+  { id: "4", name: "بوثوس ذهبي", brand: "Pothos", category: "نباتات معلقة", price: 89, oldPrice: 110, rating: 4.8, sizes: "صغير,متوسط", tag: "سريع النمو", image: "https://images.unsplash.com/photo-1596720426673-e4e14290f0cc?auto=format&fit=crop&w=1200&q=80" },
+  { id: "5", name: "أصيص سيراميك فاخر", brand: "Ceramic Pot", category: "أصص وإكسسوارات", price: 65, oldPrice: 85, rating: 4.6, sizes: "S,M,L", tag: "جديد", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80" },
+  { id: "6", name: "مجموعة عناية بالنباتات", brand: "Plant Care", category: "العناية", price: 79, oldPrice: 99, rating: 4.7, sizes: "مجموعة كاملة", tag: "أساسي", image: "https://images.unsplash.com/photo-1615218287208-84135e0c4f08?auto=format&fit=crop&w=1200&q=80" }
 ];
 
 const palettes = [
-  { name: "Luxury Black Gold", primaryColor: "#000000", accentColor: "#d4af37", backgroundColor: "#f6f3ee", cardColor: "#ffffff" },
+  { name: "هدايا خضراء Black Gold", primaryColor: "#1f4d2b", accentColor: "#8fbc8f", backgroundColor: "#f4f8f1", cardColor: "#ffffff" },
   { name: "Navy Silver", primaryColor: "#0f172a", accentColor: "#c0c7d1", backgroundColor: "#f4f7fb", cardColor: "#ffffff" },
   { name: "Coffee Cream", primaryColor: "#3b2f2f", accentColor: "#c8a46a", backgroundColor: "#f7efe5", cardColor: "#fffaf4" },
   { name: "Sport Red", primaryColor: "#111827", accentColor: "#ef4444", backgroundColor: "#f8fafc", cardColor: "#ffffff" }
@@ -344,7 +346,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
       lastOrderAt: serverTimestamp()
     }, { merge: true });
 
-    const items = cart.map((item) => `• ${item.name}\nالمقاس: ${item.size}\nالكمية: ${item.qty}\nالسعر: ${formatPrice(item.price)} ر.س`).join("\n\n");
+    const items = cart.map((item) => `• ${item.name}\nالالحجم: ${item.size}\nالكمية: ${item.qty}\nالسعر: ${formatPrice(item.price)} ر.س`).join("\n\n");
     const message = `🛒 طلب جديد من المتجر:\n\n👤 العميل: ${customer.name}\n📱 الجوال: ${customer.phone}\n📧 الإيميل: ${customer.email || authUser.email}\n📍 المدينة: ${customer.city}\n🏠 العنوان: ${customer.address}\n\n${items}\n\n💰 الإجمالي: ${formatPrice(total)} ر.س\n\n📦 الرجاء تأكيد الطلب`;
     window.open(`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`, "_blank");
     setCart([]);
@@ -373,9 +375,9 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
           </div>
 
           <nav className="luxe-nav-center">
-            <a href="#products">الأقسام</a>
-            <a href="#products">الخصومات</a>
-            <a href="#community">المنتدى</a>
+            <a href="#products">النباتات</a>
+            <a href="#products">العروض</a>
+            <a href="#community">نصائح العناية</a>
           </nav>
 
           <div className="luxe-nav-left">
@@ -403,7 +405,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
 
       <section className="container hero">
         <div className="hero-copy">
-          <div className="pill">Premium Global Footwear</div>
+          <div className="pill">Premium Plant Boutique</div>
           <h1>{settings.heroTitle}</h1>
           <p>{settings.heroSubtitle}</p>
           <div className="hero-actions">
@@ -412,7 +414,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
           </div>
           <div className="stats">
             <div><b>{products.length}+</b><span>منتجات</span></div>
-            <div><b>24H</b><span>شحن سريع</span></div>
+            <div><b>24H</b><span>توصيل آمن</span></div>
             <div><b>CRM</b><span>بيانات عملاء</span></div>
           </div>
         </div>
@@ -420,9 +422,9 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
       </section>
 
       <section className="container feature-grid">
-        <Feature icon={<Truck/>} title="توصيل سريع" text="تجربة متجر منظمة لعرض الشحن والتوصيل." />
-        <Feature icon={<ShieldCheck/>} title="بيانات عملاء" text="العميل يسجل بياناته وتحفظ في لوحة التحكم." />
-        <Feature icon={<RotateCcw/>} title="طلبات واتساب" text="الطلب يصل واتساب ويحفظ داخل Firebase." />
+        <Feature icon={<Truck/>} title="توصيل سريع" text="توصيل آمن للنباتات مع تغليف يحافظ عليها." />
+        <Feature icon={<ShieldCheck/>} title="بيانات عملاء" text="العميل يسجل بياناته لتسهيل الطلبات القادمة." />
+        <Feature icon={<RotateCcw/>} title="طلبات محفوظة" text="الطلبات تحفظ داخل Firebase وتظهر في لوحة التحكم." />
       </section>
 
       <section className="container promo" style={{ backgroundImage: settings.bannerImage ? `linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.2)), url(${settings.bannerImage})` : undefined }}>
@@ -431,12 +433,12 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
 
       <section className="container filters">
         <div className="search-box"><Search size={18}/><input value={queryText} onChange={e=>setQueryText(e.target.value)} placeholder="ابحث عن منتج أو براند..." /></div>
-        <select value={brand} onChange={e=>setBrand(e.target.value)}>{brands.map(b => <option key={b} value={b}>{b==="All"?"كل البراندات":b}</option>)}</select>
-        <select value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c => <option key={c} value={c}>{c==="All"?"كل الأقسام":c}</option>)}</select>
+        <select value={brand} onChange={e=>setBrand(e.target.value)}>{brands.map(b => <option key={b} value={b}>{b==="All"?"كل النوع/الموردات":b}</option>)}</select>
+        <select value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c => <option key={c} value={c}>{c==="All"?"كل النباتات":c}</option>)}</select>
       </section>
 
       <section id="products" className="container product-section">
-        <div className="section-title"><span>Featured Catalogue</span><h2>منتجات مختارة بعناية</h2></div>
+        <div className="section-title"><span>Green Catalogue</span><h2>نباتات ومنتجات مختارة بعناية</h2></div>
         <div className="products-grid">
           {filtered.map(p => {
             const sizes = sizesArray(p.sizes);
@@ -472,7 +474,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
                   <div className="cart-item" key={`${item.id}-${i}`}>
                     <img src={item.image} />
                     <div>
-                      <b>{item.name}</b><span>مقاس: {item.size}</span><span>{formatPrice(item.price)} ر.س</span>
+                      <b>{item.name}</b><span>الحجم: {item.size}</span><span>{formatPrice(item.price)} ر.س</span>
                       <div className="qty"><button onClick={() => setCart(c => c.map((x,idx)=>idx===i?{...x, qty: Math.max(1,x.qty-1)}:x))}><Minus size={14}/></button><b>{item.qty}</b><button onClick={() => setCart(c => c.map((x,idx)=>idx===i?{...x, qty:x.qty+1}:x))}><Plus size={14}/></button><button onClick={() => setCart(c => c.filter((_,idx)=>idx!==i))}><Trash2 size={14}/></button></div>
                     </div>
                   </div>
@@ -542,9 +544,9 @@ function Footer({ settings }) {
     <footer className="footer">
       <div className="container footer-grid">
         <div><b>{settings.storeName}</b><p>{settings.tagline}</p></div>
-        <div><b>الأقسام</b><p>Running<br/>Sneakers<br/>Luxury</p></div>
+        <div><b>النباتات</b><p>نباتات داخلية<br/>أصص<br/>هدايا خضراء</p></div>
         <div><b>الدعم</b><p>الشحن<br/>الدفع<br/>الاستبدال</p></div>
-        <div><b>تواصل</b><p>support@luxesole.com<br/>Riyadh, Saudi Arabia</p></div>
+        <div><b>تواصل</b><p>support@greenhaven.com<br/>الرياض، السعودية</p></div>
       </div>
     </footer>
   );
@@ -683,11 +685,11 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
               <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
               <form onSubmit={saveProduct} className="product-form">
                 <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} required /></Control>
-                <Control label="البراند"><input name="brand" defaultValue={editing?.brand || ""} required /></Control>
-                <Control label="القسم"><input name="category" defaultValue={editing?.category || "Sneakers"} required /></Control>
+                <Control label="النوع/المورد"><input name="brand" defaultValue={editing?.brand || ""} required /></Control>
+                <Control label="القسم"><input name="category" defaultValue={editing?.category || "أصص"} required /></Control>
                 <div className="two"><Control label="السعر"><input name="price" type="number" defaultValue={editing?.price || ""} required /></Control><Control label="السعر قبل الخصم"><input name="oldPrice" type="number" defaultValue={editing?.oldPrice || ""} /></Control></div>
                 <div className="two"><Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" defaultValue={editing?.rating || 4.8} /></Control><Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "New"} /></Control></div>
-                <Control label="المقاسات مفصولة بفواصل"><input name="sizes" defaultValue={editing?.sizes || "40,41,42,43"} /></Control>
+                <Control label="الأحجام/الخيارات مفصولة بفواصل"><input name="sizes" defaultValue={editing?.sizes || "40,41,42,43"} /></Control>
                 <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} /></Control>
                 <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" /></Control>
                 <div className="form-actions"><button className="admin-primary"><Save size={16}/> حفظ المنتج</button>{editing && <button type="button" className="admin-secondary" onClick={()=>setEditing(null)}>إلغاء</button>}</div>
