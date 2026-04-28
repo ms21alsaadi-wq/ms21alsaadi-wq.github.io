@@ -231,3 +231,326 @@
 .luxe-logo b {
   color: #1f4d2b;
 }
+
+
+/* ===== BOTANICA PREMIUM PLANT THEME ===== */
+.store {
+  background:
+    radial-gradient(circle at 85% 10%, rgba(185,211,139,.28), transparent 30%),
+    radial-gradient(circle at 10% 35%, rgba(31,77,43,.08), transparent 32%),
+    linear-gradient(180deg, #f3f7ed 0%, #fffef8 48%, #f3f7ed 100%);
+}
+
+.store-header {
+  background: rgba(255, 254, 248, .86);
+  border-bottom: 1px solid rgba(31, 77, 43, .08);
+}
+
+.luxe-logo b,
+.logo b {
+  color: #183d28 !important;
+  letter-spacing: -.03em;
+}
+
+.luxe-logo span,
+.logo span {
+  color: #6b7f55 !important;
+}
+
+.luxe-nav-center a,
+.luxe-nav-center button {
+  color: #254b32;
+}
+
+.luxe-nav-center a::after,
+.luxe-nav-center button::after {
+  background: #8aaa5f;
+}
+
+.luxe-icon-btn,
+.luxe-cart-icon {
+  background: rgba(255,255,255,.82);
+  border-color: rgba(31,77,43,.12);
+  box-shadow: 0 10px 28px rgba(31,77,43,.08);
+}
+
+.luxe-cart-icon span {
+  background: #183d28;
+}
+
+.hero {
+  padding-top: 64px;
+}
+
+.pill {
+  background: rgba(255,255,255,.76);
+  border: 1px solid rgba(31,77,43,.12);
+  color: #32583d;
+  box-shadow: 0 12px 34px rgba(31,77,43,.07);
+}
+
+.hero h1 {
+  color: #183d28 !important;
+  max-width: 700px;
+}
+
+.hero p {
+  color: #4f6048;
+}
+
+.primary,
+.cart-main,
+.product-foot button,
+.cart-foot button {
+  background: linear-gradient(135deg, #183d28, #2f6b3e) !important;
+  box-shadow: 0 16px 34px rgba(31,77,43,.18);
+}
+
+.secondary {
+  border-color: rgba(31,77,43,.13);
+  color: #183d28;
+}
+
+.stats div {
+  background: rgba(255,255,255,.74);
+  border: 1px solid rgba(31,77,43,.08);
+  box-shadow: 0 14px 38px rgba(31,77,43,.06);
+}
+
+.stats b {
+  color: #183d28;
+}
+
+.hero-image {
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(255,255,255,.72), rgba(240,247,232,.85));
+  border: 1px solid rgba(31,77,43,.08);
+  box-shadow: 0 34px 90px rgba(31,77,43,.16);
+}
+
+.hero-image img {
+  filter: saturate(1.05) contrast(1.02);
+}
+
+.feature {
+  background: rgba(255,254,248,.86);
+  border-color: rgba(31,77,43,.08);
+}
+
+.feature div {
+  background: rgba(185,211,139,.28) !important;
+  color: #183d28 !important;
+}
+
+.feature h3 {
+  color: #183d28;
+}
+
+.promo {
+  background:
+    linear-gradient(90deg, rgba(24,61,40,.92), rgba(24,61,40,.48)),
+    url("https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1400&q=80") center/cover !important;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(31,77,43,.1);
+}
+
+.promo h2 {
+  max-width: 760px;
+}
+
+.filters {
+  background: rgba(255,254,248,.88);
+  border-color: rgba(31,77,43,.08);
+}
+
+.filters input,
+.filters select {
+  border-color: rgba(31,77,43,.12);
+}
+
+.section-title span {
+  color: #79935a;
+}
+
+.section-title h2 {
+  color: #183d28 !important;
+}
+
+.products-grid {
+  gap: 26px;
+}
+
+.product {
+  background: #fffef8 !important;
+  border: 1px solid rgba(31,77,43,.08);
+  box-shadow: 0 18px 50px rgba(31,77,43,.07);
+}
+
+.product-img {
+  background: #edf5e5;
+}
+
+.product-img img {
+  filter: saturate(1.08);
+}
+
+.product-img span {
+  color: #183d28;
+  box-shadow: 0 8px 18px rgba(31,77,43,.08);
+}
+
+.product-top small {
+  color: #78915c;
+}
+
+.product-top h3 {
+  color: #183d28;
+}
+
+.product-top em {
+  background: rgba(185,211,139,.32) !important;
+  color: #2f5d34 !important;
+}
+
+.sizes button.active {
+  background: #183d28 !important;
+}
+
+.footer {
+  background:
+    linear-gradient(180deg, rgba(255,254,248,.86), rgba(235,244,225,.9));
+  border-color: rgba(31,77,43,.08);
+}
+
+.footer b {
+  color: #183d28;
+}
+
+/* New visual plant sections */
+.plant-categories {
+  padding: 24px 0 36px;
+}
+
+.plant-category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.plant-category-card {
+  position: relative;
+  min-height: 250px;
+  border-radius: 34px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 22px;
+  box-shadow: 0 22px 60px rgba(31,77,43,.12);
+  background: #183d28;
+}
+
+.plant-category-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .45s ease;
+  opacity: .86;
+}
+
+.plant-category-card:hover img {
+  transform: scale(1.06);
+}
+
+.plant-category-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 20%, rgba(24,61,40,.78));
+}
+
+.plant-category-card div {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+}
+
+.plant-category-card b {
+  display: block;
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.plant-category-card span {
+  color: rgba(255,255,255,.82);
+  font-size: 14px;
+}
+
+.care-strip {
+  margin: 12px auto 34px;
+  padding: 26px;
+  border-radius: 34px;
+  background: linear-gradient(135deg, #183d28, #315f3c);
+  color: #fff;
+  display: grid;
+  grid-template-columns: .9fr 1.1fr;
+  gap: 24px;
+  align-items: center;
+  box-shadow: 0 24px 70px rgba(31,77,43,.16);
+}
+
+.care-strip span {
+  color: rgba(255,255,255,.7);
+  font-size: 12px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.care-strip h2 {
+  margin: 8px 0 0;
+  font-size: 32px;
+}
+
+.care-items {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.care-items div {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 24px;
+  padding: 18px;
+}
+
+.care-items b {
+  display: block;
+  color: #d7edb1;
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.care-items span {
+  color: rgba(255,255,255,.86);
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .plant-category-grid,
+  .care-strip,
+  .care-items {
+    grid-template-columns: 1fr;
+  }
+
+  .plant-category-card {
+    min-height: 220px;
+  }
+}

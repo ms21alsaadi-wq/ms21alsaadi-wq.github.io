@@ -21,38 +21,40 @@ import { auth, db } from "./firebase.js";
 const STORE_WHATSAPP = "966508983003";
 
 const defaultSettings = {
-  storeName: "GREEN HAVEN",
-  tagline: "indoor plants & gifts",
-  heroTitle: "متجر نباتات منزلية بتجربة فاخرة",
-  heroSubtitle: "اكتشف نباتات داخلية وخارجية، أصص أنيقة، مستلزمات العناية، وهدايا خضراء تضيف حياة وجمالاً لكل مساحة.",
-  primaryColor: "#1f4d2b",
-  accentColor: "#8fbc8f",
-  backgroundColor: "#f4f8f1",
-  cardColor: "#ffffff",
+  storeName: "BOTANICA",
+  tagline: "plants • pots • care",
+  heroTitle: "حوّل منزلك إلى مساحة خضراء نابضة بالحياة",
+  heroSubtitle: "نباتات مختارة بعناية، أصص جمالية، ومستلزمات عناية تساعدك تبني ركنك الأخضر بأسلوب فاخر وسهل.",
+  primaryColor: "#183d28",
+  accentColor: "#b9d38b",
+  backgroundColor: "#f3f7ed",
+  cardColor: "#fffef8",
   fontFamily: "Cairo",
   logo: "",
-  heroImage: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1400&q=80",
+  heroImage: "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=1400&q=80",
   heroHeight: 520,
-  bannerTitle: "عروض خضراء على النباتات والأصص",
-  bannerSubtitle: "مجموعة مختارة من النباتات المنزلية ومستلزمات العناية بخصومات مميزة.",
+  bannerTitle: "مجموعة الموسم: نباتات تضيف حياة لكل زاوية",
+  bannerSubtitle: "اختر نباتك المفضل مع أصيص مناسب ومستلزمات عناية لتجربة متكاملة.",
   bannerImage: "",
   productImageHeight: 280
 };
 
 const defaultProducts = [
-  { id: "1", name: "نبتة مونستيرا", brand: "Green Haven", category: "نباتات داخلية", price: 149, oldPrice: 189, rating: 4.9, sizes: "صغير,متوسط,كبير", tag: "الأكثر طلباً", image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80" },
-  { id: "2", name: "نبتة زاميا", brand: "Zamioculcas", category: "نباتات سهلة العناية", price: 119, oldPrice: 149, rating: 4.8, sizes: "متوسط,كبير", tag: "مناسبة للمبتدئين", image: "https://images.unsplash.com/photo-1593482892290-f54927ae2b65?auto=format&fit=crop&w=1200&q=80" },
-  { id: "3", name: "نبتة سانسيفيريا", brand: "Sansevieria", category: "نباتات داخلية", price: 99, oldPrice: 129, rating: 4.7, sizes: "صغير,متوسط", tag: "تنقية هواء", image: "https://images.unsplash.com/photo-1593691509543-c55fb32d8de5?auto=format&fit=crop&w=1200&q=80" },
-  { id: "4", name: "بوثوس ذهبي", brand: "Pothos", category: "نباتات معلقة", price: 89, oldPrice: 110, rating: 4.8, sizes: "صغير,متوسط", tag: "سريع النمو", image: "https://images.unsplash.com/photo-1596720426673-e4e14290f0cc?auto=format&fit=crop&w=1200&q=80" },
-  { id: "5", name: "أصيص سيراميك فاخر", brand: "Ceramic Pot", category: "أصص وإكسسوارات", price: 65, oldPrice: 85, rating: 4.6, sizes: "S,M,L", tag: "جديد", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80" },
-  { id: "6", name: "مجموعة عناية بالنباتات", brand: "Plant Care", category: "العناية", price: 79, oldPrice: 99, rating: 4.7, sizes: "مجموعة كاملة", tag: "أساسي", image: "https://images.unsplash.com/photo-1615218287208-84135e0c4f08?auto=format&fit=crop&w=1200&q=80" }
+  { id: "1", name: "مونستيرا ديلسيوسا", brand: "Monstera", category: "نباتات داخلية", price: 169, oldPrice: 219, rating: 4.9, sizes: "متوسط,كبير", tag: "الأكثر مبيعاً", image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80" },
+  { id: "2", name: "زاميا خضراء", brand: "ZZ Plant", category: "سهلة العناية", price: 129, oldPrice: 159, rating: 4.8, sizes: "صغير,متوسط,كبير", tag: "للمبتدئين", image: "https://images.unsplash.com/photo-1593482892290-f54927ae2b65?auto=format&fit=crop&w=1200&q=80" },
+  { id: "3", name: "سانسيفيريا", brand: "Snake Plant", category: "تنقية الهواء", price: 109, oldPrice: 139, rating: 4.8, sizes: "صغير,متوسط", tag: "تنقية هواء", image: "https://images.unsplash.com/photo-1593691509543-c55fb32d8de5?auto=format&fit=crop&w=1200&q=80" },
+  { id: "4", name: "بوثوس ذهبي", brand: "Golden Pothos", category: "نباتات معلقة", price: 89, oldPrice: 119, rating: 4.7, sizes: "صغير,متوسط", tag: "سريع النمو", image: "https://images.unsplash.com/photo-1596720426673-e4e14290f0cc?auto=format&fit=crop&w=1200&q=80" },
+  { id: "5", name: "فيكس ليراتا", brand: "Fiddle Leaf Fig", category: "نباتات فاخرة", price: 249, oldPrice: 299, rating: 4.9, sizes: "كبير", tag: "فاخر", image: "https://images.unsplash.com/photo-1604762524889-3e2fcc145683?auto=format&fit=crop&w=1200&q=80" },
+  { id: "6", name: "كالاثيا أوربيفوليا", brand: "Calathea", category: "نباتات داخلية", price: 159, oldPrice: 199, rating: 4.6, sizes: "متوسط", tag: "أوراق مزخرفة", image: "https://images.unsplash.com/photo-1616500163718-4f8e4dc7598f?auto=format&fit=crop&w=1200&q=80" },
+  { id: "7", name: "أصيص سيراميك بيج", brand: "Ceramic Pot", category: "أصص وإكسسوارات", price: 69, oldPrice: 89, rating: 4.7, sizes: "S,M,L", tag: "تصميم أنيق", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80" },
+  { id: "8", name: "مجموعة عناية بالنباتات", brand: "Plant Care", category: "العناية", price: 79, oldPrice: 99, rating: 4.8, sizes: "مجموعة كاملة", tag: "أساسي", image: "https://images.unsplash.com/photo-1615218287208-84135e0c4f08?auto=format&fit=crop&w=1200&q=80" }
 ];
 
 const palettes = [
-  { name: "هدايا خضراء Black Gold", primaryColor: "#1f4d2b", accentColor: "#8fbc8f", backgroundColor: "#f4f8f1", cardColor: "#ffffff" },
-  { name: "Navy Silver", primaryColor: "#0f172a", accentColor: "#c0c7d1", backgroundColor: "#f4f7fb", cardColor: "#ffffff" },
+  { name: "هدايا خضراء Black Gold", primaryColor: "#183d28", accentColor: "#b9d38b", backgroundColor: "#f3f7ed", cardColor: "#fffef8" },
+  { name: "Navy Silver", primaryColor: "#0f172a", accentColor: "#c0c7d1", backgroundColor: "#f4f7fb", cardColor: "#fffef8" },
   { name: "Coffee Cream", primaryColor: "#3b2f2f", accentColor: "#c8a46a", backgroundColor: "#f7efe5", cardColor: "#fffaf4" },
-  { name: "Sport Red", primaryColor: "#111827", accentColor: "#ef4444", backgroundColor: "#f8fafc", cardColor: "#ffffff" }
+  { name: "Sport Red", primaryColor: "#111827", accentColor: "#ef4444", backgroundColor: "#f8fafc", cardColor: "#fffef8" }
 ];
 
 function formatPrice(value) {
@@ -377,7 +379,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
           <nav className="luxe-nav-center">
             <a href="#products">النباتات</a>
             <a href="#products">العروض</a>
-            <a href="#community">نصائح العناية</a>
+            <a href="#community">دليل العناية</a>
           </nav>
 
           <div className="luxe-nav-left">
@@ -405,7 +407,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
 
       <section className="container hero">
         <div className="hero-copy">
-          <div className="pill">Premium Plant Boutique</div>
+          <div className="pill">Curated Plant Boutique</div>
           <h1>{settings.heroTitle}</h1>
           <p>{settings.heroSubtitle}</p>
           <div className="hero-actions">
@@ -414,17 +416,50 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
           </div>
           <div className="stats">
             <div><b>{products.length}+</b><span>منتجات</span></div>
-            <div><b>24H</b><span>توصيل آمن</span></div>
-            <div><b>CRM</b><span>بيانات عملاء</span></div>
+            <div><b>24H</b><span>تغليف آمن</span></div>
+            <div><b>Care</b><span>حسابات عملاء</span></div>
           </div>
         </div>
         <div className="hero-image"><img src={settings.heroImage} alt="hero" /></div>
       </section>
 
       <section className="container feature-grid">
-        <Feature icon={<Truck/>} title="توصيل سريع" text="توصيل آمن للنباتات مع تغليف يحافظ عليها." />
-        <Feature icon={<ShieldCheck/>} title="بيانات عملاء" text="العميل يسجل بياناته لتسهيل الطلبات القادمة." />
-        <Feature icon={<RotateCcw/>} title="طلبات محفوظة" text="الطلبات تحفظ داخل Firebase وتظهر في لوحة التحكم." />
+        <Feature icon={<Truck/>} title="توصيل سريع" text="تغليف آمن للنباتات مع تغليف يحافظ عليها." />
+        <Feature icon={<ShieldCheck/>} title="حسابات عملاء" text="حساب العميل يحفظ بياناته وطلباته لتجربة أسهل." />
+        <Feature icon={<RotateCcw/>} title="طلبات منظمة" text="كل طلب محفوظ ومنظم داخل لوحة التحكم." />
+      </section>
+
+      <section className="container plant-categories">
+        <div className="section-title">
+          <span>Shop by mood</span>
+          <h2>اختر نبتتك حسب المساحة</h2>
+        </div>
+        <div className="plant-category-grid">
+          <a href="#products" className="plant-category-card">
+            <img src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80" alt="نباتات داخلية" />
+            <div><b>نباتات داخلية</b><span>لمسة خضراء للمنزل والمكتب</span></div>
+          </a>
+          <a href="#products" className="plant-category-card">
+            <img src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80" alt="نباتات سهلة العناية" />
+            <div><b>سهلة العناية</b><span>مثالية للمبتدئين والانشغال</span></div>
+          </a>
+          <a href="#products" className="plant-category-card">
+            <img src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80" alt="أصص وإكسسوارات" />
+            <div><b>أصص وإكسسوارات</b><span>تفاصيل أنيقة تكمل جمال النبات</span></div>
+          </a>
+        </div>
+      </section>
+
+      <section className="container care-strip">
+        <div>
+          <span>Care Guide</span>
+          <h2>نساعدك تختار وتعتني بنباتك</h2>
+        </div>
+        <div className="care-items">
+          <div><b>01</b><span>اختر الإضاءة المناسبة</span></div>
+          <div><b>02</b><span>اسقِ النبات بانتظام بدون إفراط</span></div>
+          <div><b>03</b><span>استخدم أصيص بتصريف جيد</span></div>
+        </div>
       </section>
 
       <section className="container promo" style={{ backgroundImage: settings.bannerImage ? `linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.2)), url(${settings.bannerImage})` : undefined }}>
@@ -438,7 +473,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
       </section>
 
       <section id="products" className="container product-section">
-        <div className="section-title"><span>Green Catalogue</span><h2>نباتات ومنتجات مختارة بعناية</h2></div>
+        <div className="section-title"><span>Plant Catalogue</span><h2>تشكيلة خضراء مختارة بعناية</h2></div>
         <div className="products-grid">
           {filtered.map(p => {
             const sizes = sizesArray(p.sizes);
