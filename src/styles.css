@@ -3633,16 +3633,60 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   }
 }
 
-.order-shipping-fields {
+
+/* ===== SHIPPING SAFE UPDATE ===== */
+.order-shipping-box {
+  margin-top: 14px;
+  background: #fffaf0;
+  border: 1px solid rgba(194,169,104,.22);
+  border-radius: 20px;
+  padding: 12px;
+}
+
+.shipping-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.shipping-head span {
+  color: #6B8E23;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.shipping-head b {
+  color: #0F3D2E;
+  font-size: 13px;
+}
+
+.shipping-fields-grid {
   display: grid;
-  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.order-shipping-box input,
+.order-shipping-box select {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(194,169,104,.28);
+  background: #fffdf7;
+  color: #0F3D2E;
+  font-weight: 800;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.custom-shipping-input {
   margin-top: 10px;
 }
 
-.order-shipping-fields input,
-.order-shipping-fields select {
-  min-height: 40px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  padding: 6px 10px;
+@media (max-width: 640px) {
+  .shipping-fields-grid {
+    grid-template-columns: 1fr;
+  }
 }
