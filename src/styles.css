@@ -780,3 +780,52 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     bottom: 20px;
   }
 }
+
+
+/* HERO IMPROVED */
+.hero {
+  position: relative;
+  height: 85vh;
+  background: url("https://images.unsplash.com/photo-1501004318641-b39e6451bec6") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 61, 46, 0.65);
+}
+
+.hero-content {
+  position: relative;
+  text-align: center;
+  color: white;
+  z-index: 2;
+}
+
+.hero h1 {
+  font-size: 60px;
+  font-family: 'Playfair Display';
+  letter-spacing: 3px;
+}
+
+.hero p {
+  margin-top: 10px;
+  font-size: 18px;
+  color: #eee;
+}
+
+.hero-buttons {
+  margin-top: 25px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.hero-buttons .secondary {
+  background: transparent;
+  border: 1px solid #C2A968;
+  color: #C2A968;
+}
