@@ -147,10 +147,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("green-dixam-cart", JSON.stringify(cart));
-  }, [cart]);
-
-  useEffect(() => {
     if (!settings?.logo) return;
     let link = document.querySelector("link[rel~='icon']");
     if (!link) {
@@ -350,6 +346,9 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
       return [];
     }
   });
+  useEffect(() => {
+    localStorage.setItem("green-dixam-cart", JSON.stringify(cart));
+  }, [cart]);
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState({});
   const [favorites, setFavorites] = useState([]);
