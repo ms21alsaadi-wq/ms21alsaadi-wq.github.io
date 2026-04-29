@@ -554,3 +554,229 @@
     min-height: 220px;
   }
 }
+
+
+/* ===== GREEN DIXAM FULL BRAND IDENTITY ===== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --gd-primary: #0F3D2E;
+  --gd-secondary: #6B8E23;
+  --gd-bg: #F5F1E8;
+  --gd-gold: #C2A968;
+  --gd-text: #2B2B2B;
+}
+
+body { background: var(--gd-bg); }
+
+.store, .login-page, .admin {
+  font-family: 'Poppins', 'Cairo', system-ui, sans-serif !important;
+}
+
+h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, .login-card h1, .account-card h1 {
+  font-family: 'Playfair Display', serif !important;
+  letter-spacing: .02em;
+}
+
+.store {
+  background:
+    radial-gradient(circle at 50% -5%, rgba(194,169,104,.22), transparent 30%),
+    radial-gradient(circle at 10% 40%, rgba(107,142,35,.10), transparent 30%),
+    linear-gradient(180deg, #F5F1E8 0%, #FFFDF7 46%, #F5F1E8 100%) !important;
+  color: var(--gd-text);
+}
+
+.store-header {
+  background: rgba(245,241,232,.88) !important;
+  border-bottom: 1px solid rgba(15,61,46,.12) !important;
+}
+
+.luxe-logo b, .logo b {
+  color: var(--gd-primary) !important;
+  font-size: 34px !important;
+  font-weight: 700 !important;
+  letter-spacing: .08em !important;
+}
+
+.luxe-logo span, .logo span {
+  color: var(--gd-gold) !important;
+  letter-spacing: .34em !important;
+  font-weight: 700;
+}
+
+.luxe-nav-center a, .luxe-nav-center button {
+  color: var(--gd-primary) !important;
+  letter-spacing: .03em;
+}
+
+.luxe-nav-center a::after, .luxe-nav-center button::after {
+  background: var(--gd-gold) !important;
+}
+
+.luxe-icon-btn, .luxe-cart-icon {
+  background: #fffaf0 !important;
+  border: 1px solid rgba(194,169,104,.35) !important;
+  box-shadow: 0 12px 30px rgba(15,61,46,.08) !important;
+}
+
+.luxe-cart-icon span { background: var(--gd-primary) !important; color: #fff; }
+
+.pill {
+  background: rgba(255,250,240,.82) !important;
+  border: 1px solid rgba(194,169,104,.36) !important;
+  color: var(--gd-primary) !important;
+  letter-spacing: .16em;
+}
+
+.hero h1 {
+  color: var(--gd-primary) !important;
+  font-size: clamp(44px, 6vw, 82px) !important;
+  letter-spacing: .03em !important;
+}
+
+.hero p { color: #536052 !important; }
+
+.primary, .cart-main, .product-foot button, .cart-foot button, .admin-primary {
+  background: linear-gradient(135deg, var(--gd-primary), #174d39) !important;
+  color: #fff !important;
+  border: 1px solid rgba(194,169,104,.2) !important;
+  box-shadow: 0 16px 34px rgba(15,61,46,.18) !important;
+}
+
+.secondary, .admin-secondary {
+  background: #fffaf0 !important;
+  color: var(--gd-primary) !important;
+  border: 1px solid rgba(194,169,104,.35) !important;
+}
+
+.hero-image, .product, .feature, .filters, .admin-card, .stat, .account-card, .login-card {
+  background: rgba(255,250,240,.9) !important;
+  border: 1px solid rgba(194,169,104,.22) !important;
+  box-shadow: 0 22px 70px rgba(15,61,46,.08) !important;
+}
+
+.hero-image { position: relative; }
+
+.hero-image::before {
+  content: "GREEN DIXAM";
+  position: absolute;
+  z-index: 2;
+  right: 32px;
+  bottom: 30px;
+  color: rgba(255,255,255,.92);
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  letter-spacing: .12em;
+  text-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+
+.stats div {
+  background: #fffaf0 !important;
+  border: 1px solid rgba(194,169,104,.22) !important;
+}
+
+.stats b, .feature h3, .section-title h2, .product-top h3, .footer b {
+  color: var(--gd-primary) !important;
+}
+
+.feature div, .product-top em {
+  background: rgba(194,169,104,.18) !important;
+  color: var(--gd-primary) !important;
+}
+
+.promo {
+  background:
+    linear-gradient(90deg, rgba(15,61,46,.95), rgba(15,61,46,.58)),
+    url("https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1400&q=80") center/cover !important;
+  border: 1px solid rgba(194,169,104,.25) !important;
+}
+
+.promo span { color: var(--gd-gold) !important; }
+
+.product-img { background: #efe8d7 !important; }
+
+.product-img span {
+  color: var(--gd-primary) !important;
+  border: 1px solid rgba(194,169,104,.22);
+}
+
+.sizes button.active { background: var(--gd-primary) !important; color: #fff !important; }
+
+.rating { color: var(--gd-gold) !important; }
+
+.plant-category-card { border: 1px solid rgba(194,169,104,.28) !important; }
+
+.plant-category-card::after {
+  background: linear-gradient(180deg, transparent 12%, rgba(15,61,46,.86)) !important;
+}
+
+.care-strip {
+  background: linear-gradient(135deg, var(--gd-primary), #174d39) !important;
+  border: 1px solid rgba(194,169,104,.28) !important;
+}
+
+.care-items b { color: var(--gd-gold) !important; }
+
+.footer {
+  background: linear-gradient(180deg, rgba(255,250,240,.9), rgba(245,241,232,.95)) !important;
+  border-top: 1px solid rgba(194,169,104,.22) !important;
+}
+
+/* Admin Green Dixam identity */
+.admin-sidebar {
+  background: var(--gd-primary) !important;
+  border-left: 1px solid rgba(194,169,104,.2);
+}
+
+.admin-sidebar button.on, .admin-sidebar button:hover {
+  background: rgba(194,169,104,.16) !important;
+}
+
+.admin-brand b {
+  color: #fff;
+  letter-spacing: .1em;
+}
+
+.admin-brand span { color: var(--gd-gold) !important; }
+
+.admin-main {
+  background:
+    radial-gradient(circle at top left, rgba(194,169,104,.16), transparent 28%),
+    var(--gd-bg);
+}
+
+.admin-top h1 { color: var(--gd-primary) !important; }
+
+.admin-actions button, .admin-product-row button {
+  background: #fffaf0 !important;
+  border-color: rgba(194,169,104,.25) !important;
+  color: var(--gd-primary) !important;
+}
+
+.control input, .control select, .control textarea, .login-form input, .profile-form input, .profile-form textarea {
+  background: #fffaf0 !important;
+  border-color: rgba(194,169,104,.26) !important;
+}
+
+.palette-grid button, .admin-product-row, .customer-row, .order-card {
+  background: #fffaf0 !important;
+  border-color: rgba(194,169,104,.22) !important;
+}
+
+.avatar {
+  background: var(--gd-primary) !important;
+  color: var(--gd-gold) !important;
+}
+
+@media (max-width: 780px) {
+  .luxe-logo b, .logo b {
+    font-size: 25px !important;
+    letter-spacing: .06em !important;
+  }
+
+  .hero-image::before {
+    font-size: 22px;
+    right: 20px;
+    bottom: 20px;
+  }
+}

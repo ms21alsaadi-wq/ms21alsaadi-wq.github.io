@@ -21,40 +21,40 @@ import { auth, db } from "./firebase.js";
 const STORE_WHATSAPP = "966508983003";
 
 const defaultSettings = {
-  storeName: "BOTANICA",
-  tagline: "plants • pots • care",
-  heroTitle: "حوّل منزلك إلى مساحة خضراء نابضة بالحياة",
-  heroSubtitle: "نباتات مختارة بعناية، أصص جمالية، ومستلزمات عناية تساعدك تبني ركنك الأخضر بأسلوب فاخر وسهل.",
-  primaryColor: "#183d28",
-  accentColor: "#b9d38b",
-  backgroundColor: "#f3f7ed",
-  cardColor: "#fffef8",
+  storeName: "GREEN DIXAM",
+  tagline: "rare nature, refined living",
+  heroTitle: "Rare Nature, Refined Living",
+  heroSubtitle: "مجموعة نباتات نادرة وأصص فاخرة وإكسسوارات عناية مستوحاة من جمال سقطرى، مصممة لمساحات هادئة وراقية.",
+  primaryColor: "#0F3D2E",
+  accentColor: "#C2A968",
+  backgroundColor: "#F5F1E8",
+  cardColor: "#FFFFFF",
   fontFamily: "Cairo",
   logo: "",
-  heroImage: "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=1400&q=80",
+  heroImage: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1400&q=80",
   heroHeight: 520,
-  bannerTitle: "مجموعة الموسم: نباتات تضيف حياة لكل زاوية",
-  bannerSubtitle: "اختر نباتك المفضل مع أصيص مناسب ومستلزمات عناية لتجربة متكاملة.",
+  bannerTitle: "Inspired by Socotra",
+  bannerSubtitle: "نباتات نادرة، هدايا فاخرة، وأصص مصممة لأسلوب حياة هادئ وخالد.",
   bannerImage: "",
   productImageHeight: 280
 };
 
 const defaultProducts = [
-  { id: "1", name: "مونستيرا ديلسيوسا", brand: "Monstera", category: "نباتات داخلية", price: 169, oldPrice: 219, rating: 4.9, sizes: "متوسط,كبير", tag: "الأكثر مبيعاً", image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80" },
-  { id: "2", name: "زاميا خضراء", brand: "ZZ Plant", category: "سهلة العناية", price: 129, oldPrice: 159, rating: 4.8, sizes: "صغير,متوسط,كبير", tag: "للمبتدئين", image: "https://images.unsplash.com/photo-1593482892290-f54927ae2b65?auto=format&fit=crop&w=1200&q=80" },
-  { id: "3", name: "سانسيفيريا", brand: "Snake Plant", category: "تنقية الهواء", price: 109, oldPrice: 139, rating: 4.8, sizes: "صغير,متوسط", tag: "تنقية هواء", image: "https://images.unsplash.com/photo-1593691509543-c55fb32d8de5?auto=format&fit=crop&w=1200&q=80" },
-  { id: "4", name: "بوثوس ذهبي", brand: "Golden Pothos", category: "نباتات معلقة", price: 89, oldPrice: 119, rating: 4.7, sizes: "صغير,متوسط", tag: "سريع النمو", image: "https://images.unsplash.com/photo-1596720426673-e4e14290f0cc?auto=format&fit=crop&w=1200&q=80" },
-  { id: "5", name: "فيكس ليراتا", brand: "Fiddle Leaf Fig", category: "نباتات فاخرة", price: 249, oldPrice: 299, rating: 4.9, sizes: "كبير", tag: "فاخر", image: "https://images.unsplash.com/photo-1604762524889-3e2fcc145683?auto=format&fit=crop&w=1200&q=80" },
-  { id: "6", name: "كالاثيا أوربيفوليا", brand: "Calathea", category: "نباتات داخلية", price: 159, oldPrice: 199, rating: 4.6, sizes: "متوسط", tag: "أوراق مزخرفة", image: "https://images.unsplash.com/photo-1616500163718-4f8e4dc7598f?auto=format&fit=crop&w=1200&q=80" },
-  { id: "7", name: "أصيص سيراميك بيج", brand: "Ceramic Pot", category: "أصص وإكسسوارات", price: 69, oldPrice: 89, rating: 4.7, sizes: "S,M,L", tag: "تصميم أنيق", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80" },
-  { id: "8", name: "مجموعة عناية بالنباتات", brand: "Plant Care", category: "العناية", price: 79, oldPrice: 99, rating: 4.8, sizes: "مجموعة كاملة", tag: "أساسي", image: "https://images.unsplash.com/photo-1615218287208-84135e0c4f08?auto=format&fit=crop&w=1200&q=80" }
+  { id: "1", name: "شجرة دم الأخوين المصغرة", brand: "Socotra Inspired", category: "نباتات نادرة", price: 299, oldPrice: 349, rating: 4.9, sizes: "صغير,متوسط", tag: "Rare", image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80" },
+  { id: "2", name: "مونستيرا فاخرة", brand: "Monstera", category: "نباتات داخلية", price: 189, oldPrice: 239, rating: 4.9, sizes: "متوسط,كبير", tag: "Luxury", image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80" },
+  { id: "3", name: "زاميا كلاسيكية", brand: "ZZ Plant", category: "سهلة العناية", price: 139, oldPrice: 169, rating: 4.8, sizes: "صغير,متوسط,كبير", tag: "Organic", image: "https://images.unsplash.com/photo-1593482892290-f54927ae2b65?auto=format&fit=crop&w=1200&q=80" },
+  { id: "4", name: "سانسيفيريا ذهبية", brand: "Sansevieria", category: "تنقية الهواء", price: 129, oldPrice: 159, rating: 4.8, sizes: "صغير,متوسط", tag: "Timeless", image: "https://images.unsplash.com/photo-1593691509543-c55fb32d8de5?auto=format&fit=crop&w=1200&q=80" },
+  { id: "5", name: "فيكس ليراتا كبير", brand: "Fiddle Leaf Fig", category: "نباتات فاخرة", price: 269, oldPrice: 329, rating: 4.9, sizes: "كبير", tag: "Exclusive", image: "https://images.unsplash.com/photo-1604762524889-3e2fcc145683?auto=format&fit=crop&w=1200&q=80" },
+  { id: "6", name: "كالاثيا أوربيفوليا", brand: "Calathea", category: "نباتات داخلية", price: 169, oldPrice: 209, rating: 4.7, sizes: "متوسط", tag: "Refined", image: "https://images.unsplash.com/photo-1616500163718-4f8e4dc7598f?auto=format&fit=crop&w=1200&q=80" },
+  { id: "7", name: "أصيص سيراميك ذهبي", brand: "Golden Ceramic", category: "أصص فاخرة", price: 89, oldPrice: 119, rating: 4.8, sizes: "S,M,L", tag: "Gold", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80" },
+  { id: "8", name: "مجموعة عناية راقية", brand: "Plant Rare", category: "العناية", price: 99, oldPrice: 129, rating: 4.8, sizes: "مجموعة كاملة", tag: "Rare", image: "https://images.unsplash.com/photo-1615218287208-84135e0c4f08?auto=format&fit=crop&w=1200&q=80" }
 ];
 
 const palettes = [
-  { name: "هدايا خضراء Black Gold", primaryColor: "#183d28", accentColor: "#b9d38b", backgroundColor: "#f3f7ed", cardColor: "#fffef8" },
-  { name: "Navy Silver", primaryColor: "#0f172a", accentColor: "#c0c7d1", backgroundColor: "#f4f7fb", cardColor: "#fffef8" },
+  { name: "هدايا خضراء Black Gold", primaryColor: "#0F3D2E", accentColor: "#C2A968", backgroundColor: "#F5F1E8", cardColor: "#FFFFFF" },
+  { name: "Navy Silver", primaryColor: "#0f172a", accentColor: "#c0c7d1", backgroundColor: "#f4f7fb", cardColor: "#FFFFFF" },
   { name: "Coffee Cream", primaryColor: "#3b2f2f", accentColor: "#c8a46a", backgroundColor: "#f7efe5", cardColor: "#fffaf4" },
-  { name: "Sport Red", primaryColor: "#111827", accentColor: "#ef4444", backgroundColor: "#f8fafc", cardColor: "#fffef8" }
+  { name: "Sport Red", primaryColor: "#111827", accentColor: "#ef4444", backgroundColor: "#f8fafc", cardColor: "#FFFFFF" }
 ];
 
 function formatPrice(value) {
@@ -407,7 +407,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
 
       <section className="container hero">
         <div className="hero-copy">
-          <div className="pill">Curated Plant Boutique</div>
+          <div className="pill">Rare Nature Boutique</div>
           <h1>{settings.heroTitle}</h1>
           <p>{settings.heroSubtitle}</p>
           <div className="hero-actions">
@@ -416,44 +416,44 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
           </div>
           <div className="stats">
             <div><b>{products.length}+</b><span>منتجات</span></div>
-            <div><b>24H</b><span>تغليف آمن</span></div>
-            <div><b>Care</b><span>حسابات عملاء</span></div>
+            <div><b>24H</b><span>تغليف فاخر</span></div>
+            <div><b>Rare</b><span>حسابات عملاء</span></div>
           </div>
         </div>
         <div className="hero-image"><img src={settings.heroImage} alt="hero" /></div>
       </section>
 
       <section className="container feature-grid">
-        <Feature icon={<Truck/>} title="توصيل سريع" text="تغليف آمن للنباتات مع تغليف يحافظ عليها." />
+        <Feature icon={<Truck/>} title="توصيل سريع" text="تغليف فاخر للنباتات مع تغليف يحافظ عليها." />
         <Feature icon={<ShieldCheck/>} title="حسابات عملاء" text="حساب العميل يحفظ بياناته وطلباته لتجربة أسهل." />
         <Feature icon={<RotateCcw/>} title="طلبات منظمة" text="كل طلب محفوظ ومنظم داخل لوحة التحكم." />
       </section>
 
       <section className="container plant-categories">
         <div className="section-title">
-          <span>Shop by mood</span>
-          <h2>اختر نبتتك حسب المساحة</h2>
+          <span>Brand Essence</span>
+          <h2>اختر طابعك الأخضر</h2>
         </div>
         <div className="plant-category-grid">
           <a href="#products" className="plant-category-card">
             <img src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80" alt="نباتات داخلية" />
-            <div><b>نباتات داخلية</b><span>لمسة خضراء للمنزل والمكتب</span></div>
+            <div><b>نباتات داخلية</b><span>نباتات راقية للمنازل والمكاتب</span></div>
           </a>
           <a href="#products" className="plant-category-card">
             <img src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80" alt="نباتات سهلة العناية" />
-            <div><b>سهلة العناية</b><span>مثالية للمبتدئين والانشغال</span></div>
+            <div><b>سهلة العناية</b><span>اختيارات هادئة وسهلة العناية</span></div>
           </a>
           <a href="#products" className="plant-category-card">
             <img src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80" alt="أصص وإكسسوارات" />
-            <div><b>أصص وإكسسوارات</b><span>تفاصيل أنيقة تكمل جمال النبات</span></div>
+            <div><b>أصص وإكسسوارات</b><span>أصص وإكسسوارات بطابع فاخر</span></div>
           </a>
         </div>
       </section>
 
       <section className="container care-strip">
         <div>
-          <span>Care Guide</span>
-          <h2>نساعدك تختار وتعتني بنباتك</h2>
+          <span>Refined Rare</span>
+          <h2>عناية هادئة لنباتات تدوم</h2>
         </div>
         <div className="care-items">
           <div><b>01</b><span>اختر الإضاءة المناسبة</span></div>
@@ -473,7 +473,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
       </section>
 
       <section id="products" className="container product-section">
-        <div className="section-title"><span>Plant Catalogue</span><h2>تشكيلة خضراء مختارة بعناية</h2></div>
+        <div className="section-title"><span>Rare Catalogue</span><h2>نباتات نادرة ومنتجات فاخرة مختارة بعناية</h2></div>
         <div className="products-grid">
           {filtered.map(p => {
             const sizes = sizesArray(p.sizes);
