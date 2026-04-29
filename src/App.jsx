@@ -351,7 +351,7 @@ function AuthShell({ title, subtitle, children, settings }) {
 
 function Store({ settings, products, authUser, customer, setCustomer, go, path }) {
   if (path.startsWith("/login")) return <CustomerAuth go={go} settings={settings} />;
-  if (path.startsWith("/account")) return authUser ? <CustomerOrdersPage customer={customer} authUser={authUser} orders={orders} settings={settings} go={go} /> : <CustomerAuth go={go} settings={settings} />;
+  if (path.startsWith("/account")) return authUser ? <Account customer={customer} setCustomer={setCustomer} go={go} settings={settings} /> : <CustomerAuth go={go} settings={settings} />;
 
   const [queryText, setQueryText] = useState("");
   const [brand, setBrand] = useState("All");
@@ -601,105 +601,6 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
     </div>
   );
 }
-
-
-function CustomerOrdersPage({ customer, authUser, orders = [], settings, go }) {
-  const email = authUser?.email || customer?.email || "";
-  const uid = authUser?.uid || customer?.uid || customer?.id || "";
-
-  const myOrders = orders
-    .filter(o =>
-      (email && (o.customerEmail === email || o.email === email)) ||
-      (uid && (o.customerId === uid || o.uid === uid))
-    )
-    .map(o => ({
-      ...o,
-      status: o.status || "new",
-      total: Number(o.total || 0),
-      items: o.items || []
-    }))
-    .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
-
-  const statusText = {
-    new: "تم استلام الطلب",
-    processing: "قيد التجهيز",
-    shipped: "تم الشحن",
-    completed: "مكتمل",
-    cancelled: "ملغي"
-  };
-
-  return (
-    <main className="customer-orders-page-safe">
-      <header className="customer-orders-top-safe">
-        <button className="luxe-logo" onClick={() => go("/")}>
-          {settings?.logo ? <img src={settings.logo} alt="logo" /> : <b>{settings?.storeName || "GREEN DIXAM"}</b>}
-          <span>Customer Orders</span>
-        </button>
-        <button className="admin-secondary" onClick={() => go("/")}>رجوع للمتجر</button>
-      </header>
-
-      <section className="customer-orders-hero-safe">
-        <div>
-          <span>My Orders</span>
-          <h1>طلباتي</h1>
-          <p>تابع حالة طلباتك، شركة الشحن، ورقم التتبع من هنا.</p>
-        </div>
-        <div className="customer-orders-stats-safe">
-          <div><b>{myOrders.length}</b><small>طلب</small></div>
-          <div><b>{formatPrice(myOrders.reduce((sum, o) => sum + o.total, 0))}</b><small>إجمالي مشتريات</small></div>
-        </div>
-      </section>
-
-      <section className="customer-orders-list-safe">
-        {myOrders.map(order => (
-          <article className="customer-order-safe-card" key={order.id}>
-            <div className="customer-order-safe-head">
-              <div>
-                <span>#{String(order.id || "").slice(0, 8)}</span>
-                <h2>{formatPrice(order.total)} ر.س</h2>
-                <p>{formatOrderDate(order.createdAt)}</p>
-              </div>
-              <em className={`customer-order-status ${order.status}`}>
-                {statusText[order.status] || order.status}
-              </em>
-            </div>
-
-            <div className="customer-order-safe-products">
-              {order.items.slice(0, 4).map((item, i) => (
-                <div key={i}>
-                  {item.image ? <img src={item.image} alt={item.name || "product"} /> : <div className="order-product-no-img">🌿</div>}
-                  <span>{item.name || "منتج"}</span>
-                  <b>{item.qty || 1}x</b>
-                </div>
-              ))}
-              {order.items.length > 4 && <small>+{order.items.length - 4} منتجات أخرى</small>}
-            </div>
-
-            <div className="customer-shipping-safe">
-              <div>
-                <span>شركة الشحن</span>
-                <b>{order.shippingCompany === "other" ? (order.customShipping || "أخرى") : (order.shippingCompany || "لم تحدد بعد")}</b>
-              </div>
-              <div>
-                <span>رقم التتبع</span>
-                <b>{order.trackingNumber || "لم يصدر بعد"}</b>
-              </div>
-            </div>
-          </article>
-        ))}
-
-        {myOrders.length === 0 && (
-          <div className="customer-orders-empty-safe">
-            <h2>لا توجد طلبات بعد</h2>
-            <p>بعد إتمام أول طلب سيظهر هنا مع حالة الطلب والشحن والتتبع.</p>
-            <button className="admin-primary" onClick={() => go("/")}>تصفح المنتجات</button>
-          </div>
-        )}
-      </section>
-    </main>
-  );
-}
-
 
 function Account({ customer, setCustomer, go, settings }) {
   const [message, setMessage] = useState("");
