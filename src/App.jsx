@@ -1276,21 +1276,164 @@ function CustomersPanel({ customers, orders }) {
 }
 
 function OrdersPanel({ orders }) {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
+
+  const statusLabels = {
+    new: "جديد",
+    processing: "قيد التجهيز",
+    shipped: "تم الشحن",
+    completed: "مكتمل",
+    cancelled: "ملغي"
+  };
+
+  const statusOptions = [
+    { value: "all", label: "كل الطلبات" },
+    { value: "new", label: "جديد" },
+    { value: "processing", label: "قيد التجهيز" },
+    { value: "shipped", label: "تم الشحن" },
+    { value: "completed", label: "مكتمل" },
+    { value: "cancelled", label: "ملغي" }
+  ];
+
+  const normalizedOrders = orders.map(o => ({
+    ...o,
+    status: o.status || "new",
+    total: Number(o.total || 0),
+    items: o.items || []
+  }));
+
+  const filteredOrders = normalizedOrders.filter(o => {
+    const statusOk = statusFilter === "all" || o.status === statusFilter;
+    const text = `${o.name || ""} ${o.customerName || ""} ${o.email || ""} ${o.customerEmail || ""} ${o.phone || ""} ${o.city || ""} ${o.id || ""}`.toLowerCase();
+    return statusOk && text.includes(search.toLowerCase());
+  });
+
+  const totals = normalizedOrders.reduce((acc, o) => {
+    acc.count += 1;
+    acc.value += o.total;
+    acc[o.status] = (acc[o.status] || 0) + 1;
+    return acc;
+  }, { count: 0, value: 0 });
+
+  const updateOrderStatus = async (orderId, status) => {
+    await setDoc(doc(db, "orders", orderId), {
+      status,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  };
+
+  const deleteOrder = async (orderId) => {
+    if (confirm("هل تريد حذف هذا الطلب؟")) {
+      await deleteDoc(doc(db, "orders", orderId));
+    }
+  };
+
   return (
-    <section className="admin-card">
-      <h2>الطلبات</h2>
-      <div className="orders-list">
-        {orders.map(o => (
-          <div className="order-card" key={o.id}>
-            <div><b>{o.customerName}</b><span>{o.customerPhone} • {o.customerCity}</span></div>
-            <div><b>{formatPrice(o.total)} ر.س</b><span>{o.status || "new"}</span></div>
-            <div className="order-items">{(o.items || []).map((i, idx) => <span key={idx}>{i.name} × {i.qty} • مقاس {i.size}</span>)}</div>
+    <section className="orders-pro-page">
+      <div className="admin-card orders-pro-hero">
+        <div>
+          <span>Orders Management</span>
+          <h2>إدارة الطلبات</h2>
+          <p>تابع الطلبات، حدث حالتها، وابحث عن طلبات العملاء بسرعة.</p>
+        </div>
+
+        <div className="orders-pro-stats">
+          <div><b>{totals.count}</b><small>طلب</small></div>
+          <div><b>{formatPrice(totals.value)}</b><small>إجمالي المبيعات</small></div>
+          <div><b>{totals.new || 0}</b><small>طلبات جديدة</small></div>
+        </div>
+      </div>
+
+      <div className="admin-card orders-toolbar">
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="ابحث باسم العميل، الإيميل، الجوال، المدينة..."
+        />
+
+        <div className="orders-filter-tabs">
+          {statusOptions.map(s => (
+            <button
+              key={s.value}
+              className={statusFilter === s.value ? "active" : ""}
+              onClick={() => setStatusFilter(s.value)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="orders-pro-grid">
+        {filteredOrders.map(order => (
+          <div className="order-pro-card" key={order.id}>
+            <div className="order-pro-head">
+              <div>
+                <span>#{String(order.id).slice(0, 8)}</span>
+                <h3>{order.name || order.customerName || "طلب عميل"}</h3>
+                <p>{order.email || order.customerEmail || ""}</p>
+              </div>
+
+              <em className={`order-status ${order.status}`}>
+                {statusLabels[order.status] || order.status}
+              </em>
+            </div>
+
+            <div className="order-pro-info">
+              <div><span>الجوال</span><b>{order.phone || "غير متوفر"}</b></div>
+              <div><span>المدينة</span><b>{order.city || "غير محدد"}</b></div>
+              <div><span>الإجمالي</span><b>{formatPrice(order.total)} ر.س</b></div>
+              <div><span>عدد المنتجات</span><b>{order.items.length}</b></div>
+            </div>
+
+            {order.address && (
+              <div className="order-address">
+                <span>العنوان</span>
+                <b>{order.address}</b>
+              </div>
+            )}
+
+            <div className="order-items-pro">
+              {order.items.slice(0, 4).map((item, index) => (
+                <div key={index}>
+                  {item.image && <img src={item.image} />}
+                  <span>{item.name}</span>
+                  <b>{item.qty || 1}x</b>
+                </div>
+              ))}
+              {order.items.length > 4 && <small>+{order.items.length - 4} منتجات أخرى</small>}
+            </div>
+
+            <div className="order-actions-pro">
+              <select
+                value={order.status}
+                onChange={e => updateOrderStatus(order.id, e.target.value)}
+              >
+                <option value="new">جديد</option>
+                <option value="processing">قيد التجهيز</option>
+                <option value="shipped">تم الشحن</option>
+                <option value="completed">مكتمل</option>
+                <option value="cancelled">ملغي</option>
+              </select>
+
+              <button className="danger-action" onClick={() => deleteOrder(order.id)}>
+                حذف
+              </button>
+            </div>
           </div>
         ))}
+
+        {filteredOrders.length === 0 && (
+          <div className="admin-card empty-orders-pro">
+            لا توجد طلبات مطابقة
+          </div>
+        )}
       </div>
     </section>
   );
 }
+
 
 function Control({label, children}) {
   return <label className="control"><span>{label}</span>{children}</label>;
