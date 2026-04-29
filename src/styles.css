@@ -3342,3 +3342,33 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     grid-column: auto;
   }
 }
+
+
+/* ===== ORDERS DATE FILTERS ===== */
+.orders-date-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.orders-date-filters button {
+  border: 1px solid rgba(194,169,104,.28);
+  background: #fffdf7;
+  color: #0F3D2E;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.orders-date-filters button.active {
+  background: #0F3D2E;
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .orders-date-filters button {
+    flex: 1;
+  }
+}

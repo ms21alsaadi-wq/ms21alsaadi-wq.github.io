@@ -1294,6 +1294,7 @@ function CustomersPanel({ customers, orders }) {
 
 function OrdersPanel({ orders }) {
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -1321,10 +1322,37 @@ function OrdersPanel({ orders }) {
     items: o.items || []
   })).sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
 
+  const isWithinDate = (order) => {
+    if (dateFilter === "all") return true;
+
+    const time = orderTimestamp(order.createdAt);
+    if (!time) return false;
+
+    const orderDate = new Date(time);
+    const now = new Date();
+
+    if (dateFilter === "today") {
+      return orderDate.toDateString() === now.toDateString();
+    }
+
+    if (dateFilter === "week") {
+      const weekAgo = new Date();
+      weekAgo.setDate(now.getDate() - 7);
+      return orderDate >= weekAgo;
+    }
+
+    if (dateFilter === "month") {
+      return orderDate.getMonth() === now.getMonth() &&
+        orderDate.getFullYear() === now.getFullYear();
+    }
+
+    return true;
+  };
+
   const filteredOrders = normalizedOrders.filter(o => {
     const statusOk = statusFilter === "all" || o.status === statusFilter;
     const text = `${o.name || ""} ${o.customerName || ""} ${o.email || ""} ${o.customerEmail || ""} ${o.phone || ""} ${o.city || ""} ${o.id || ""}`.toLowerCase();
-    return statusOk && text.includes(search.toLowerCase());
+    return statusOk && isWithinDate(o) && text.includes(search.toLowerCase());
   });
 
   const totals = normalizedOrders.reduce((acc, o) => {
@@ -1369,6 +1397,13 @@ function OrdersPanel({ orders }) {
           onChange={e => setSearch(e.target.value)}
           placeholder="ابحث باسم العميل، الإيميل، الجوال، المدينة..."
         />
+
+        <div className="orders-date-filters">
+          <button className={dateFilter === "all" ? "active" : ""} onClick={() => setDateFilter("all")}>الكل</button>
+          <button className={dateFilter === "today" ? "active" : ""} onClick={() => setDateFilter("today")}>اليوم</button>
+          <button className={dateFilter === "week" ? "active" : ""} onClick={() => setDateFilter("week")}>الأسبوع</button>
+          <button className={dateFilter === "month" ? "active" : ""} onClick={() => setDateFilter("month")}>الشهر</button>
+        </div>
 
         <div className="orders-filter-tabs">
           {statusOptions.map(s => (
