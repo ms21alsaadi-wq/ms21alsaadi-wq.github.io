@@ -911,7 +911,39 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
     setTimeout(() => setNotice(""), 2500);
   };
 
-  return (
+  
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - 7);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const dashboardOrders = orders.map(o => ({
+    ...o,
+    total: Number(o.total || 0),
+    items: o.items || []
+  }));
+
+  const todayOrders = dashboardOrders.filter(o => orderTimestamp(o.createdAt) >= todayStart.getTime());
+  const weekOrders = dashboardOrders.filter(o => orderTimestamp(o.createdAt) >= weekStart.getTime());
+  const todaySales = todayOrders.reduce((sum, o) => sum + o.total, 0);
+  const totalSales = dashboardOrders.reduce((sum, o) => sum + o.total, 0);
+
+  const productSalesMap = {};
+  dashboardOrders.forEach(order => {
+    (order.items || []).forEach(item => {
+      const key = item.name || "منتج غير معروف";
+      if (!productSalesMap[key]) productSalesMap[key] = { name: key, qty: 0, value: 0, image: item.image || "" };
+      productSalesMap[key].qty += Number(item.qty || 1);
+      productSalesMap[key].value += Number(item.price || 0) * Number(item.qty || 1);
+      if (!productSalesMap[key].image && item.image) productSalesMap[key].image = item.image;
+    });
+  });
+
+  const topProduct = Object.values(productSalesMap).sort((a, b) => b.qty - a.qty)[0];
+
+return (
     <div className="admin" dir="rtl">
       <aside className="admin-sidebar">
         <div className="admin-brand">
@@ -947,13 +979,117 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
         )}
 
         {tab === "dashboard" && (
-          <section className="dash-grid">
-            <Stat label="عدد المنتجات" value={products.length} />
-            <Stat label="عدد العملاء" value={customers.length} />
-            <Stat label="عدد الطلبات" value={orders.length} />
-            <Stat label="إجمالي أسعار المنتجات" value={`${formatPrice(totalValue)} ر.س`} />
+          <section className="dashboard-pro-page">
+            <div className="admin-card dashboard-hero">
+              <div>
+                <span>Store Overview</span>
+                <h2>Dashboard</h2>
+                <p>نظرة سريعة على أداء متجر GREEN DIXAM والطلبات والمبيعات.</p>
+              </div>
+              <div className="dashboard-hero-badge">
+                <b>{formatOrderDate(new Date())}</b>
+                <small>آخر تحديث</small>
+              </div>
+            </div>
+
+            <div className="dashboard-stats-grid">
+              <div className="dash-stat-card">
+                <span>طلبات اليوم</span>
+                <b>{todayOrders.length}</b>
+                <small>طلب جديد اليوم</small>
+              </div>
+
+              <div className="dash-stat-card gold">
+                <span>مبيعات اليوم</span>
+                <b>{formatPrice(todaySales)} ر.س</b>
+                <small>إجمالي قيمة طلبات اليوم</small>
+              </div>
+
+              <div className="dash-stat-card">
+                <span>آخر 7 أيام</span>
+                <b>{weekOrders.length}</b>
+                <small>طلب خلال الأسبوع</small>
+              </div>
+
+              <div className="dash-stat-card">
+                <span>إجمالي المبيعات</span>
+                <b>{formatPrice(totalSales)} ر.س</b>
+                <small>من كل الطلبات المسجلة</small>
+              </div>
+            </div>
+
+            <div className="dashboard-main-grid">
+              <div className="admin-card dashboard-panel">
+                <div className="panel-head">
+                  <div>
+                    <span>Best Seller</span>
+                    <h2>أفضل منتج</h2>
+                  </div>
+                </div>
+
+                {topProduct ? (
+                  <div className="top-product-card">
+                    {topProduct.image ? <img src={topProduct.image} /> : <div className="top-product-placeholder">🌿</div>}
+                    <div>
+                      <h3>{topProduct.name}</h3>
+                      <p>تم بيع {topProduct.qty} قطعة</p>
+                      <b>{formatPrice(topProduct.value)} ر.س</b>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="dashboard-empty">لا توجد مبيعات بعد</div>
+                )}
+              </div>
+
+              <div className="admin-card dashboard-panel">
+                <div className="panel-head">
+                  <div>
+                    <span>Recent Orders</span>
+                    <h2>أحدث الطلبات</h2>
+                  </div>
+                </div>
+
+                <div className="recent-orders-list">
+                  {dashboardOrders
+                    .slice()
+                    .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt))
+                    .slice(0, 5)
+                    .map(o => (
+                      <div className="recent-order-row" key={o.id}>
+                        <div>
+                          <b>{o.name || o.customerName || "طلب عميل"}</b>
+                          <span>{formatOrderDate(o.createdAt)}</span>
+                        </div>
+                        <em>{formatPrice(o.total)} ر.س</em>
+                      </div>
+                    ))}
+
+                  {dashboardOrders.length === 0 && (
+                    <div className="dashboard-empty">لا توجد طلبات حتى الآن</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="admin-card dashboard-panel">
+                <div className="panel-head">
+                  <div>
+                    <span>Quick Numbers</span>
+                    <h2>أرقام سريعة</h2>
+                  </div>
+                </div>
+
+                <div className="quick-numbers">
+                  <div><span>المنتجات</span><b>{products.length}</b></div>
+                  <div><span>العملاء</span><b>{customers.length}</b></div>
+                  <div><span>الطلبات</span><b>{orders.length}</b></div>
+                  <div><span>المخزون</span><b>{products.reduce((sum,p)=>sum + Number(p.stock || 0), 0)}</b></div>
+                </div>
+              </div>
+            </div>
           </section>
         )}
+
+        
 
         {tab === "identity" && (
           <section className="admin-grid">
