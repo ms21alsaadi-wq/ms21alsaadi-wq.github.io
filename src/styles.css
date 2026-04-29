@@ -3632,3 +3632,17 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     flex-direction: column;
   }
 }
+
+.order-shipping-fields {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.order-shipping-fields input,
+.order-shipping-fields select {
+  min-height: 40px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+}

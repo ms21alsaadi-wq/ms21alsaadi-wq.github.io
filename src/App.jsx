@@ -1498,6 +1498,10 @@ function OrdersPanel({ orders }) {
     return acc;
   }, { count: 0, value: 0 });
 
+  const updateShipping = async (orderId, data) => {
+    await setDoc(doc(db, "orders", orderId), data, { merge: true });
+  };
+
   const updateOrderStatus = async (orderId, status) => {
     await setDoc(doc(db, "orders", orderId), {
       status,
@@ -1572,6 +1576,8 @@ function OrdersPanel({ orders }) {
             <div className="order-pro-info">
               <div><span>الجوال</span><b>{order.phone || "غير متوفر"}</b></div>
               <div><span>المدينة</span><b>{order.city || "غير محدد"}</b></div>
+              <div><span>شركة الشحن</span><b>{selectedOrder.shippingCompany === "other" ? selectedOrder.customShipping : selectedOrder.shippingCompany || "غير محدد"}</b></div>
+              <div><span>رقم التتبع</span><b>{selectedOrder.trackingNumber || "غير متوفر"}</b></div>
               <div><span>الإجمالي</span><b>{formatPrice(order.total)} ر.س</b></div>
               <div><span>عدد المنتجات</span><b>{order.items.length}</b></div>
               <div className="wide"><span>تاريخ الطلب</span><b>{formatOrderDate(order.createdAt)}</b></div>
@@ -1593,6 +1599,34 @@ function OrdersPanel({ orders }) {
                 </div>
               ))}
               {order.items.length > 4 && <small>+{order.items.length - 4} منتجات أخرى</small>}
+            </div>
+
+            <div className="order-shipping-fields">
+              <select
+                value={order.shippingCompany || ""}
+                onChange={e => updateShipping(order.id, { shippingCompany: e.target.value })}
+              >
+                <option value="">شركة الشحن</option>
+                <option value="Aramex">Aramex</option>
+                <option value="SMSA">SMSA</option>
+                <option value="DHL">DHL</option>
+                <option value="FedEx">FedEx</option>
+                <option value="other">أخرى</option>
+              </select>
+
+              {order.shippingCompany === "other" && (
+                <input
+                  placeholder="اكتب شركة الشحن"
+                  value={order.customShipping || ""}
+                  onChange={e => updateShipping(order.id, { customShipping: e.target.value })}
+                />
+              )}
+
+              <input
+                placeholder="رقم التتبع"
+                value={order.trackingNumber || ""}
+                onChange={e => updateShipping(order.id, { trackingNumber: e.target.value })}
+              />
             </div>
 
             <div className="order-actions-pro">
@@ -1639,6 +1673,8 @@ function OrdersPanel({ orders }) {
               <div><span>العميل</span><b>{selectedOrder.name || selectedOrder.customerName || "غير محدد"}</b></div>
               <div><span>الجوال</span><b>{selectedOrder.phone || "غير متوفر"}</b></div>
               <div><span>الإيميل</span><b>{selectedOrder.email || selectedOrder.customerEmail || "غير متوفر"}</b></div>
+              <div><span>شركة الشحن</span><b>{selectedOrder.shippingCompany === "other" ? selectedOrder.customShipping : selectedOrder.shippingCompany || "غير محدد"}</b></div>
+              <div><span>رقم التتبع</span><b>{selectedOrder.trackingNumber || "غير متوفر"}</b></div>
               <div><span>الإجمالي</span><b>{formatPrice(Number(selectedOrder.total || 0))} ر.س</b></div>
               <div><span>تاريخ الطلب</span><b>{formatOrderDate(selectedOrder.createdAt)}</b></div>
               <div className="wide"><span>العنوان</span><b>{selectedOrder.address || "غير متوفر"}</b></div>
