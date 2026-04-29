@@ -17,6 +17,7 @@ import {
   addDoc, query, orderBy
 } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
+import * as XLSX from "xlsx";
 
 const STORE_WHATSAPP = "966508983003";
 
@@ -739,6 +740,125 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
     setTab("products");
   };
 
+  const normalizeExcelProduct = (row) => {
+    const pick = (...keys) => {
+      for (const key of keys) {
+        if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== "") return row[key];
+      }
+      return "";
+    };
+
+    const name = String(pick("name", "اسم المنتج", "المنتج")).trim();
+    if (!name) return null;
+
+    const price = Number(pick("price", "السعر") || 0);
+    const oldPriceRaw = pick("oldPrice", "السعر قبل الخصم");
+    const image = String(pick("image", "رابط الصورة", "الصورة")).trim();
+
+    return {
+      name,
+      brand: String(pick("brand", "النوع/المورد", "المورد") || "GREEN DIXAM").trim(),
+      category: String(pick("category", "القسم") || "نباتات داخلية").trim(),
+      price,
+      oldPrice: Number(oldPriceRaw || price),
+      rating: Number(pick("rating", "التقييم") || 4.8),
+      sizes: String(pick("sizes", "الأحجام/الخيارات", "الخيارات") || "صغير,متوسط,كبير").trim(),
+      tag: String(pick("tag", "الشارة") || "Rare").trim(),
+      description: String(pick("description", "الوصف") || "").trim(),
+      stock: Number(pick("stock", "المخزون") || 0),
+      sku: String(pick("sku", "SKU") || "").trim(),
+      status: String(pick("status", "الحالة") || "active").trim(),
+      featured: String(pick("featured", "مميز") || "").toLowerCase() === "true" || String(pick("featured", "مميز") || "") === "نعم",
+      image,
+      updatedAt: serverTimestamp()
+    };
+  };
+
+  const downloadProductsTemplate = () => {
+    const rows = [
+      {
+        "اسم المنتج": "مونستيرا فاخرة",
+        "النوع/المورد": "Monstera",
+        "القسم": "نباتات داخلية",
+        "السعر": 189,
+        "السعر قبل الخصم": 239,
+        "المخزون": 12,
+        "SKU": "GD-PLANT-001",
+        "الحالة": "active",
+        "التقييم": 4.9,
+        "الشارة": "Luxury",
+        "الأحجام/الخيارات": "صغير,متوسط,كبير",
+        "رابط الصورة": "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80",
+        "الوصف": "نبتة داخلية فاخرة تضيف لمسة طبيعية راقية.",
+        "مميز": "نعم"
+      },
+      {
+        "اسم المنتج": "أصيص سيراميك ذهبي",
+        "النوع/المورد": "Golden Ceramic",
+        "القسم": "أصص فاخرة",
+        "السعر": 89,
+        "السعر قبل الخصم": 119,
+        "المخزون": 25,
+        "SKU": "GD-POT-002",
+        "الحالة": "active",
+        "التقييم": 4.8,
+        "الشارة": "Gold",
+        "الأحجام/الخيارات": "S,M,L",
+        "رابط الصورة": "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80",
+        "الوصف": "أصيص أنيق يناسب النباتات الداخلية.",
+        "مميز": "لا"
+      }
+    ];
+
+    const helpRows = [
+      ["تعليمات"],
+      ["لا تغيّر أسماء الأعمدة حتى يتم الاستيراد بشكل صحيح."],
+      ["الحالة: active للظهور أو hidden للإخفاء."],
+      ["مميز: اكتب نعم أو true إذا تريد المنتج مميز."],
+      ["رابط الصورة يجب أن يكون رابط مباشر لصورة."],
+      ["السعر والمخزون والتقييم أرقام فقط."]
+    ];
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const help = XLSX.utils.aoa_to_sheet(helpRows);
+    XLSX.utils.book_append_sheet(wb, ws, "Products");
+    XLSX.utils.book_append_sheet(wb, help, "Instructions");
+    XLSX.writeFile(wb, "green-dixam-products-template.xlsx");
+  };
+
+  const importProductsFromExcel = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: "array" });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+      const productsToImport = rows.map(normalizeExcelProduct).filter(Boolean);
+
+      if (!productsToImport.length) {
+        setNotice("لم يتم العثور على منتجات صالحة داخل ملف Excel");
+        setTimeout(() => setNotice(""), 3500);
+        return;
+      }
+
+      for (const product of productsToImport) {
+        const id = product.sku || uid();
+        await setDoc(doc(db, "products", String(id)), product, { merge: true });
+      }
+
+      setNotice(`تم استيراد ${productsToImport.length} منتج بنجاح`);
+      setTimeout(() => setNotice(""), 3500);
+      event.target.value = "";
+    } catch (error) {
+      console.error("Excel import failed:", error);
+      setNotice("تعذر استيراد الملف. تأكد أنه ملف Excel وبنفس قالب الأعمدة.");
+      setTimeout(() => setNotice(""), 5000);
+    }
+  };
+
   return (
     <div className="admin" dir="rtl">
       <aside className="admin-sidebar">
@@ -906,6 +1026,21 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
                   <h2>المنتجات</h2>
                 </div>
                 <b className="products-count">{products.length} منتج</b>
+              </div>
+
+              <div className="bulk-import-card">
+                <div>
+                  <span>Bulk import</span>
+                  <h3>استيراد منتجات من Excel</h3>
+                  <p>حمّل قالب المثال، عبّئ المنتجات، ثم ارفعه هنا لإضافتها دفعة واحدة.</p>
+                </div>
+                <div className="bulk-actions">
+                  <button className="admin-secondary" type="button" onClick={downloadProductsTemplate}>تحميل قالب Excel</button>
+                  <label className="excel-upload-btn">
+                    رفع ملف Excel
+                    <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
+                  </label>
+                </div>
               </div>
 
               <div className="admin-product-cards">

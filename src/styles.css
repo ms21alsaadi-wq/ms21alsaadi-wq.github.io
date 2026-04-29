@@ -1824,3 +1824,153 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     height: 210px;
   }
 }
+
+
+/* ===== PRODUCTS ADMIN LAYOUT FIX + EXCEL IMPORT ===== */
+.admin-products-pro {
+  grid-template-columns: minmax(0, 1fr) minmax(390px, 460px) !important;
+  gap: 28px !important;
+  align-items: start !important;
+  direction: ltr;
+}
+
+.admin-products-pro > * {
+  direction: rtl;
+}
+
+.pro-form-card {
+  grid-column: 2;
+  position: relative !important;
+  top: auto !important;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  justify-self: end;
+}
+
+.pro-products-manager {
+  grid-column: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.pro-form-section {
+  overflow: hidden;
+}
+
+.pro-actions {
+  position: sticky;
+  bottom: 12px;
+  z-index: 3;
+}
+
+.bulk-import-card {
+  margin-bottom: 18px;
+  border: 1px solid rgba(194,169,104,.28);
+  background:
+    radial-gradient(circle at top right, rgba(194,169,104,.16), transparent 35%),
+    #fffdf7;
+  border-radius: 28px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  box-shadow: 0 16px 45px rgba(15,61,46,.06);
+}
+
+.bulk-import-card span {
+  display: block;
+  color: #C2A968;
+  font-weight: 900;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.bulk-import-card h3 {
+  margin: 0;
+  color: #0F3D2E;
+  font-size: 25px;
+}
+
+.bulk-import-card p {
+  margin: 8px 0 0;
+  color: #6b705f;
+  line-height: 1.7;
+  font-weight: 700;
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.excel-upload-btn {
+  min-height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0F3D2E, #174d39);
+  color: #fff;
+  border: 1px solid rgba(194,169,104,.25);
+  padding: 13px 16px;
+  font-weight: 900;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 14px 32px rgba(15,61,46,.16);
+}
+
+.excel-upload-btn input {
+  display: none;
+}
+
+.pro-product-form input,
+.pro-product-form textarea,
+.pro-product-form select {
+  max-width: 100%;
+}
+
+.pro-preview {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 1280px) {
+  .admin-products-pro {
+    grid-template-columns: 1fr !important;
+    direction: rtl;
+  }
+
+  .pro-form-card,
+  .pro-products-manager {
+    grid-column: auto;
+    max-width: none;
+    justify-self: stretch;
+  }
+
+  .pro-form-card {
+    order: 1;
+  }
+
+  .pro-products-manager {
+    order: 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .bulk-import-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bulk-actions {
+    flex-direction: column;
+  }
+
+  .bulk-actions button,
+  .excel-upload-btn {
+    width: 100%;
+  }
+}
