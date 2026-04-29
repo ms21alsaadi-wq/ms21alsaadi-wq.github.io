@@ -1476,3 +1476,82 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     width: 100%;
   }
 }
+
+
+/* ===== LOGO INTEGRATION SMALL SHOPIFY STYLE ===== */
+.luxe-logo img {
+  max-height: 42px !important;
+  max-width: 165px !important;
+  object-fit: contain;
+  display: block;
+}
+
+.store-header .luxe-logo {
+  min-width: 150px;
+}
+
+.admin-brand {
+  text-align: center;
+}
+
+.admin-brand-logo {
+  max-width: 150px;
+  max-height: 74px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 10px;
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,.16));
+}
+
+.login-brand-mark {
+  width: 122px;
+  min-height: 78px;
+  border-radius: 26px;
+  background: #fffaf0;
+  border: 1px solid rgba(194,169,104,.32);
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  box-shadow: 0 18px 45px rgba(15,61,46,.10);
+  margin-bottom: 12px;
+}
+
+.login-brand-mark img {
+  max-width: 100%;
+  max-height: 58px;
+  object-fit: contain;
+  display: block;
+}
+
+.login-brand-mark span {
+  font-family: 'Playfair Display', serif;
+  color: #0F3D2E;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-align: center;
+  font-size: 15px;
+}
+
+.footer-brand img {
+  max-width: 170px;
+  max-height: 70px;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 780px) {
+  .luxe-logo img {
+    max-height: 36px !important;
+    max-width: 135px !important;
+  }
+
+  .store-header .luxe-logo {
+    min-width: auto;
+  }
+
+  .admin-brand-logo {
+    max-width: 130px;
+    max-height: 60px;
+  }
+}

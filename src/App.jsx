@@ -107,6 +107,17 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!settings?.logo) return;
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = settings.logo;
+  }, [settings?.logo]);
+
+  useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setAuthUser(u);
       setCustomer(null);
@@ -150,7 +161,7 @@ export default function App() {
   if (loading) return <div className="loading">جاري التحميل...</div>;
 
   if (path.startsWith("/admin")) {
-    if (!authUser || !isAdmin) return <AdminLogin go={go} />;
+    if (!authUser || !isAdmin) return <AdminLogin go={go} settings={settings} />;
     return (
       <Admin
         settings={settings}
@@ -176,7 +187,7 @@ export default function App() {
   );
 }
 
-function AdminLogin({ go }) {
+function AdminLogin({ go, settings }) {
   const [mode, setMode] = useState("login");
   const [message, setMessage] = useState("");
 
@@ -202,7 +213,7 @@ function AdminLogin({ go }) {
   }
 
   return (
-    <AuthShell title={mode === "login" ? "دخول لوحة التحكم" : "إنشاء أول أدمن"} subtitle="لوحة التحكم مخصصة لإدارة المنتجات والعملاء والطلبات.">
+    <AuthShell settings={settings} title={mode === "login" ? "دخول لوحة التحكم" : "إنشاء أول أدمن"} subtitle="لوحة التحكم مخصصة لإدارة المنتجات والعملاء والطلبات.">
       <form onSubmit={submit} className="login-form">
         <label><span><Mail size={16}/> الإيميل</span><input name="email" type="email" required /></label>
         <label><span><Lock size={16}/> كلمة المرور</span><input name="password" type="password" required minLength="6" /></label>
@@ -217,7 +228,7 @@ function AdminLogin({ go }) {
   );
 }
 
-function CustomerAuth({ go }) {
+function CustomerAuth({ go, settings }) {
   const [mode, setMode] = useState("login");
   const [message, setMessage] = useState("");
 
@@ -250,7 +261,7 @@ function CustomerAuth({ go }) {
   }
 
   return (
-    <AuthShell title={mode === "login" ? "دخول العميل" : "إنشاء حساب عميل"} subtitle="سجل حسابك لحفظ بياناتك واستخدامها في الطلبات القادمة.">
+    <AuthShell settings={settings} title={mode === "login" ? "دخول العميل" : "إنشاء حساب عميل"} subtitle="سجل حسابك لحفظ بياناتك واستخدامها في الطلبات القادمة.">
       <form onSubmit={submit} className="login-form">
         {mode === "signup" && <label><span><User size={16}/> الاسم</span><input name="name" required /></label>}
         <label><span><Mail size={16}/> الإيميل</span><input name="email" type="email" required /></label>
@@ -266,11 +277,13 @@ function CustomerAuth({ go }) {
   );
 }
 
-function AuthShell({ title, subtitle, children }) {
+function AuthShell({ title, subtitle, children, settings }) {
   return (
     <div className="login-page" dir="rtl">
       <div className="login-card">
-        <div className="login-icon"><Lock /></div>
+        <div className="login-brand-mark">
+          {settings?.logo ? <img src={settings.logo} alt="logo" /> : <span>{settings?.storeName || "GREEN DIXAM"}</span>}
+        </div>
         <h1>{title}</h1>
         <p>{subtitle}</p>
         {children}
@@ -280,8 +293,8 @@ function AuthShell({ title, subtitle, children }) {
 }
 
 function Store({ settings, products, authUser, customer, setCustomer, go, path }) {
-  if (path.startsWith("/login")) return <CustomerAuth go={go} />;
-  if (path.startsWith("/account")) return authUser ? <Account customer={customer} setCustomer={setCustomer} go={go} /> : <CustomerAuth go={go} />;
+  if (path.startsWith("/login")) return <CustomerAuth go={go} settings={settings} />;
+  if (path.startsWith("/account")) return authUser ? <Account customer={customer} setCustomer={setCustomer} go={go} settings={settings} /> : <CustomerAuth go={go} settings={settings} />;
 
   const [queryText, setQueryText] = useState("");
   const [brand, setBrand] = useState("All");
@@ -523,7 +536,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
   );
 }
 
-function Account({ customer, setCustomer, go }) {
+function Account({ customer, setCustomer, go, settings }) {
   const [message, setMessage] = useState("");
 
   async function saveProfile(e) {
@@ -546,7 +559,7 @@ function Account({ customer, setCustomer, go }) {
       <header className="store-header">
         <div className="container luxe-nav account-nav">
           <button className="luxe-logo" onClick={() => go("/")}>
-            <b>حسابي</b>
+            {settings?.logo ? <img src={settings.logo} alt="logo" /> : <b>حسابي</b>}
             <span>Customer Profile</span>
           </button>
           <nav className="luxe-nav-center">
@@ -578,7 +591,10 @@ function Footer({ settings }) {
   return (
     <footer className="footer">
       <div className="container footer-grid">
-        <div><b>{settings.storeName}</b><p>{settings.tagline}</p></div>
+        <div className="footer-brand">
+          {settings.logo ? <img src={settings.logo} alt="logo" /> : <b>{settings.storeName}</b>}
+          <p>{settings.tagline}</p>
+        </div>
         <div><b>النباتات</b><p>نباتات داخلية<br/>أصص<br/>هدايا خضراء</p></div>
         <div><b>الدعم</b><p>الشحن<br/>الدفع<br/>الاستبدال</p></div>
         <div><b>تواصل</b><p>support@greenhaven.com<br/>الرياض، السعودية</p></div>
@@ -663,7 +679,10 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
   return (
     <div className="admin" dir="rtl">
       <aside className="admin-sidebar">
-        <div className="admin-brand"><b>{settings.storeName}</b><span>Admin Panel</span></div>
+        <div className="admin-brand">
+          {settings.logo ? <img className="admin-brand-logo" src={settings.logo} alt="logo" /> : <b>{settings.storeName}</b>}
+          <span>Admin Panel</span>
+        </div>
         <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
         <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> الهوية</button>
         <button className={tab==="banners"?"on":""} onClick={()=>setTab("banners")}><ImageIcon/> البنرات والصور</button>
