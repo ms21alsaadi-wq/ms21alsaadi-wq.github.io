@@ -663,6 +663,8 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
   const [draftSettings, setDraftSettings] = useState(settings);
   const [imagePreview, setImagePreview] = useState(editing?.image || "");
   const [pendingImport, setPendingImport] = useState([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   useEffect(() => {
     setDraftSettings(settings);
@@ -1145,7 +1147,119 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
           </section>
         )}
 
-        {tab === "customers" && <CustomersPanel customers={customers} orders={orders} />}
+        {tab === "customers" && (
+          <section className="customers-admin-page">
+            <div className="admin-card customers-hero-card">
+              <div>
+                <span>Customers CRM</span>
+                <h2>إدارة العملاء</h2>
+                <p>تابع بيانات العملاء المسجلين وابحث عن أي عميل بسرعة قبل ربط الطلبات لاحقًا.</p>
+              </div>
+
+              <div className="customers-stats">
+                <div><b>{customers.length}</b><span>إجمالي العملاء</span></div>
+                <div><b>{filteredCustomers.length}</b><span>نتائج البحث</span></div>
+              </div>
+            </div>
+
+            <div className="admin-card customers-toolbar">
+              <input
+                value={customerSearch}
+                onChange={e => setCustomerSearch(e.target.value)}
+                placeholder="ابحث بالاسم، الإيميل، الجوال، المدينة..."
+              />
+              {customerSearch && <button className="admin-secondary" onClick={() => setCustomerSearch("")}>مسح البحث</button>}
+            </div>
+
+            <div className="customers-layout">
+              <div className="admin-card customers-list-card">
+                <div className="pro-card-head">
+                  <div>
+                    <span>Customer List</span>
+                    <h2>قائمة العملاء</h2>
+                  </div>
+                  <b className="products-count">{filteredCustomers.length} عميل</b>
+                </div>
+
+                <div className="customers-grid">
+                  {filteredCustomers.map(c => (
+                    <button
+                      key={c.id}
+                      className={`customer-card-pro ${selectedCustomer?.id === c.id ? "selected" : ""}`}
+                      onClick={() => setSelectedCustomer(c)}
+                    >
+                      <div className="customer-avatar-pro">
+                        {(c.name || c.email || "ع").slice(0, 1)}
+                      </div>
+
+                      <div className="customer-card-info">
+                        <b>{c.name || "عميل بدون اسم"}</b>
+                        <span>{c.email || "لا يوجد إيميل"}</span>
+                        <em>{c.phone || "لا يوجد رقم"}</em>
+                      </div>
+
+                      <small>{c.city || "غير محدد"}</small>
+                    </button>
+                  ))}
+
+                  {filteredCustomers.length === 0 && (
+                    <div className="empty-state">
+                      لا يوجد عملاء مطابقين للبحث
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="admin-card customer-details-card">
+                {selectedCustomer ? (
+                  <>
+                    <div className="details-header">
+                      <div className="customer-avatar-pro large">
+                        {(selectedCustomer.name || selectedCustomer.email || "ع").slice(0, 1)}
+                      </div>
+                      <div>
+                        <span>Customer Details</span>
+                        <h2>{selectedCustomer.name || "عميل بدون اسم"}</h2>
+                        <p>{selectedCustomer.email || "لا يوجد إيميل"}</p>
+                      </div>
+                    </div>
+
+                    <div className="customer-detail-grid">
+                      <div><span>الجوال</span><b>{selectedCustomer.phone || "غير متوفر"}</b></div>
+                      <div><span>المدينة</span><b>{selectedCustomer.city || "غير محدد"}</b></div>
+                      <div className="wide"><span>العنوان</span><b>{selectedCustomer.address || "غير متوفر"}</b></div>
+                      <div><span>UID</span><b>{selectedCustomer.uid || selectedCustomer.id}</b></div>
+                      <div><span>الحالة</span><b>مسجل</b></div>
+                    </div>
+
+                    <div className="customer-detail-actions">
+                      <button className="admin-secondary" onClick={() => setSelectedCustomer(null)}>إغلاق التفاصيل</button>
+                      <button
+                        className="danger-action"
+                        onClick={async () => {
+                          if (confirm("هل تريد حذف هذا العميل من قائمة العملاء؟")) {
+                            await deleteDoc(doc(db, "customers", selectedCustomer.id));
+                            setSelectedCustomer(null);
+                          }
+                        }}
+                      >
+                        حذف العميل
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="customer-empty-details">
+                    <div className="customer-avatar-pro large">👤</div>
+                    <h2>اختر عميلًا</h2>
+                    <p>اضغط على أي عميل من القائمة لعرض بياناته هنا.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        
         {tab === "orders" && <OrdersPanel orders={orders} />}
       </main>
     </div>
