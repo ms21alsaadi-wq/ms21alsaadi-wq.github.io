@@ -3330,3 +3330,15 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     font-size: 28px;
   }
 }
+
+
+/* ===== ORDERS DATE UPDATE ===== */
+.order-pro-info .wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .order-pro-info .wide {
+    grid-column: auto;
+  }
+}

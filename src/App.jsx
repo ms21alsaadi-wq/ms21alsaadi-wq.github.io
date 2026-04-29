@@ -61,6 +61,23 @@ const palettes = [
 function formatPrice(value) {
   return new Intl.NumberFormat("ar-SA").format(Number(value || 0));
 }
+
+function formatOrderDate(value) {
+  if (!value) return "غير متوفر";
+  const date = value?.toDate ? value.toDate() : new Date(value);
+  if (Number.isNaN(date.getTime())) return "غير متوفر";
+  return new Intl.DateTimeFormat("ar-SA", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function orderTimestamp(value) {
+  if (!value) return 0;
+  if (value?.toDate) return value.toDate().getTime();
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
 function sizesArray(sizes) {
   return String(sizes || "").split(",").map(s => s.trim()).filter(Boolean);
 }
@@ -1302,7 +1319,7 @@ function OrdersPanel({ orders }) {
     status: o.status || "new",
     total: Number(o.total || 0),
     items: o.items || []
-  }));
+  })).sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
 
   const filteredOrders = normalizedOrders.filter(o => {
     const statusOk = statusFilter === "all" || o.status === statusFilter;
@@ -1386,6 +1403,7 @@ function OrdersPanel({ orders }) {
               <div><span>المدينة</span><b>{order.city || "غير محدد"}</b></div>
               <div><span>الإجمالي</span><b>{formatPrice(order.total)} ر.س</b></div>
               <div><span>عدد المنتجات</span><b>{order.items.length}</b></div>
+              <div className="wide"><span>تاريخ الطلب</span><b>{formatOrderDate(order.createdAt)}</b></div>
             </div>
 
             {order.address && (
@@ -1451,6 +1469,7 @@ function OrdersPanel({ orders }) {
               <div><span>الجوال</span><b>{selectedOrder.phone || "غير متوفر"}</b></div>
               <div><span>الإيميل</span><b>{selectedOrder.email || selectedOrder.customerEmail || "غير متوفر"}</b></div>
               <div><span>الإجمالي</span><b>{formatPrice(Number(selectedOrder.total || 0))} ر.س</b></div>
+              <div><span>تاريخ الطلب</span><b>{formatOrderDate(selectedOrder.createdAt)}</b></div>
               <div className="wide"><span>العنوان</span><b>{selectedOrder.address || "غير متوفر"}</b></div>
             </div>
 
