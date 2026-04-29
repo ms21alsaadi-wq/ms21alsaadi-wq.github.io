@@ -722,10 +722,17 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
       rating: Number(f.rating.value || 5),
       sizes: f.sizes.value,
       tag: f.tag.value,
+      description: f.description.value,
+      stock: Number(f.stock.value || 0),
+      sku: f.sku.value,
+      status: f.status.value,
+      featured: f.featured.checked,
       image: image || editing?.image || "",
       updatedAt: serverTimestamp()
     };
     await setDoc(doc(db, "products", id), product, { merge: true });
+    setNotice(editing ? "تم تعديل المنتج بنجاح" : "تم إضافة المنتج بنجاح");
+    setTimeout(() => setNotice(""), 2200);
     setEditing(null);
     setImagePreview("");
     f.reset();
@@ -828,31 +835,107 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
         )}
 
         {tab === "products" && (
-          <section className="admin-grid">
-            <div className="admin-card product-form-card">
-              <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
-              <form onSubmit={saveProduct} className="product-form">
-                <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} required /></Control>
-                <Control label="النوع/المورد"><input name="brand" defaultValue={editing?.brand || ""} required /></Control>
-                <Control label="القسم"><input name="category" defaultValue={editing?.category || "أصص"} required /></Control>
-                <div className="two"><Control label="السعر"><input name="price" type="number" defaultValue={editing?.price || ""} required /></Control><Control label="السعر قبل الخصم"><input name="oldPrice" type="number" defaultValue={editing?.oldPrice || ""} /></Control></div>
-                <div className="two"><Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" defaultValue={editing?.rating || 4.8} /></Control><Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "New"} /></Control></div>
-                <Control label="الأحجام/الخيارات مفصولة بفواصل"><input name="sizes" defaultValue={editing?.sizes || "40,41,42,43"} /></Control>
-                <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
-                <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
-                {imagePreview && <div className="product-image-preview"><span>معاينة الصورة</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
-                <div className="form-actions"><button className="admin-primary"><Save size={16}/> حفظ المنتج</button>{editing && <button type="button" className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>إلغاء</button>}</div>
+          <section className="admin-products-pro">
+            <div className="admin-card product-form-card pro-form-card">
+              <div className="pro-card-head">
+                <div>
+                  <span>Product editor</span>
+                  <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
+                </div>
+                {editing && <button className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>منتج جديد</button>}
+              </div>
+
+              <form onSubmit={saveProduct} className="product-form pro-product-form">
+                <div className="pro-form-section">
+                  <h3>معلومات المنتج</h3>
+                  <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} required placeholder="مثال: مونستيرا فاخرة" /></Control>
+                  <Control label="الوصف"><textarea name="description" defaultValue={editing?.description || ""} placeholder="اكتب وصف مختصر وجميل للمنتج" /></Control>
+                  <div className="two">
+                    <Control label="النوع/المورد"><input name="brand" defaultValue={editing?.brand || ""} required placeholder="Monstera" /></Control>
+                    <Control label="القسم"><input name="category" defaultValue={editing?.category || "نباتات داخلية"} required /></Control>
+                  </div>
+                </div>
+
+                <div className="pro-form-section">
+                  <h3>السعر والمخزون</h3>
+                  <div className="two">
+                    <Control label="السعر"><input name="price" type="number" min="0" step="1" defaultValue={editing?.price || ""} required /></Control>
+                    <Control label="السعر قبل الخصم"><input name="oldPrice" type="number" min="0" step="1" defaultValue={editing?.oldPrice || ""} /></Control>
+                  </div>
+                  <div className="two">
+                    <Control label="المخزون"><input name="stock" type="number" min="0" step="1" defaultValue={editing?.stock || 0} /></Control>
+                    <Control label="SKU"><input name="sku" defaultValue={editing?.sku || ""} placeholder="GD-PLANT-001" /></Control>
+                  </div>
+                  <div className="two">
+                    <Control label="حالة المنتج">
+                      <select name="status" defaultValue={editing?.status || "active"}>
+                        <option value="active">ظاهر في المتجر</option>
+                        <option value="hidden">مخفي</option>
+                      </select>
+                    </Control>
+                    <Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" min="0" defaultValue={editing?.rating || 4.8} /></Control>
+                  </div>
+                </div>
+
+                <div className="pro-form-section">
+                  <h3>الخيارات والصورة</h3>
+                  <div className="two">
+                    <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
+                    <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={editing?.sizes || "صغير,متوسط,كبير"} /></Control>
+                  </div>
+                  <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
+                  <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
+                  {imagePreview && <div className="product-image-preview pro-preview"><span>معاينة الصورة</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
+                  <label className="feature-toggle">
+                    <input name="featured" type="checkbox" defaultChecked={editing?.featured || false} />
+                    <span>منتج مميز في الواجهة</span>
+                  </label>
+                </div>
+
+                <div className="form-actions pro-actions">
+                  <button className="admin-primary"><Save size={16}/> {editing ? "حفظ التعديل" : "إضافة المنتج"}</button>
+                  {editing && <button type="button" className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>إلغاء التعديل</button>}
+                </div>
               </form>
             </div>
-            <div className="admin-card products-manager">
-              <h2>قائمة المنتجات</h2>
-              <div className="admin-products-list">
+
+            <div className="admin-card products-manager pro-products-manager">
+              <div className="pro-card-head">
+                <div>
+                  <span>Catalogue</span>
+                  <h2>المنتجات</h2>
+                </div>
+                <b className="products-count">{products.length} منتج</b>
+              </div>
+
+              <div className="admin-product-cards">
                 {products.map(p => (
-                  <div className="admin-product-row" key={p.id}>
-                    <img src={p.image} />
-                    <div><b>{p.name}</b><span>{p.brand} • {formatPrice(p.price)} ر.س</span></div>
-                    <button onClick={()=>setEditing(p)}><Pencil size={16}/></button>
-                    <button onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={16}/></button>
+                  <div className="admin-product-card" key={p.id}>
+                    <div className="admin-product-thumb">
+                      <img src={p.image} />
+                      <span className={p.status === "hidden" ? "status hidden" : "status active"}>
+                        {p.status === "hidden" ? "مخفي" : "ظاهر"}
+                      </span>
+                    </div>
+
+                    <div className="admin-product-info">
+                      <div>
+                        <small>{p.category}</small>
+                        <h3>{p.name}</h3>
+                        <p>{p.description || p.brand}</p>
+                      </div>
+
+                      <div className="admin-product-meta">
+                        <span>{formatPrice(p.price)} ر.س</span>
+                        <span>المخزون: {p.stock ?? 0}</span>
+                        {p.sku && <span>SKU: {p.sku}</span>}
+                      </div>
+
+                      <div className="admin-product-actions">
+                        <button onClick={()=>setEditing(p)}><Pencil size={16}/> تعديل</button>
+                        <button className="danger" onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={16}/> حذف</button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
