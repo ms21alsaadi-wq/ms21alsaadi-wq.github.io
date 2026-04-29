@@ -2495,3 +2495,113 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     justify-self: start !important;
   }
 }
+
+
+/* ===== STOREFRONT FIREBASE PRODUCTS + CART V1 ===== */
+.luxe-cart-item {
+  align-items: stretch !important;
+  border: 1px solid rgba(194,169,104,.22) !important;
+  background: #fffdf7 !important;
+  border-radius: 22px !important;
+  padding: 12px !important;
+}
+
+.luxe-cart-item img {
+  width: 86px !important;
+  height: 86px !important;
+  border-radius: 18px !important;
+  object-fit: cover !important;
+}
+
+.cart-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.cart-item-info b {
+  color: #0F3D2E;
+  font-size: 15px;
+}
+
+.cart-item-info span {
+  color: #6B8E23;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cart-item-info strong {
+  color: #0F3D2E;
+}
+
+.qty-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  background: #F5F1E8;
+  border: 1px solid rgba(194,169,104,.22);
+  border-radius: 999px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.qty-controls button {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  border: 0 !important;
+  background: #0F3D2E !important;
+  color: #fff !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  font-weight: 900 !important;
+}
+
+.qty-controls em {
+  min-width: 24px;
+  text-align: center;
+  color: #0F3D2E;
+  font-weight: 900;
+  font-style: normal;
+}
+
+.remove-cart {
+  align-self: center;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 14px !important;
+  background: #fff7f3 !important;
+  color: #7f1d1d !important;
+  border: 1px solid rgba(127,29,29,.18) !important;
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 40px 20px;
+  border-radius: 22px;
+  background: #fffdf7;
+  border: 1px dashed rgba(194,169,104,.38);
+  color: #6B8E23;
+  font-weight: 900;
+}
+
+.cart-foot button:disabled,
+.product-foot button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.clear-cart {
+  margin-top: 10px;
+  background: transparent !important;
+  color: #7f1d1d !important;
+  border: 1px solid rgba(127,29,29,.22) !important;
+  box-shadow: none !important;
+}
+
+.product-foot button:disabled {
+  background: #6b705f !important;
+}

@@ -147,6 +147,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    localStorage.setItem("green-dixam-cart", JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
     if (!settings?.logo) return;
     let link = document.querySelector("link[rel~='icon']");
     if (!link) {
@@ -339,14 +343,20 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
   const [queryText, setQueryText] = useState("");
   const [brand, setBrand] = useState("All");
   const [category, setCategory] = useState("All");
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("green-dixam-cart") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState({});
   const [favorites, setFavorites] = useState([]);
 
   const brands = ["All", ...new Set(products.map(p => p.brand).filter(Boolean))];
   const categories = ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
-  const filtered = useMemo(() => products.filter(p => {
+  const filtered = useMemo(() => products.filter(p => (p.status || "active") !== "hidden").filter(p => {
     const q = queryText.toLowerCase().trim();
     return (!q || p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)) &&
       (brand === "All" || p.brand === brand) &&
