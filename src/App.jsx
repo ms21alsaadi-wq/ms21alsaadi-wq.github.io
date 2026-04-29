@@ -595,6 +595,31 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
   const [tab, setTab] = useState("dashboard");
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
+  const [draftSettings, setDraftSettings] = useState(settings);
+  const [imagePreview, setImagePreview] = useState(editing?.image || "");
+
+  useEffect(() => {
+    setDraftSettings(settings);
+  }, [settings]);
+
+  useEffect(() => {
+    setImagePreview(editing?.image || "");
+  }, [editing]);
+
+  const updateDraft = (key, value) => {
+    setDraftSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const saveDraftSettings = async () => {
+    await saveSettings(draftSettings);
+  };
+
+  const resetDraftSettings = () => {
+    setDraftSettings(settings);
+    setNotice("تم إلغاء التغييرات غير المحفوظة");
+    setTimeout(() => setNotice(""), 1800);
+  };
+
   const totalValue = products.reduce((n,p)=>n+Number(p.price || 0),0);
 
   const saveSettings = async (patch) => {
@@ -607,7 +632,7 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
   const uploadSettingImage = async (key, file) => {
     if (!file) return;
     const data = await fileToDataUrl(file);
-    await saveSettings({ [key]: data });
+    updateDraft(key, data);
   };
 
   const saveProduct = async (e) => {
@@ -630,6 +655,7 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
     };
     await setDoc(doc(db, "products", id), product, { merge: true });
     setEditing(null);
+    setImagePreview("");
     f.reset();
     setTab("products");
   };
@@ -653,6 +679,18 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
           <div className="admin-actions"><button onClick={()=>go("/")}><Eye size={16}/> معاينة</button><button onClick={()=>setDoc(doc(db,"store","settings"), defaultSettings)}><RotateCw size={16}/> إعادة الهوية</button></div>
         </header>
         {notice && <div className="notice">{notice}</div>}
+        {(tab === "identity" || tab === "banners") && (
+          <div className="admin-save-bar">
+            <div>
+              <b>التغييرات غير محفوظة حتى تضغط حفظ</b>
+              <span>أي تعديل في الهوية أو البنرات لن يظهر في المتجر إلا بعد الحفظ.</span>
+            </div>
+            <div className="save-bar-actions">
+              <button className="admin-secondary" onClick={resetDraftSettings}>إلغاء التغييرات</button>
+              <button className="admin-primary" onClick={saveDraftSettings}>حفظ التغييرات</button>
+            </div>
+          </div>
+        )}
 
         {tab === "dashboard" && (
           <section className="dash-grid">
@@ -668,23 +706,23 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
             <div className="admin-card">
               <h2>ألوان جاهزة</h2>
               <div className="palette-grid">
-                {palettes.map(p => <button key={p.name} onClick={()=>saveSettings(p)}><span>{p.name}</span><i style={{background:p.primaryColor}}/><i style={{background:p.accentColor}}/><i style={{background:p.backgroundColor}}/></button>)}
+                {palettes.map(p => <button key={p.name} onClick={()=>setDraftSettings(s=>({...s,...p}))}><span>{p.name}</span><i style={{background:p.primaryColor}}/><i style={{background:p.accentColor}}/><i style={{background:p.backgroundColor}}/></button>)}
               </div>
             </div>
             <div className="admin-card">
               <h2>تعديل الهوية</h2>
-              <Control label="اسم المتجر"><input value={settings.storeName} onChange={e=>saveSettings({storeName:e.target.value})} /></Control>
-              <Control label="الوصف القصير"><input value={settings.tagline} onChange={e=>saveSettings({tagline:e.target.value})} /></Control>
-              <Control label="الخط"><select value={settings.fontFamily} onChange={e=>saveSettings({fontFamily:e.target.value})}><option>Cairo</option><option>Tajawal</option></select></Control>
-              <Control label="اللون الأساسي"><input type="color" value={settings.primaryColor} onChange={e=>saveSettings({primaryColor:e.target.value})} /></Control>
-              <Control label="لون اللمسة"><input type="color" value={settings.accentColor} onChange={e=>saveSettings({accentColor:e.target.value})} /></Control>
-              <Control label="لون الخلفية"><input type="color" value={settings.backgroundColor} onChange={e=>saveSettings({backgroundColor:e.target.value})} /></Control>
+              <Control label="اسم المتجر"><input value={draftSettings.storeName} onChange={e=>updateDraft("storeName",e.target.value)} /></Control>
+              <Control label="الوصف القصير"><input value={draftSettings.tagline} onChange={e=>updateDraft("tagline",e.target.value)} /></Control>
+              <Control label="الخط"><select value={draftSettings.fontFamily} onChange={e=>updateDraft("fontFamily",e.target.value)}><option>Cairo</option><option>Tajawal</option></select></Control>
+              <Control label="اللون الأساسي"><input type="color" value={draftSettings.primaryColor} onChange={e=>updateDraft("primaryColor",e.target.value)} /></Control>
+              <Control label="لون اللمسة"><input type="color" value={draftSettings.accentColor} onChange={e=>updateDraft("accentColor",e.target.value)} /></Control>
+              <Control label="لون الخلفية"><input type="color" value={draftSettings.backgroundColor} onChange={e=>updateDraft("backgroundColor",e.target.value)} /></Control>
             </div>
             <div className="admin-card">
               <h2>الشعار</h2>
-              <Control label="رابط الشعار"><input value={settings.logo} onChange={e=>saveSettings({logo:e.target.value})} /></Control>
+              <Control label="رابط الشعار"><input value={draftSettings.logo} onChange={e=>updateDraft("logo",e.target.value)} /></Control>
               <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control>
-              {settings.logo && <img className="admin-image-preview small" src={settings.logo} />}
+              {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} />}
             </div>
           </section>
         )}
@@ -693,23 +731,23 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
           <section className="admin-grid">
             <div className="admin-card">
               <h2>الهيرو الرئيسي</h2>
-              <Control label="عنوان الهيرو"><input value={settings.heroTitle} onChange={e=>saveSettings({heroTitle:e.target.value})} /></Control>
-              <Control label="وصف الهيرو"><textarea value={settings.heroSubtitle} onChange={e=>saveSettings({heroSubtitle:e.target.value})} /></Control>
-              <Control label="رابط صورة الهيرو"><input value={settings.heroImage} onChange={e=>saveSettings({heroImage:e.target.value})} /></Control>
+              <Control label="عنوان الهيرو"><input value={draftSettings.heroTitle} onChange={e=>updateDraft("heroTitle",e.target.value)} /></Control>
+              <Control label="وصف الهيرو"><textarea value={draftSettings.heroSubtitle} onChange={e=>updateDraft("heroSubtitle",e.target.value)} /></Control>
+              <Control label="رابط صورة الهيرو"><input value={draftSettings.heroImage} onChange={e=>updateDraft("heroImage",e.target.value)} /></Control>
               <Control label="أو ارفع صورة"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("heroImage", e.target.files[0])} /></Control>
-              <Control label={`ارتفاع البنر: ${settings.heroHeight}px`}><input type="range" min="320" max="760" value={settings.heroHeight} onChange={e=>saveSettings({heroHeight:Number(e.target.value)})} /></Control>
+              <Control label={`ارتفاع البنر: ${draftSettings.heroHeight}px`}><input type="range" min="320" max="760" value={draftSettings.heroHeight} onChange={e=>updateDraft("heroHeight",Number(e.target.value))} /></Control>
             </div>
             <div className="admin-card">
               <h2>بنر العروض</h2>
-              <Control label="عنوان البنر"><input value={settings.bannerTitle} onChange={e=>saveSettings({bannerTitle:e.target.value})} /></Control>
-              <Control label="وصف البنر"><textarea value={settings.bannerSubtitle} onChange={e=>saveSettings({bannerSubtitle:e.target.value})} /></Control>
-              <Control label="رابط صورة البنر"><input value={settings.bannerImage} onChange={e=>saveSettings({bannerImage:e.target.value})} /></Control>
+              <Control label="عنوان البنر"><input value={draftSettings.bannerTitle} onChange={e=>updateDraft("bannerTitle",e.target.value)} /></Control>
+              <Control label="وصف البنر"><textarea value={draftSettings.bannerSubtitle} onChange={e=>updateDraft("bannerSubtitle",e.target.value)} /></Control>
+              <Control label="رابط صورة البنر"><input value={draftSettings.bannerImage} onChange={e=>updateDraft("bannerImage",e.target.value)} /></Control>
               <Control label="أو ارفع صورة"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("bannerImage", e.target.files[0])} /></Control>
             </div>
             <div className="admin-card">
               <h2>أحجام الصور</h2>
-              <Control label={`ارتفاع صور المنتجات: ${settings.productImageHeight}px`}><input type="range" min="180" max="420" value={settings.productImageHeight} onChange={e=>saveSettings({productImageHeight:Number(e.target.value)})} /></Control>
-              <img className="admin-image-preview" src={settings.heroImage} />
+              <Control label={`ارتفاع صور المنتجات: ${draftSettings.productImageHeight}px`}><input type="range" min="180" max="420" value={draftSettings.productImageHeight} onChange={e=>updateDraft("productImageHeight",Number(e.target.value))} /></Control>
+              <img className="admin-image-preview" src={draftSettings.heroImage} />
             </div>
           </section>
         )}
@@ -725,9 +763,10 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
                 <div className="two"><Control label="السعر"><input name="price" type="number" defaultValue={editing?.price || ""} required /></Control><Control label="السعر قبل الخصم"><input name="oldPrice" type="number" defaultValue={editing?.oldPrice || ""} /></Control></div>
                 <div className="two"><Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" defaultValue={editing?.rating || 4.8} /></Control><Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "New"} /></Control></div>
                 <Control label="الأحجام/الخيارات مفصولة بفواصل"><input name="sizes" defaultValue={editing?.sizes || "40,41,42,43"} /></Control>
-                <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} /></Control>
-                <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" /></Control>
-                <div className="form-actions"><button className="admin-primary"><Save size={16}/> حفظ المنتج</button>{editing && <button type="button" className="admin-secondary" onClick={()=>setEditing(null)}>إلغاء</button>}</div>
+                <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
+                <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file)); }} /></Control>
+                {imagePreview && <div className="product-image-preview"><span>معاينة الصورة</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
+                <div className="form-actions"><button className="admin-primary"><Save size={16}/> حفظ المنتج</button>{editing && <button type="button" className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>إلغاء</button>}</div>
               </form>
             </div>
             <div className="admin-card products-manager">
