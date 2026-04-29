@@ -351,7 +351,7 @@ function AuthShell({ title, subtitle, children, settings }) {
 
 function Store({ settings, products, authUser, customer, setCustomer, go, path }) {
   if (path.startsWith("/login")) return <CustomerAuth go={go} settings={settings} />;
-  if (path.startsWith("/account")) return authUser ? <Account customer={customer} setCustomer={setCustomer} go={go} settings={settings} /> : <CustomerAuth go={go} settings={settings} />;
+  if (path.startsWith("/account")) return authUser ? <Account customer={customer} setCustomer={setCustomer} go={go} settings={settings} orders={orders} authUser={authUser} /> : <CustomerAuth go={go} settings={settings} />;
 
   const [queryText, setQueryText] = useState("");
   const [brand, setBrand] = useState("All");
@@ -602,56 +602,164 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
   );
 }
 
-function Account({ customer, setCustomer, go, settings }) {
-  const [message, setMessage] = useState("");
+function Account({ customer, setCustomer, go, settings, orders = [], authUser }) {
+  const [profile, setProfile] = useState(customer || {});
+  const [notice, setNotice] = useState("");
 
-  async function saveProfile(e) {
+  useEffect(() => {
+    setProfile(customer || {});
+  }, [customer]);
+
+  const myOrders = orders
+    .filter(o => {
+      const email = authUser?.email || customer?.email || "";
+      const uid = authUser?.uid || customer?.uid || customer?.id || "";
+      return (
+        (email && (o.customerEmail === email || o.email === email)) ||
+        (uid && (o.customerId === uid || o.uid === uid))
+      );
+    })
+    .map(o => ({
+      ...o,
+      status: o.status || "new",
+      total: Number(o.total || 0),
+      items: o.items || []
+    }))
+    .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
+
+  const statusText = {
+    new: "تم استلام الطلب",
+    processing: "قيد التجهيز",
+    shipped: "تم الشحن",
+    completed: "مكتمل",
+    cancelled: "ملغي"
+  };
+
+  const saveProfile = async (e) => {
     e.preventDefault();
-    const data = {
-      name: e.target.name.value,
-      email: auth.currentUser.email,
-      phone: e.target.phone.value,
-      city: e.target.city.value,
-      address: e.target.address.value,
+    if (!authUser?.uid) return;
+
+    await setDoc(doc(db, "customers", authUser.uid), {
+      ...profile,
+      email: authUser.email || profile.email || "",
+      uid: authUser.uid,
       updatedAt: serverTimestamp()
-    };
-    await setDoc(doc(db, "customers", auth.currentUser.uid), data, { merge: true });
-    setCustomer({ id: auth.currentUser.uid, ...customer, ...data });
-    setMessage("تم حفظ بياناتك");
-  }
+    }, { merge: true });
+
+    setCustomer(prev => ({ ...prev, ...profile }));
+    setNotice("تم حفظ بياناتك بنجاح");
+    setTimeout(() => setNotice(""), 2200);
+  };
 
   return (
-    <div className="store account-page" dir="rtl">
-      <header className="store-header">
-        <div className="container luxe-nav account-nav">
-          <button className="luxe-logo" onClick={() => go("/")}>
-            {settings?.logo ? <img src={settings.logo} alt="logo" /> : <b>حسابي</b>}
-            <span>Customer Profile</span>
-          </button>
-          <nav className="luxe-nav-center">
-            <button onClick={() => go("/")}>المتجر</button>
-            <button onClick={() => signOut(auth)}>تسجيل خروج</button>
-          </nav>
-        </div>
+    <main className="customer-account-page">
+      <header className="account-header-pro">
+        <button className="luxe-logo" onClick={() => go("/")}>
+          {settings?.logo ? <img src={settings.logo} alt="logo" /> : <b>{settings?.storeName || "GREEN DIXAM"}</b>}
+          <span>Customer Account</span>
+        </button>
+
+        <button className="admin-secondary" onClick={() => go("/")}>رجوع للمتجر</button>
       </header>
-      <main className="container account-wrap">
+
+      <section className="account-hero-card">
+        <div>
+          <span>My Account</span>
+          <h1>حسابي</h1>
+          <p>تابع بياناتك وطلباتك وحالة الشحن من هنا.</p>
+        </div>
+        <div className="account-stats">
+          <div><b>{myOrders.length}</b><small>طلب</small></div>
+          <div><b>{formatPrice(myOrders.reduce((s,o)=>s+o.total,0))}</b><small>إجمالي مشتريات</small></div>
+        </div>
+      </section>
+
+      {notice && <div className="notice account-notice">{notice}</div>}
+
+      <section className="customer-account-grid">
         <div className="account-card">
-          <h1>بيانات العميل</h1>
-          <p>أكمل بياناتك حتى نستخدمها تلقائياً عند إتمام الطلب.</p>
-          {message && <div className="notice">{message}</div>}
-          <form onSubmit={saveProfile} className="profile-form">
-            <label><span><User/> الاسم</span><input name="name" defaultValue={customer?.name || auth.currentUser?.displayName || ""} required /></label>
-            <label><span><Mail/> الإيميل</span><input value={auth.currentUser?.email || ""} disabled /></label>
-            <label><span><Phone/> رقم الجوال</span><input name="phone" defaultValue={customer?.phone || ""} placeholder="+9665XXXXXXXX" required /></label>
-            <label><span><MapPin/> المدينة</span><input name="city" defaultValue={customer?.city || ""} placeholder="الرياض" required /></label>
-            <label><span><Home/> العنوان</span><textarea name="address" defaultValue={customer?.address || ""} placeholder="الحي، الشارع، رقم المبنى" required /></label>
-            <button className="primary">حفظ البيانات</button>
+          <div className="account-card-head">
+            <span>Profile</span>
+            <h2>بيانات العميل</h2>
+          </div>
+
+          <form onSubmit={saveProfile} className="customer-profile-form">
+            <label>الاسم
+              <input value={profile.name || ""} onChange={e=>setProfile(p=>({...p,name:e.target.value}))} placeholder="اسم العميل" />
+            </label>
+
+            <label>رقم الجوال
+              <input value={profile.phone || ""} onChange={e=>setProfile(p=>({...p,phone:e.target.value}))} placeholder="05xxxxxxxx" />
+            </label>
+
+            <label>المدينة
+              <input value={profile.city || ""} onChange={e=>setProfile(p=>({...p,city:e.target.value}))} placeholder="الرياض" />
+            </label>
+
+            <label>العنوان
+              <textarea value={profile.address || ""} onChange={e=>setProfile(p=>({...p,address:e.target.value}))} placeholder="العنوان الكامل" />
+            </label>
+
+            <button className="admin-primary">حفظ بياناتي</button>
           </form>
         </div>
-      </main>
-    </div>
+
+        <div className="account-card orders-account-card">
+          <div className="account-card-head">
+            <span>Orders</span>
+            <h2>طلباتي</h2>
+          </div>
+
+          <div className="customer-orders-list">
+            {myOrders.map(order => (
+              <div className="customer-order-card" key={order.id}>
+                <div className="customer-order-top">
+                  <div>
+                    <span>#{String(order.id || "").slice(0, 8)}</span>
+                    <h3>{formatPrice(order.total)} ر.س</h3>
+                    <p>{formatOrderDate(order.createdAt)}</p>
+                  </div>
+                  <em className={`customer-order-status ${order.status}`}>{statusText[order.status] || order.status}</em>
+                </div>
+
+                <div className="customer-order-products">
+                  {order.items.slice(0, 3).map((item, i) => (
+                    <div key={i}>
+                      {item.image && <img src={item.image} />}
+                      <span>{item.name}</span>
+                      <b>{item.qty || 1}x</b>
+                    </div>
+                  ))}
+                  {order.items.length > 3 && <small>+{order.items.length - 3} منتجات أخرى</small>}
+                </div>
+
+                <div className="customer-shipping-info">
+                  <div>
+                    <span>شركة الشحن</span>
+                    <b>{order.shippingCompany === "other" ? (order.customShipping || "أخرى") : (order.shippingCompany || "لم تحدد بعد")}</b>
+                  </div>
+                  <div>
+                    <span>رقم التتبع</span>
+                    <b>{order.trackingNumber || "لم يصدر بعد"}</b>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {myOrders.length === 0 && (
+              <div className="customer-empty-orders">
+                <h3>لا توجد طلبات بعد</h3>
+                <p>بعد إتمام أول طلب سيظهر هنا مع حالة الشحن والتتبع.</p>
+                <button className="admin-secondary" onClick={() => go("/")}>تصفح المنتجات</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
+
 
 function Footer({ settings }) {
   return (
