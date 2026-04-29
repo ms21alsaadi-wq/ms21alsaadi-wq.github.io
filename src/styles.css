@@ -1555,3 +1555,20 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     max-height: 60px;
   }
 }
+
+
+/* ===== LOGO SAVE FIX UI ===== */
+.admin-help-text {
+  margin: -4px 0 12px;
+  color: #6B8E23;
+  font-size: 12px;
+  line-height: 1.7;
+  font-weight: 700;
+}
+
+.notice {
+  border: 1px solid rgba(194,169,104,.25);
+  background: #fffaf0 !important;
+  color: #0F3D2E !important;
+  font-weight: 800;
+}

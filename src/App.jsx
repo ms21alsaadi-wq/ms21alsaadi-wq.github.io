@@ -63,12 +63,51 @@ function formatPrice(value) {
 function sizesArray(sizes) {
   return String(sizes || "").split(",").map(s => s.trim()).filter(Boolean);
 }
-function fileToDataUrl(file) {
+function fileToDataUrl(file, options = {}) {
+  const {
+    maxWidth = 900,
+    maxHeight = 900,
+    quality = 0.82,
+    mimeType = "image/jpeg"
+  } = options;
+
   return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
+    if (!file) return resolve("");
+
+    if (!file.type || !file.type.startsWith("image/")) {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let { width, height } = img;
+
+        const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#F5F1E8";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL(mimeType, quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
   });
 }
 function uid() {
@@ -627,7 +666,8 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
   };
 
   const saveDraftSettings = async () => {
-    await saveSettings(draftSettings);
+    const ok = await saveSettings(draftSettings);
+    if (ok) setDraftSettings(prev => ({ ...prev }));
   };
 
   const resetDraftSettings = () => {
@@ -639,15 +679,31 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
   const totalValue = products.reduce((n,p)=>n+Number(p.price || 0),0);
 
   const saveSettings = async (patch) => {
-    await setDoc(doc(db, "store", "settings"), { ...settings, ...patch }, { merge: true });
-    setSettings(s => ({ ...s, ...patch }));
-    setNotice("تم الحفظ");
-    setTimeout(() => setNotice(""), 1800);
+    try {
+      await setDoc(doc(db, "store", "settings"), { ...settings, ...patch }, { merge: true });
+      setSettings(s => ({ ...s, ...patch }));
+      setNotice("تم حفظ التغييرات بنجاح");
+      setTimeout(() => setNotice(""), 2200);
+      return true;
+    } catch (error) {
+      console.error("Save settings failed:", error);
+      setNotice("تعذر الحفظ. غالبًا حجم الصورة كبير، جرّب شعار أصغر أو ارفعه مرة ثانية.");
+      setTimeout(() => setNotice(""), 5000);
+      return false;
+    }
   };
 
   const uploadSettingImage = async (key, file) => {
     if (!file) return;
-    const data = await fileToDataUrl(file);
+    const data = await fileToDataUrl(file, key === "logo" ? {
+      maxWidth: 520,
+      maxHeight: 220,
+      quality: 0.78
+    } : {
+      maxWidth: 1400,
+      maxHeight: 900,
+      quality: 0.82
+    });
     updateDraft(key, data);
   };
 
@@ -655,7 +711,7 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
     e.preventDefault();
     const f = e.target;
     let image = f.imageUrl.value.trim();
-    if (f.imageFile.files[0]) image = await fileToDataUrl(f.imageFile.files[0]);
+    if (f.imageFile.files[0]) image = await fileToDataUrl(f.imageFile.files[0], { maxWidth: 1100, maxHeight: 900, quality: 0.82 });
     const id = editing?.id || uid();
     const product = {
       name: f.name.value,
@@ -740,7 +796,7 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
             <div className="admin-card">
               <h2>الشعار</h2>
               <Control label="رابط الشعار"><input value={draftSettings.logo} onChange={e=>updateDraft("logo",e.target.value)} /></Control>
-              <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control>
+              <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control><p className="admin-help-text">يفضل رفع شعار PNG أو JPG بحجم صغير. سيتم ضغطه تلقائيًا قبل الحفظ.</p>
               {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} />}
             </div>
           </section>
@@ -783,7 +839,7 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
                 <div className="two"><Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" defaultValue={editing?.rating || 4.8} /></Control><Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "New"} /></Control></div>
                 <Control label="الأحجام/الخيارات مفصولة بفواصل"><input name="sizes" defaultValue={editing?.sizes || "40,41,42,43"} /></Control>
                 <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
-                <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file)); }} /></Control>
+                <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
                 {imagePreview && <div className="product-image-preview"><span>معاينة الصورة</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
                 <div className="form-actions"><button className="admin-primary"><Save size={16}/> حفظ المنتج</button>{editing && <button type="button" className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>إلغاء</button>}</div>
               </form>
