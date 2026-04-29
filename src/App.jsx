@@ -491,7 +491,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
           <p>{settings.heroSubtitle}</p>
           <div className="hero-actions">
             <a href="#products" className="primary">تسوق الآن</a>
-            <button className="secondary" onClick={() => go(authUser ? "/account" : "/login")}>حساب العميل</button>
+            <button className="secondary" onClick={() => go(authUser ? "/account" : "/login")}></button>
           </div>
           <div className="stats">
             <div><b>{products.length}+</b><span>منتجات</span></div>
@@ -504,7 +504,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
 
       <section className="container feature-grid">
         <Feature icon={<Truck/>} title="توصيل سريع" text="تغليف فاخر للنباتات مع تغليف يحافظ عليها." />
-        <Feature icon={<ShieldCheck/>} title="حسابات عملاء" text="حساب العميل يحفظ بياناته وطلباته لتجربة أسهل." />
+        <Feature icon={<ShieldCheck/>} title="حسابات عملاء" text=" يحفظ بياناته وطلباته لتجربة أسهل." />
         <Feature icon={<RotateCcw/>} title="طلبات منظمة" text="كل طلب محفوظ ومنظم داخل لوحة التحكم." />
       </section>
 
