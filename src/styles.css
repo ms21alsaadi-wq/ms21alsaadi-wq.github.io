@@ -4021,38 +4021,3 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     flex-direction: column;
   }
 }
-
-
-/* ===== TRACKING LINKS WITHOUT API ===== */
-.tracking-link-admin,
-.tracking-link-customer,
-.tracking-link-modal {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  border-radius: 14px;
-  padding: 10px 14px;
-  background: linear-gradient(135deg, #0F3D2E, #174d39);
-  color: #fff !important;
-  font-weight: 900;
-  text-decoration: none !important;
-  border: 1px solid rgba(194,169,104,.25);
-  box-shadow: 0 12px 28px rgba(15,61,46,.14);
-}
-
-.tracking-link-admin,
-.tracking-link-customer {
-  width: 100%;
-  margin-top: 10px;
-}
-
-.tracking-modal-row {
-  display: grid;
-  gap: 8px;
-}
-
-.tracking-link-modal {
-  width: 100%;
-  box-sizing: border-box;
-}
