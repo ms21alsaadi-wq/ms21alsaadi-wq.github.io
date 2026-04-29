@@ -483,48 +483,7 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
           </div>
         </div>
         <div className="hero-image"><img src={settings.heroImage} alt="hero" /></div>
-      
-{selectedOrder && (
-  <div className="order-popup-overlay" onClick={() => setSelectedOrder(null)}>
-    <div className="order-popup" onClick={(e) => e.stopPropagation()}>
-      <h2>تفاصيل الطلب</h2>
-
-      <div className="popup-section">
-        <b>العميل:</b>
-        <span>{selectedOrder.name || selectedOrder.customerName}</span>
-        <span>{selectedOrder.phone}</span>
-        <span>{selectedOrder.email}</span>
-      </div>
-
-      <div className="popup-section">
-        <b>العنوان:</b>
-        <span>{selectedOrder.address}</span>
-      </div>
-
-      <div className="popup-section">
-        <b>المنتجات:</b>
-        {selectedOrder.items.map((item, i) => (
-          <div key={i} className="popup-item">
-            <img src={item.image} />
-            <span>{item.name}</span>
-            <b>{item.qty || 1}x</b>
-          </div>
-        ))}
-      </div>
-
-      <div className="popup-section">
-        <b>الإجمالي:</b>
-        <span>{formatPrice(selectedOrder.total)} ر.س</span>
-      </div>
-
-      <button className="close-btn" onClick={() => setSelectedOrder(null)}>
-        إغلاق
-      </button>
-    </div>
-  </div>
-)}
-
-</section>
+      </section>
 
       <section className="container feature-grid">
         <Feature icon={<Truck/>} title="توصيل سريع" text="تغليف فاخر للنباتات مع تغليف يحافظ عليها." />
@@ -1196,7 +1155,6 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
 function CustomersPanel({ customers, orders }) {
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const filteredCustomers = customers.filter(c => {
     const text = `${c.name || ""} ${c.email || ""} ${c.phone || ""} ${c.city || ""} ${c.address || ""}`.toLowerCase();
@@ -1320,6 +1278,7 @@ function CustomersPanel({ customers, orders }) {
 function OrdersPanel({ orders }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const statusLabels = {
     new: "جديد",
@@ -1448,6 +1407,7 @@ function OrdersPanel({ orders }) {
             </div>
 
             <div className="order-actions-pro">
+              <button type="button" className="admin-secondary order-details-btn" onClick={() => setSelectedOrder(order)}>تفاصيل</button>
               <select
                 value={order.status}
                 onChange={e => updateOrderStatus(order.id, e.target.value)}
@@ -1459,7 +1419,6 @@ function OrdersPanel({ orders }) {
                 <option value="cancelled">ملغي</option>
               </select>
 
-              <button className="danger-action" onClick={() => setSelectedOrder(order)}>تفاصيل</button>
               <button className="danger-action" onClick={() => deleteOrder(order.id)}>
                 حذف
               </button>
@@ -1473,7 +1432,54 @@ function OrdersPanel({ orders }) {
           </div>
         )}
       </div>
-    </section>
+    
+      {selectedOrder && (
+        <div className="order-modal-backdrop" onClick={() => setSelectedOrder(null)}>
+          <div className="order-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="order-modal-head">
+              <div>
+                <span>Order Details</span>
+                <h2>تفاصيل الطلب</h2>
+              </div>
+              <button type="button" onClick={() => setSelectedOrder(null)}>×</button>
+            </div>
+
+            <div className="order-modal-info">
+              <div><span>رقم الطلب</span><b>#{String(selectedOrder.id || "").slice(0, 10)}</b></div>
+              <div><span>الحالة</span><b>{selectedOrder.status || "new"}</b></div>
+              <div><span>العميل</span><b>{selectedOrder.name || selectedOrder.customerName || "غير محدد"}</b></div>
+              <div><span>الجوال</span><b>{selectedOrder.phone || "غير متوفر"}</b></div>
+              <div><span>الإيميل</span><b>{selectedOrder.email || selectedOrder.customerEmail || "غير متوفر"}</b></div>
+              <div><span>الإجمالي</span><b>{formatPrice(Number(selectedOrder.total || 0))} ر.س</b></div>
+              <div className="wide"><span>العنوان</span><b>{selectedOrder.address || "غير متوفر"}</b></div>
+            </div>
+
+            <div className="order-modal-products">
+              <h3>المنتجات</h3>
+              {(selectedOrder.items || []).length ? (
+                (selectedOrder.items || []).map((item, i) => (
+                  <div className="order-modal-item" key={i}>
+                    {item.image ? <img src={item.image} alt={item.name || "product"} /> : <div className="order-modal-no-img">🌿</div>}
+                    <div>
+                      <b>{item.name || "منتج"}</b>
+                      <span>{item.selectedSize || item.size || item.category || ""}</span>
+                    </div>
+                    <em>{item.qty || 1}x</em>
+                  </div>
+                ))
+              ) : (
+                <p className="order-modal-empty">لا توجد منتجات داخل هذا الطلب.</p>
+              )}
+            </div>
+
+            <button type="button" className="admin-primary modal-close-main" onClick={() => setSelectedOrder(null)}>
+              إغلاق
+            </button>
+          </div>
+        </div>
+      )}
+
+</section>
   );
 }
 
