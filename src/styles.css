@@ -3690,3 +3690,334 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== CUSTOMER ACCOUNT TABS FINAL FIX ===== */
+.hero-actions .secondary:empty {
+  display: none !important;
+}
+
+.account-tabs-wrap {
+  padding-top: 40px;
+  padding-bottom: 52px;
+}
+
+.account-dashboard-card {
+  max-width: 1040px;
+  margin: auto;
+  background: rgba(255,250,240,.92);
+  border: 1px solid rgba(194,169,104,.28);
+  border-radius: 36px;
+  padding: 26px;
+  box-shadow: 0 24px 75px rgba(15,61,46,.09);
+}
+
+.account-dashboard-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(194,169,104,.20);
+}
+
+.account-dashboard-head span,
+.account-section-title span {
+  display: block;
+  color: #C2A968;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.account-dashboard-head h1,
+.account-section-title h2 {
+  margin: 0;
+  color: #0F3D2E;
+  font-family: 'Playfair Display', serif;
+}
+
+.account-dashboard-head h1 {
+  font-size: clamp(36px, 5vw, 58px);
+}
+
+.account-dashboard-head p,
+.account-section-title p {
+  margin: 8px 0 0;
+  color: #6b705f;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.account-mini-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.account-mini-stats div {
+  min-width: 135px;
+  background: #F5F1E8;
+  border: 1px solid rgba(194,169,104,.25);
+  border-radius: 22px;
+  padding: 14px;
+  text-align: center;
+}
+
+.account-mini-stats b {
+  display: block;
+  color: #0F3D2E;
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+}
+
+.account-mini-stats small {
+  color: #6B8E23;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.account-tabs-pro {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0 18px;
+  margin-bottom: 18px;
+}
+
+.account-tabs-pro button {
+  border: 1px solid rgba(194,169,104,.30);
+  background: #fffdf7;
+  color: #0F3D2E;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 900;
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+.account-tabs-pro button.active {
+  background: linear-gradient(135deg, #0F3D2E, #174d39);
+  color: #fff;
+  border-color: #0F3D2E;
+}
+
+.account-tab-panel {
+  background: #fffdf7;
+  border: 1px solid rgba(194,169,104,.22);
+  border-radius: 30px;
+  padding: 24px;
+}
+
+.account-section-title {
+  margin-bottom: 20px;
+}
+
+.account-section-title h2 {
+  font-size: clamp(28px, 4vw, 42px);
+}
+
+.account-profile-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px !important;
+}
+
+.account-profile-grid label {
+  margin: 0 !important;
+}
+
+.account-profile-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.account-profile-grid button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-width: 180px;
+}
+
+.customer-orders-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.customer-order-pro {
+  background: #F5F1E8;
+  border: 1px solid rgba(194,169,104,.24);
+  border-radius: 26px;
+  padding: 16px;
+}
+
+.customer-order-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.customer-order-head span {
+  display: block;
+  color: #6B8E23;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.customer-order-head h3 {
+  margin: 4px 0;
+  color: #0F3D2E;
+  font-size: 28px;
+}
+
+.customer-order-head p {
+  margin: 0;
+  color: #6b705f;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.customer-order-status {
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.customer-order-status.new { background: rgba(59,130,246,.12); color: #1d4ed8; }
+.customer-order-status.processing { background: rgba(194,169,104,.22); color: #7a5b18; }
+.customer-order-status.shipped { background: rgba(107,142,35,.18); color: #3f6212; }
+.customer-order-status.completed { background: rgba(15,61,46,.14); color: #0F3D2E; }
+.customer-order-status.cancelled { background: rgba(127,29,29,.12); color: #7f1d1d; }
+
+.customer-order-items {
+  display: grid;
+  gap: 8px;
+}
+
+.customer-order-items div {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  background: #fffdf7;
+  border: 1px solid rgba(194,169,104,.18);
+  border-radius: 16px;
+  padding: 8px;
+}
+
+.customer-order-items img {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.customer-order-items span {
+  color: #0F3D2E;
+  font-weight: 800;
+}
+
+.customer-order-items b {
+  color: #6B8E23;
+}
+
+.customer-shipping-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.customer-shipping-grid div,
+.account-placeholder-card,
+.wallet-card,
+.account-empty-state {
+  background: #F5F1E8;
+  border: 1px solid rgba(194,169,104,.22);
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.customer-shipping-grid span,
+.wallet-card span {
+  display: block;
+  color: #6B8E23;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.customer-shipping-grid b,
+.account-placeholder-card b,
+.wallet-card b {
+  color: #0F3D2E;
+  word-break: break-word;
+}
+
+.account-placeholder-card {
+  display: grid;
+  gap: 8px;
+  color: #6b705f;
+  font-weight: 700;
+}
+
+.wallet-card b {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-size: 46px;
+  margin: 10px 0;
+}
+
+.wallet-card small {
+  color: #6b705f;
+  font-weight: 800;
+}
+
+.account-empty-state {
+  text-align: center;
+}
+
+.account-empty-state h3 {
+  color: #0F3D2E;
+  margin: 0 0 8px;
+}
+
+.account-empty-state p {
+  color: #6b705f;
+  font-weight: 700;
+}
+
+@media (max-width: 780px) {
+  .account-dashboard-card {
+    padding: 18px;
+    border-radius: 28px;
+  }
+
+  .account-dashboard-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .account-mini-stats {
+    flex-direction: column;
+  }
+
+  .account-profile-grid,
+  .customer-shipping-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .account-profile-grid button {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .customer-order-head {
+    flex-direction: column;
+  }
+}
