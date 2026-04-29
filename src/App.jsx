@@ -78,6 +78,21 @@ function orderTimestamp(value) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
+
+function getTrackingUrl(company, trackingNumber, customShipping = "") {
+  const code = String(trackingNumber || "").trim();
+  if (!code) return "";
+
+  const name = String(company || customShipping || "").toLowerCase();
+
+  if (name.includes("aramex")) return `https://www.aramex.com/track/results?ShipmentNumber=${encodeURIComponent(code)}`;
+  if (name.includes("smsa") || name.includes("سمسا")) return `https://www.smsaexpress.com/sa/track?tracknumbers=${encodeURIComponent(code)}`;
+  if (name.includes("dhl")) return `https://www.dhl.com/sa-en/home/tracking.html?tracking-id=${encodeURIComponent(code)}`;
+  if (name.includes("fedex")) return `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(code)}`;
+
+  return `https://www.google.com/search?q=${encodeURIComponent(`${customShipping || company || "tracking"} ${code}`)}`;
+}
+
 function sizesArray(sizes) {
   return String(sizes || "").split(",").map(s => s.trim()).filter(Boolean);
 }
@@ -741,6 +756,17 @@ function Account({ customer, setCustomer, orders = [], go, settings }) {
                         <div><span>شركة الشحن</span><b>{order.shippingCompany === "other" ? (order.customShipping || "أخرى") : (order.shippingCompany || "لم تحدد بعد")}</b></div>
                         <div><span>رقم التتبع</span><b>{order.trackingNumber || "لم يصدر بعد"}</b></div>
                       </div>
+
+                      {order.trackingNumber && (
+                        <a
+                          className="tracking-link-customer"
+                          href={getTrackingUrl(order.shippingCompany, order.trackingNumber, order.customShipping)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          تتبع الشحنة
+                        </a>
+                      )}
                     </article>
                   ))}
 
@@ -1789,6 +1815,17 @@ function OrdersPanel({ orders }) {
                 />
               )}
             </div>
+
+            {order.trackingNumber && (
+              <a
+                className="tracking-link-admin"
+                href={getTrackingUrl(order.shippingCompany, order.trackingNumber, order.customShipping)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                فتح تتبع الشحنة
+              </a>
+            )}
 
             <div className="order-actions-pro">
               <button type="button" className="admin-secondary order-details-btn" onClick={() => setSelectedOrder(order)}>تفاصيل</button>
