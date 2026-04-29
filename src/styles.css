@@ -3165,3 +3165,49 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   .order-actions-pro .danger-action { width: 100%; }
   .orders-filter-tabs button { flex: 1; }
 }
+
+.order-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.order-popup {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  display: grid;
+  gap: 16px;
+}
+
+.popup-section {
+  display: grid;
+  gap: 6px;
+}
+
+.popup-item {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.popup-item img {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+}
+
+.close-btn {
+  background: #0F3D2E;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+}

@@ -483,7 +483,48 @@ function Store({ settings, products, authUser, customer, setCustomer, go, path }
           </div>
         </div>
         <div className="hero-image"><img src={settings.heroImage} alt="hero" /></div>
-      </section>
+      
+{selectedOrder && (
+  <div className="order-popup-overlay" onClick={() => setSelectedOrder(null)}>
+    <div className="order-popup" onClick={(e) => e.stopPropagation()}>
+      <h2>تفاصيل الطلب</h2>
+
+      <div className="popup-section">
+        <b>العميل:</b>
+        <span>{selectedOrder.name || selectedOrder.customerName}</span>
+        <span>{selectedOrder.phone}</span>
+        <span>{selectedOrder.email}</span>
+      </div>
+
+      <div className="popup-section">
+        <b>العنوان:</b>
+        <span>{selectedOrder.address}</span>
+      </div>
+
+      <div className="popup-section">
+        <b>المنتجات:</b>
+        {selectedOrder.items.map((item, i) => (
+          <div key={i} className="popup-item">
+            <img src={item.image} />
+            <span>{item.name}</span>
+            <b>{item.qty || 1}x</b>
+          </div>
+        ))}
+      </div>
+
+      <div className="popup-section">
+        <b>الإجمالي:</b>
+        <span>{formatPrice(selectedOrder.total)} ر.س</span>
+      </div>
+
+      <button className="close-btn" onClick={() => setSelectedOrder(null)}>
+        إغلاق
+      </button>
+    </div>
+  </div>
+)}
+
+</section>
 
       <section className="container feature-grid">
         <Feature icon={<Truck/>} title="توصيل سريع" text="تغليف فاخر للنباتات مع تغليف يحافظ عليها." />
@@ -1155,6 +1196,7 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
 function CustomersPanel({ customers, orders }) {
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const filteredCustomers = customers.filter(c => {
     const text = `${c.name || ""} ${c.email || ""} ${c.phone || ""} ${c.city || ""} ${c.address || ""}`.toLowerCase();
@@ -1417,6 +1459,7 @@ function OrdersPanel({ orders }) {
                 <option value="cancelled">ملغي</option>
               </select>
 
+              <button className="danger-action" onClick={() => setSelectedOrder(order)}>تفاصيل</button>
               <button className="danger-action" onClick={() => deleteOrder(order.id)}>
                 حذف
               </button>
