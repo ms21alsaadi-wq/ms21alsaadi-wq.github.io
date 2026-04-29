@@ -653,6 +653,7 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
   const [imagePreview, setImagePreview] = useState(editing?.image || "");
+  const [pendingImport, setPendingImport] = useState([]);
 
   useEffect(() => {
     setDraftSettings(settings);
@@ -844,19 +845,44 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
         return;
       }
 
-      for (const product of productsToImport) {
+      setPendingImport(productsToImport);
+      setNotice(`تم تجهيز ${productsToImport.length} منتج للمعاينة. اضغط حفظ المنتجات المستوردة للتأكيد.`);
+      setTimeout(() => setNotice(""), 4500);
+      event.target.value = "";
+    } catch (error) {
+      console.error("Excel import failed:", error);
+      setNotice("تعذر قراءة الملف. تأكد أنه ملف Excel وبنفس قالب الأعمدة.");
+      setTimeout(() => setNotice(""), 5000);
+    }
+  };
+
+  const savePendingImport = async () => {
+    if (!pendingImport.length) {
+      setNotice("لا توجد منتجات مستوردة للحفظ");
+      setTimeout(() => setNotice(""), 2500);
+      return;
+    }
+
+    try {
+      for (const product of pendingImport) {
         const id = product.sku || uid();
         await setDoc(doc(db, "products", String(id)), product, { merge: true });
       }
 
-      setNotice(`تم استيراد ${productsToImport.length} منتج بنجاح`);
+      setNotice(`تم حفظ ${pendingImport.length} منتج في المتجر`);
+      setPendingImport([]);
       setTimeout(() => setNotice(""), 3500);
-      event.target.value = "";
     } catch (error) {
-      console.error("Excel import failed:", error);
-      setNotice("تعذر استيراد الملف. تأكد أنه ملف Excel وبنفس قالب الأعمدة.");
+      console.error("Save pending import failed:", error);
+      setNotice("تعذر حفظ المنتجات المستوردة. حاول مرة أخرى.");
       setTimeout(() => setNotice(""), 5000);
     }
+  };
+
+  const clearPendingImport = () => {
+    setPendingImport([]);
+    setNotice("تم إلغاء المنتجات المستوردة غير المحفوظة");
+    setTimeout(() => setNotice(""), 2500);
   };
 
   return (
@@ -955,8 +981,55 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
         )}
 
         {tab === "products" && (
-          <section className="admin-products-pro">
-            <div className="admin-card product-form-card pro-form-card">
+          <section className="admin-products-stacked">
+            <div className="admin-card excel-wide-card">
+              <div className="excel-wide-content">
+                <div>
+                  <span>Bulk import</span>
+                  <h2>إضافة منتجات عبر Excel</h2>
+                  <p>حمّل القالب، عبّئ المنتجات، ارفع الملف، راجع المعاينة، ثم اضغط حفظ. لن يتم تغيير أي شيء قبل الحفظ.</p>
+                </div>
+                <div className="excel-wide-actions">
+                  <button className="admin-secondary" type="button" onClick={downloadProductsTemplate}>تحميل قالب Excel</button>
+                  <label className="excel-upload-btn">
+                    رفع ملف Excel
+                    <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
+                  </label>
+                </div>
+              </div>
+
+              {pendingImport.length > 0 && (
+                <div className="pending-import-box">
+                  <div className="pending-head">
+                    <div>
+                      <b>معاينة المنتجات المستوردة</b>
+                      <span>{pendingImport.length} منتج جاهز للحفظ</span>
+                    </div>
+                    <div className="pending-actions">
+                      <button className="admin-secondary" type="button" onClick={clearPendingImport}>إلغاء الاستيراد</button>
+                      <button className="admin-primary" type="button" onClick={savePendingImport}>حفظ المنتجات المستوردة</button>
+                    </div>
+                  </div>
+
+                  <div className="pending-table">
+                    {pendingImport.slice(0, 8).map((p, i) => (
+                      <div className="pending-row" key={i}>
+                        <img src={p.image || "https://via.placeholder.com/120"} />
+                        <div>
+                          <b>{p.name}</b>
+                          <span>{p.category} • {p.price} ر.س • المخزون {p.stock}</span>
+                        </div>
+                        <em>{p.status === "hidden" ? "مخفي" : "ظاهر"}</em>
+                      </div>
+                    ))}
+                  </div>
+
+                  {pendingImport.length > 8 && <p className="pending-more">ويتم حفظ باقي المنتجات أيضًا: +{pendingImport.length - 8}</p>}
+                </div>
+              )}
+            </div>
+
+            <div className="admin-card product-form-card pro-form-card full-product-form-card">
               <div className="pro-card-head">
                 <div>
                   <span>Product editor</span>
@@ -965,7 +1038,7 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
                 {editing && <button className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>منتج جديد</button>}
               </div>
 
-              <form onSubmit={saveProduct} className="product-form pro-product-form">
+              <form onSubmit={saveProduct} className="product-form pro-product-form pro-product-form-horizontal">
                 <div className="pro-form-section">
                   <h3>معلومات المنتج</h3>
                   <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} required placeholder="مثال: مونستيرا فاخرة" /></Control>
@@ -1019,28 +1092,13 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
               </form>
             </div>
 
-            <div className="admin-card products-manager pro-products-manager">
+            <div className="admin-card products-manager pro-products-manager full-products-manager">
               <div className="pro-card-head">
                 <div>
                   <span>Catalogue</span>
-                  <h2>المنتجات</h2>
+                  <h2>المنتجات المضافة</h2>
                 </div>
                 <b className="products-count">{products.length} منتج</b>
-              </div>
-
-              <div className="bulk-import-card">
-                <div>
-                  <span>Bulk import</span>
-                  <h3>استيراد منتجات من Excel</h3>
-                  <p>حمّل قالب المثال، عبّئ المنتجات، ثم ارفعه هنا لإضافتها دفعة واحدة.</p>
-                </div>
-                <div className="bulk-actions">
-                  <button className="admin-secondary" type="button" onClick={downloadProductsTemplate}>تحميل قالب Excel</button>
-                  <label className="excel-upload-btn">
-                    رفع ملف Excel
-                    <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
-                  </label>
-                </div>
               </div>
 
               <div className="admin-product-cards">
