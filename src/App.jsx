@@ -31,6 +31,11 @@ const defaultSettings = {
   tagline: "rare nature, refined living",
   heroTitle: "Rare Nature, Refined Living",
   heroSubtitle: "مجموعة نباتات نادرة وأصص فاخرة وإكسسوارات عناية مستوحاة من جمال سقطرى، مصممة لمساحات هادئة وراقية.",
+  heroBadge: "Rare Nature Boutique",
+  heroButtonText: "تسوق الآن",
+  heroStatsProducts: "منتجات",
+  heroStatsPackaging: "تغليف فاخر",
+  heroStatsCustomers: "حسابات عملاء",
   primaryColor: "#0F3D2E",
   accentColor: "#C2A968",
   backgroundColor: "#F5F1E8",
@@ -637,16 +642,16 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
       <section className="container hero">
         <div className="hero-copy">
-          <div className="pill">Rare Nature Boutique</div>
+          <div className="pill">{settings.heroBadge || "Rare Nature Boutique"}</div>
           <h1>{settings.heroTitle}</h1>
           <p>{settings.heroSubtitle}</p>
           <div className="hero-actions">
-            <a href="#products" className="primary">تسوق الآن</a>
+            <a href="#products" className="primary">{settings.heroButtonText || "تسوق الآن"}</a>
           </div>
           <div className="stats">
-            <div><b>{products.length}+</b><span>منتجات</span></div>
-            <div><b>24H</b><span>تغليف فاخر</span></div>
-            <div><b>Rare</b><span>حسابات عملاء</span></div>
+            <div><b>{products.length}+</b><span>{settings.heroStatsProducts || "منتجات"}</span></div>
+            <div><b>24H</b><span>{settings.heroStatsPackaging || "تغليف فاخر"}</span></div>
+            <div><b>Rare</b><span>{settings.heroStatsCustomers || "حسابات عملاء"}</span></div>
           </div>
         </div>
         <div className="hero-image"><img src={settings.heroImage} alt="hero" /></div>
@@ -1362,6 +1367,7 @@ return (
         <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
         <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> الهوية</button>
         <button className={tab==="banners"?"on":""} onClick={()=>setTab("banners")}><ImageIcon/> البنرات والصور</button>
+        <button className={tab==="homepage"?"on":""} onClick={()=>setTab("homepage")}><Home/> الصفحة الرئيسية</button>
         <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> المنتجات</button>
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
         <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> الطلبات</button>
@@ -1375,7 +1381,7 @@ return (
           <div className="admin-actions"><button onClick={()=>go("/")}><Eye size={16}/> معاينة</button><button onClick={()=>setDoc(doc(db,"store","settings"), defaultSettings)}><RotateCw size={16}/> إعادة الهوية</button></div>
         </header>
         {notice && <div className="notice">{notice}</div>}
-        {(tab === "identity" || tab === "banners") && (
+        {(tab === "identity" || tab === "banners" || tab === "homepage") && (
           <div className="admin-save-bar">
             <div>
               <b>التغييرات غير محفوظة حتى تضغط حفظ</b>
@@ -1585,6 +1591,119 @@ return (
                   )}
                 </div>
               </div>
+            </div>
+          </section>
+        )}
+
+        {tab === "homepage" && (
+          <section className="homepage-admin-page">
+            <div className="admin-card homepage-admin-hero">
+              <div>
+                <span>Homepage CMS</span>
+                <h2>إدارة الصفحة الرئيسية</h2>
+                <p>عدّل محتوى الهيرو والإحصائيات من هنا، ثم اضغط حفظ التغييرات.</p>
+              </div>
+            </div>
+
+            <div className="admin-grid homepage-admin-grid">
+              <div className="admin-card">
+                <h2>الهيرو الرئيسي</h2>
+
+                <Control label="الشارة الصغيرة">
+                  <input
+                    value={draftSettings.heroBadge || ""}
+                    onChange={e=>updateDraft("heroBadge", e.target.value)}
+                    placeholder="Rare Nature Boutique"
+                  />
+                </Control>
+
+                <Control label="عنوان الهيرو">
+                  <input
+                    value={draftSettings.heroTitle || ""}
+                    onChange={e=>updateDraft("heroTitle", e.target.value)}
+                    placeholder="نباتات طبيعية تضيف حياة لمساحتك"
+                  />
+                </Control>
+
+                <Control label="وصف الهيرو">
+                  <textarea
+                    value={draftSettings.heroSubtitle || ""}
+                    onChange={e=>updateDraft("heroSubtitle", e.target.value)}
+                    placeholder="اكتب وصف الصفحة الرئيسية"
+                  />
+                </Control>
+
+                <Control label="نص زر الهيرو">
+                  <input
+                    value={draftSettings.heroButtonText || ""}
+                    onChange={e=>updateDraft("heroButtonText", e.target.value)}
+                    placeholder="تسوق الآن"
+                  />
+                </Control>
+              </div>
+
+              <div className="admin-card">
+                <h2>صورة الهيرو</h2>
+
+                <Control label="رابط صورة الهيرو">
+                  <input
+                    value={draftSettings.heroImage || ""}
+                    onChange={e=>updateDraft("heroImage", e.target.value)}
+                    placeholder="https://..."
+                  />
+                </Control>
+
+                <Control label="أو ارفع صورة">
+                  <input type="file" accept="image/*" onChange={e=>uploadSettingImage("heroImage", e.target.files[0])} />
+                </Control>
+
+                <Control label={`ارتفاع الصورة: ${draftSettings.heroHeight}px`}>
+                  <input
+                    type="range"
+                    min="320"
+                    max="760"
+                    value={draftSettings.heroHeight}
+                    onChange={e=>updateDraft("heroHeight", Number(e.target.value))}
+                  />
+                </Control>
+
+                {draftSettings.heroImage && <img className="admin-image-preview" src={draftSettings.heroImage} />}
+              </div>
+
+              <div className="admin-card">
+                <h2>إحصائيات الهيرو</h2>
+
+                <Control label="عنوان الإحصائية الأولى">
+                  <input
+                    value={draftSettings.heroStatsProducts || ""}
+                    onChange={e=>updateDraft("heroStatsProducts", e.target.value)}
+                    placeholder="منتجات"
+                  />
+                </Control>
+
+                <Control label="عنوان الإحصائية الثانية">
+                  <input
+                    value={draftSettings.heroStatsPackaging || ""}
+                    onChange={e=>updateDraft("heroStatsPackaging", e.target.value)}
+                    placeholder="تغليف فاخر"
+                  />
+                </Control>
+
+                <Control label="عنوان الإحصائية الثالثة">
+                  <input
+                    value={draftSettings.heroStatsCustomers || ""}
+                    onChange={e=>updateDraft("heroStatsCustomers", e.target.value)}
+                    placeholder="حسابات عملاء"
+                  />
+                </Control>
+              </div>
+            </div>
+
+            <div className="admin-card homepage-preview-card">
+              <span>Live Preview</span>
+              <h2>{draftSettings.heroTitle}</h2>
+              <p>{draftSettings.heroSubtitle}</p>
+              <button className="admin-primary">{draftSettings.heroButtonText || "تسوق الآن"}</button>
             </div>
           </section>
         )}

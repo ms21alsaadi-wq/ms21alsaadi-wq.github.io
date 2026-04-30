@@ -4405,3 +4405,62 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
 .admin-coupon-card .coupon-actions {
   align-items: center;
 }
+
+
+/* ===== HOMEPAGE ADMIN CMS V1 ===== */
+.homepage-admin-page {
+  display: grid;
+  gap: 22px;
+}
+
+.homepage-admin-hero {
+  padding: 28px !important;
+  background:
+    radial-gradient(circle at top left, rgba(194,169,104,.18), transparent 34%),
+    #fffdf7 !important;
+}
+
+.homepage-admin-hero span,
+.homepage-preview-card span {
+  display: block;
+  color: #6B8E23;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.homepage-admin-hero h2,
+.homepage-preview-card h2 {
+  margin: 0;
+  color: #0F3D2E !important;
+  font-size: clamp(32px, 4vw, 48px);
+}
+
+.homepage-admin-hero p,
+.homepage-preview-card p {
+  margin: 8px 0 0;
+  color: #6b705f;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.homepage-admin-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.homepage-preview-card {
+  padding: 30px !important;
+  border-radius: 34px !important;
+}
+
+.homepage-preview-card button {
+  margin-top: 18px;
+}
+
+@media (max-width: 1100px) {
+  .homepage-admin-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
