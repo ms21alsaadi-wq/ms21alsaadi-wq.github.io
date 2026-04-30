@@ -218,6 +218,7 @@ export default function App() {
   const [products, setProducts] = useState(defaultProducts);
   const [customers, setCustomers] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const go = (url) => {
@@ -279,8 +280,11 @@ export default function App() {
     }, () => {
       onSnapshot(collection(db, "orders"), (snap) => setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
     });
+    const unsubCoupons = onSnapshot(collection(db, "coupons"), (snap) => {
+      setCoupons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
     return () => {
-      unsubSettings(); unsubProducts(); unsubCustomers(); unsubOrders();
+      unsubSettings(); unsubProducts(); unsubCustomers(); unsubOrders(); unsubCoupons();
     };
   }, []);
 
@@ -295,6 +299,7 @@ export default function App() {
         products={products}
         customers={customers}
         orders={orders}
+        coupons={coupons}
         go={go}
       />
     );
@@ -308,6 +313,7 @@ export default function App() {
       customer={customer}
       setCustomer={setCustomer}
       orders={orders}
+      coupons={coupons}
       go={go}
       path={path}
     />
@@ -419,9 +425,9 @@ function AuthShell({ title, subtitle, children, settings }) {
   );
 }
 
-function Store({ settings, products, authUser, customer, setCustomer, orders = [], go, path }) {
+function Store({ settings, products, authUser, customer, setCustomer, orders = [], coupons = [], go, path }) {
   if (path.startsWith("/login")) return <CustomerAuth go={go} settings={settings} />;
-  if (path.startsWith("/account")) return authUser ? <Account customer={customer} setCustomer={setCustomer} orders={orders} go={go} settings={settings} /> : <CustomerAuth go={go} settings={settings} />;
+  if (path.startsWith("/account")) return authUser ? <Account customer={customer} setCustomer={setCustomer} orders={orders} coupons={coupons} go={go} settings={settings} /> : <CustomerAuth go={go} settings={settings} />;
 
   const [queryText, setQueryText] = useState("");
   const [brand, setBrand] = useState("All");
@@ -671,7 +677,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   );
 }
 
-function Account({ customer, setCustomer, orders = [], go, settings }) {
+function Account({ customer, setCustomer, orders = [], coupons = [], go, settings }) {
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState("profile");
 
@@ -697,6 +703,20 @@ function Account({ customer, setCustomer, orders = [], go, settings }) {
     shipped: "تم الشحن",
     completed: "مكتمل",
     cancelled: "ملغي"
+  };
+
+  const couponStatus = (coupon) => {
+    const expired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+    if (!coupon.active) return "غير مفعل";
+    if (expired) return "منتهي";
+    return "متاح";
+  };
+
+  const couponClass = (coupon) => {
+    const status = couponStatus(coupon);
+    if (status === "متاح") return "available";
+    if (status === "منتهي") return "expired";
+    return "disabled";
   };
 
   async function saveProfile(e) {
@@ -854,11 +874,32 @@ function Account({ customer, setCustomer, orders = [], go, settings }) {
                 <div className="account-section-title">
                   <span>Coupons</span>
                   <h2>الكوبونات</h2>
-                  <p>الكوبونات المتاحة والخصومات الخاصة بك.</p>
+                  <p>كل الكوبونات المتاحة والمنتهية تظهر هنا بوضوح.</p>
                 </div>
-                <div className="account-placeholder-card">
-                  <b>لا توجد كوبونات حاليًا</b>
-                  <span>عند توفر كوبونات خاصة ستظهر هنا.</span>
+
+                <div className="customer-coupons-grid">
+                  {coupons.length ? coupons
+                    .slice()
+                    .sort((a,b) => String(a.code || "").localeCompare(String(b.code || "")))
+                    .map(coupon => (
+                      <div className={`customer-coupon-card ${couponClass(coupon)}`} key={coupon.id}>
+                        <div>
+                          <span>كود الخصم</span>
+                          <h3>{coupon.code}</h3>
+                          <p>خصم {coupon.percent}%</p>
+                        </div>
+                        <div className="coupon-status-pill">{couponStatus(coupon)}</div>
+                        <div className="coupon-meta">
+                          <span>الاستخدام: مرة واحدة لكل عميل</span>
+                          <span>ينتهي: {coupon.expiresAt || "بدون تاريخ"}</span>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="account-placeholder-card">
+                        <b>لا توجد كوبونات حاليًا</b>
+                        <span>عند إضافة كوبونات من الأدمن ستظهر هنا.</span>
+                      </div>
+                    )}
                 </div>
               </section>
             )}
@@ -905,7 +946,7 @@ function Feature({icon, title, text}) {
   return <div className="feature"><div>{icon}</div><h3>{title}</h3><p>{text}</p></div>;
 }
 
-function Admin({ settings, setSettings, products, customers, orders, go }) {
+function Admin({ settings, setSettings, products, customers, orders, coupons = [], go }) {
   const [tab, setTab] = useState("dashboard");
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
@@ -1143,6 +1184,41 @@ function Admin({ settings, setSettings, products, customers, orders, go }) {
     setTimeout(() => setNotice(""), 2500);
   };
 
+  const saveCoupon = async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const code = String(f.code.value || "").trim().toUpperCase();
+    const percent = Number(f.percent.value || 0);
+    const expiresAt = f.expiresAt.value || "";
+
+    if (!code || percent <= 0 || percent > 100) {
+      setNotice("تأكد من إدخال كود صحيح ونسبة بين 1 و 100");
+      setTimeout(() => setNotice(""), 3000);
+      return;
+    }
+
+    await setDoc(doc(db, "coupons", code), {
+      code,
+      percent,
+      active: f.active.checked,
+      usage: "once_per_customer",
+      type: "percent",
+      expiresAt,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    setNotice("تم حفظ الكوبون");
+    setTimeout(() => setNotice(""), 2500);
+    f.reset();
+  };
+
+  const toggleCoupon = async (coupon) => {
+    await setDoc(doc(db, "coupons", coupon.id), {
+      active: !coupon.active,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  };
+
   
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -1188,6 +1264,7 @@ return (
         <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> المنتجات</button>
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
         <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> الطلبات</button>
+        <button className={tab==="coupons"?"on":""} onClick={()=>setTab("coupons")}><Palette/> الكوبونات</button>
         <div className="side-bottom"><button onClick={()=>go("/")}><Eye/> معاينة المتجر</button><button onClick={()=>signOut(auth)}><LogOut/> خروج</button></div>
       </aside>
 
@@ -1322,6 +1399,93 @@ return (
         )}
 
         
+
+        {tab === "coupons" && (
+          <section className="coupons-admin-page">
+            <div className="admin-card coupons-admin-hero">
+              <div>
+                <span>Coupons</span>
+                <h2>إدارة الكوبونات</h2>
+                <p>أنشئ كوبونات خصم بنسبة مئوية. كل كوبون مخصص للاستخدام مرة واحدة لكل عميل.</p>
+              </div>
+              <div className="coupon-admin-stat">
+                <b>{coupons.length}</b>
+                <small>كوبون</small>
+              </div>
+            </div>
+
+            <div className="coupons-admin-grid">
+              <div className="admin-card coupon-form-card">
+                <div className="pro-card-head">
+                  <div>
+                    <span>Create Coupon</span>
+                    <h2>إضافة كوبون</h2>
+                  </div>
+                </div>
+
+                <form onSubmit={saveCoupon} className="coupon-form">
+                  <Control label="كود الكوبون">
+                    <input name="code" placeholder="GREEN10" required />
+                  </Control>
+
+                  <Control label="نسبة الخصم %">
+                    <input name="percent" type="number" min="1" max="100" placeholder="10" required />
+                  </Control>
+
+                  <Control label="تاريخ الانتهاء">
+                    <input name="expiresAt" type="date" />
+                  </Control>
+
+                  <label className="feature-toggle">
+                    <input name="active" type="checkbox" defaultChecked />
+                    <span>كوبون مفعل</span>
+                  </label>
+
+                  <button className="admin-primary">حفظ الكوبون</button>
+                </form>
+              </div>
+
+              <div className="admin-card coupons-list-card">
+                <div className="pro-card-head">
+                  <div>
+                    <span>Coupons List</span>
+                    <h2>الكوبونات</h2>
+                  </div>
+                  <b className="products-count">{coupons.length} كوبون</b>
+                </div>
+
+                <div className="admin-coupons-list">
+                  {coupons.map(coupon => {
+                    const expired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+                    return (
+                      <div className={`admin-coupon-card ${coupon.active ? "active" : "disabled"} ${expired ? "expired" : ""}`} key={coupon.id}>
+                        <div>
+                          <span>كود الخصم</span>
+                          <h3>{coupon.code}</h3>
+                          <p>خصم {coupon.percent}% • استخدام مرة واحدة لكل عميل</p>
+                          <small>ينتهي: {coupon.expiresAt || "بدون تاريخ"}</small>
+                        </div>
+
+                        <div className="coupon-actions">
+                          <button className="admin-secondary" onClick={() => toggleCoupon(coupon)}>
+                            {coupon.active ? "إيقاف" : "تفعيل"}
+                          </button>
+                          <button className="danger-action" onClick={() => deleteDoc(doc(db, "coupons", coupon.id))}>
+                            حذف
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {coupons.length === 0 && (
+                    <div className="dashboard-empty">لا توجد كوبونات بعد</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {tab === "identity" && (
           <section className="admin-grid">
