@@ -129,6 +129,7 @@ async function sendOrderStatusEmail(order, status) {
     order_id: order?.id || "",
     status: orderStatusLabel(status || order?.status),
     company,
+    tracking_number: order?.trackingNumber || "—",
     tracking_url: trackingUrl
   };
 
