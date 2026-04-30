@@ -18,8 +18,13 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
 import * as XLSX from "xlsx";
+import emailjs from "@emailjs/browser";
 
 const STORE_WHATSAPP = "966508983003";
+
+const EMAILJS_SERVICE_ID = "service_t04scol";
+const EMAILJS_TEMPLATE_ID = "template_v9wzhwf";
+const EMAILJS_PUBLIC_KEY = "c8wX_e15GQ-c3xseZ";
 
 const defaultSettings = {
   storeName: "GREEN DIXAM",
@@ -91,6 +96,54 @@ function getTrackingUrl(company, trackingNumber, customShipping = "") {
   if (name.includes("fedex")) return `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(code)}`;
 
   return `https://www.google.com/search?q=${encodeURIComponent(`${customShipping || company || "tracking"} ${code}`)}`;
+}
+
+
+function orderStatusLabel(status) {
+  const labels = {
+    new: "تم استلام الطلب",
+    processing: "قيد التجهيز",
+    shipped: "تم الشحن",
+    completed: "مكتمل",
+    cancelled: "ملغي"
+  };
+  return labels[status] || status || "تم تحديث الطلب";
+}
+
+async function sendOrderStatusEmail(order, status) {
+  const email = order?.customerEmail || order?.email;
+  if (!email) return false;
+
+  const company =
+    order?.shippingCompany === "other"
+      ? (order?.customShipping || "أخرى")
+      : (order?.shippingCompany || "لم تحدد بعد");
+
+  const trackingUrl = order?.trackingNumber
+    ? getTrackingUrl(order.shippingCompany, order.trackingNumber, order.customShipping)
+    : "لم يصدر رقم التتبع بعد";
+
+  const params = {
+    name: order?.customerName || order?.name || "عميل Green Dixam",
+    email,
+    order_id: order?.id || "",
+    status: orderStatusLabel(status || order?.status),
+    company,
+    tracking_url: trackingUrl
+  };
+
+  try {
+    await emailjs.send(
+      EMAILJS_SERVICE_ID,
+      EMAILJS_TEMPLATE_ID,
+      params,
+      EMAILJS_PUBLIC_KEY
+    );
+    return true;
+  } catch (error) {
+    console.error("EmailJS send failed:", error);
+    return false;
+  }
 }
 
 function sizesArray(sizes) {
@@ -1684,10 +1737,14 @@ function OrdersPanel({ orders }) {
   };
 
   const updateOrderStatus = async (orderId, status) => {
-    await setDoc(doc(db, "orders", orderId), {
-      status,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(doc(db, "orders", orderId), { status, updatedAt: serverTimestamp() }, { merge: true });
+
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      const sent = await sendOrderStatusEmail({ ...order, id: orderId }, status);
+      setNotice(sent ? "تم تحديث حالة الطلب وإرسال إيميل للعميل" : "تم تحديث حالة الطلب، لكن لم يتم إرسال الإيميل");
+      setTimeout(() => setNotice(""), 3500);
+    }
   };
 
   const deleteOrder = async (orderId) => {
