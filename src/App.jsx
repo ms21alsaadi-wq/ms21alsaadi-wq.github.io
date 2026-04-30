@@ -147,6 +147,16 @@ async function sendOrderStatusEmail(order, status) {
   }
 }
 
+
+function couponUsedByCustomer(coupon, customerId, customerEmail) {
+  const usedBy = coupon?.usedBy || {};
+  const usedEmails = coupon?.usedEmails || {};
+  return Boolean(
+    (customerId && usedBy[customerId]) ||
+    (customerEmail && usedEmails[customerEmail])
+  );
+}
+
 function sizesArray(sizes) {
   return String(sizes || "").split(",").map(s => s.trim()).filter(Boolean);
 }
@@ -491,6 +501,12 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       return;
     }
 
+    if (couponUsedByCustomer(coupon, authUser?.uid, authUser?.email)) {
+      setAppliedCoupon(null);
+      setCouponMessage("تم استخدام هذا الكوبون من قبل");
+      return;
+    }
+
     setAppliedCoupon(coupon);
     setCouponMessage(`تم تطبيق خصم ${coupon.percent}%`);
   }
@@ -543,7 +559,16 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       status: "new",
       createdAt: serverTimestamp()
     };
-    await addDoc(collection(db, "orders"), order);
+    const orderRef = await addDoc(collection(db, "orders"), order);
+
+    if (appliedCoupon?.code) {
+      await setDoc(doc(db, "coupons", String(appliedCoupon.code).toUpperCase()), {
+        usedBy: { [authUser.uid]: { orderId: orderRef.id, usedAt: serverTimestamp() } },
+        usedEmails: { [authUser.email]: { orderId: orderRef.id, usedAt: serverTimestamp() } },
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
+
     await setDoc(doc(db, "customers", authUser.uid), {
       ...customer,
       ordersCount: Number(customer.ordersCount || 0) + 1,
@@ -780,6 +805,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
 
   const couponStatus = (coupon) => {
     const expired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+    if (couponUsedByCustomer(coupon, currentUid, currentEmail)) return "مستخدم";
     if (!coupon.active) return "غير مفعل";
     if (expired) return "منتهي";
     return "متاح";
@@ -788,6 +814,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
   const couponClass = (coupon) => {
     const status = couponStatus(coupon);
     if (status === "متاح") return "available";
+    if (status === "مستخدم") return "used";
     if (status === "منتهي") return "expired";
     return "disabled";
   };
@@ -964,6 +991,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                         <div className="coupon-status-pill">{couponStatus(coupon)}</div>
                         <div className="coupon-meta">
                           <span>الاستخدام: مرة واحدة لكل عميل</span>
+                          {couponUsedByCustomer(coupon, currentUid, currentEmail) && <span>تم استخدامه سابقًا</span>}
                           <span>ينتهي: {coupon.expiresAt || "بدون تاريخ"}</span>
                         </div>
                       </div>
@@ -1536,6 +1564,7 @@ return (
                           <span>كود الخصم</span>
                           <h3>{coupon.code}</h3>
                           <p>خصم {coupon.percent}% • استخدام مرة واحدة لكل عميل</p>
+                          <small>تم استخدامه: {Object.keys(coupon.usedBy || {}).length} مرة</small>
                           <small>ينتهي: {coupon.expiresAt || "بدون تاريخ"}</small>
                         </div>
 

@@ -4378,3 +4378,30 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     width: 100%;
   }
 }
+
+
+/* ===== COUPON ONCE PER CUSTOMER + USED STATUS ===== */
+.customer-coupon-card.used {
+  opacity: .78;
+  background: linear-gradient(135deg, #f7f7f2, #ece8dc);
+}
+
+.customer-coupon-card.used .coupon-status-pill {
+  background: rgba(75,85,99,.12);
+  color: #374151;
+}
+
+.customer-coupon-card.used h3 {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgba(15,61,46,.35);
+}
+
+.admin-coupon-card small {
+  display: block;
+  margin-top: 4px;
+}
+
+.admin-coupon-card .coupon-actions {
+  align-items: center;
+}
