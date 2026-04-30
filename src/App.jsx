@@ -445,6 +445,9 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState({});
   const [favorites, setFavorites] = useState([]);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponMessage, setCouponMessage] = useState("");
 
   const brands = ["All", ...new Set(products.map(p => p.brand).filter(Boolean))];
   const categories = ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
@@ -457,7 +460,46 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
   const cartCount = cart.reduce((n, i) => n + i.qty, 0);
   const subtotal = cart.reduce((n, i) => n + i.qty * Number(i.price || 0), 0);
-  const total = subtotal + (subtotal ? 35 : 0);
+  const shippingFee = subtotal ? 35 : 0;
+  const discount = appliedCoupon ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100)) : 0;
+  const total = Math.max(0, subtotal - discount) + shippingFee;
+
+  function applyCoupon() {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) {
+      setCouponMessage("اكتب كود الخصم أولاً");
+      return;
+    }
+
+    const coupon = coupons.find(c => String(c.code || c.id || "").toUpperCase() === code);
+    if (!coupon) {
+      setAppliedCoupon(null);
+      setCouponMessage("الكوبون غير موجود");
+      return;
+    }
+
+    const expired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+    if (!coupon.active) {
+      setAppliedCoupon(null);
+      setCouponMessage("الكوبون غير مفعل حالياً");
+      return;
+    }
+
+    if (expired) {
+      setAppliedCoupon(null);
+      setCouponMessage("الكوبون منتهي");
+      return;
+    }
+
+    setAppliedCoupon(coupon);
+    setCouponMessage(`تم تطبيق خصم ${coupon.percent}%`);
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponMessage("");
+  }
 
   function addToCart(product) {
     const size = selectedSize[product.id] || sizesArray(product.sizes)[0] || "Free";
@@ -492,6 +534,11 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       items: cart.map(i => ({
         id: i.id, name: i.name, brand: i.brand, size: i.size, qty: i.qty, price: i.price
       })),
+      subtotal,
+      shippingFee,
+      discount,
+      couponCode: appliedCoupon?.code || "",
+      couponPercent: appliedCoupon?.percent || 0,
       total,
       status: "new",
       createdAt: serverTimestamp()
@@ -507,6 +554,9 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     const message = `🛒 طلب جديد من المتجر:\n\n👤 العميل: ${customer.name}\n📱 الجوال: ${customer.phone}\n📧 الإيميل: ${customer.email || authUser.email}\n📍 المدينة: ${customer.city}\n🏠 العنوان: ${customer.address}\n\n${items}\n\n💰 الإجمالي: ${formatPrice(total)} ر.س\n\n📦 الرجاء تأكيد الطلب`;
     window.open(`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`, "_blank");
     setCart([]);
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponMessage("");
     setCartOpen(false);
   }
 
@@ -669,7 +719,30 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
                   </div>
                 ))}
             </div>
-            <div className="cart-foot"><p><span>الإجمالي</span><b>{formatPrice(total)} ر.س</b></p><button onClick={checkoutWhatsApp}>إتمام الطلب عبر واتساب</button></div>
+            <div className="cart-foot">
+              <div className="coupon-box">
+                <label>كود الخصم</label>
+                <div className="coupon-input-row">
+                  <input
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    placeholder="مثال: GREEN10"
+                  />
+                  <button type="button" onClick={applyCoupon}>تطبيق</button>
+                </div>
+                {couponMessage && <span className={appliedCoupon ? "coupon-success" : "coupon-error"}>{couponMessage}</span>}
+                {appliedCoupon && <button type="button" className="remove-coupon" onClick={removeCoupon}>إزالة الكوبون</button>}
+              </div>
+
+              <div className="cart-summary-lines">
+                <p><span>المجموع الفرعي</span><b>{formatPrice(subtotal)} ر.س</b></p>
+                {appliedCoupon && <p className="discount-line"><span>خصم {appliedCoupon.percent}%</span><b>- {formatPrice(discount)} ر.س</b></p>}
+                <p><span>الشحن</span><b>{formatPrice(shippingFee)} ر.س</b></p>
+                <p className="total-line"><span>الإجمالي</span><b>{formatPrice(total)} ر.س</b></p>
+              </div>
+
+              <button onClick={checkoutWhatsApp}>إتمام الطلب عبر واتساب</button>
+            </div>
           </aside>
         </div>
       )}
@@ -1980,6 +2053,7 @@ function OrdersPanel({ orders }) {
               <div><span>الجوال</span><b>{order.phone || "غير متوفر"}</b></div>
               <div><span>المدينة</span><b>{order.city || "غير محدد"}</b></div>
               <div><span>الإجمالي</span><b>{formatPrice(order.total)} ر.س</b></div>
+              <div><span>الكوبون</span><b>{order.couponCode ? `${order.couponCode} (${order.couponPercent || 0}%)` : "لا يوجد"}</b></div>
               <div><span>عدد المنتجات</span><b>{order.items.length}</b></div>
               <div className="wide"><span>تاريخ الطلب</span><b>{formatOrderDate(order.createdAt)}</b></div>
             </div>
@@ -2093,6 +2167,8 @@ function OrdersPanel({ orders }) {
               <div><span>العميل</span><b>{selectedOrder.name || selectedOrder.customerName || "غير محدد"}</b></div>
               <div><span>الجوال</span><b>{selectedOrder.phone || "غير متوفر"}</b></div>
               <div><span>الإيميل</span><b>{selectedOrder.email || selectedOrder.customerEmail || "غير متوفر"}</b></div>
+              <div><span>الكوبون</span><b>{selectedOrder.couponCode ? `${selectedOrder.couponCode} (${selectedOrder.couponPercent || 0}%)` : "لا يوجد"}</b></div>
+              <div><span>الخصم</span><b>{formatPrice(Number(selectedOrder.discount || 0))} ر.س</b></div>
               <div><span>الإجمالي</span><b>{formatPrice(Number(selectedOrder.total || 0))} ر.س</b></div>
               <div><span>تاريخ الطلب</span><b>{formatOrderDate(selectedOrder.createdAt)}</b></div>
               <div className="wide"><span>العنوان</span><b>{selectedOrder.address || "غير متوفر"}</b></div>
