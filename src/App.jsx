@@ -55,6 +55,14 @@ const defaultSettings = {
   homeHeaderTitle: "GREEN DIXAM",
   homeHeaderSubtitle: "RARE NATURE, REFINED LIVING",
   homeHeaderImage: "",
+  homeHeaderBg: "#F5F1E8",
+  homeHeaderText: "#0F3D2E",
+  homeHeaderLang: "AR",
+  homeHeaderWhatsapp: "966508983003",
+  homeHeaderInstagram: "",
+  homeHeaderTiktok: "",
+  homeHeaderSnapchat: "",
+  homeHeaderX: "",
 
   homeHeroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
   homeHeroDesc: "اختر نبتتك بسهولة – نباتات داخلية مختارة بعناية، تغليف أنيق، وتوصيل سريع داخل السعودية.",
@@ -629,11 +637,21 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
   return (
     <div className="store" style={theme} dir="rtl">
-      <header className="store-header">
+      <header
+        className="store-header"
+        style={{
+          background: settings.homeHeaderBg || undefined,
+          color: settings.homeHeaderText || undefined
+        }}
+      >
         <div className="container luxe-nav">
           <div className="luxe-nav-right">
             <button className="luxe-logo" onClick={() => go("/")}>
-              {settings.logo ? <img src={settings.logo} alt="logo" /> : <b>{settings.homeHeaderTitle || settings.storeName}</b>}
+              {(settings.homeHeaderImage || settings.logo) ? (
+                <img src={settings.homeHeaderImage || settings.logo} alt="logo" />
+              ) : (
+                <b>{settings.homeHeaderTitle || settings.storeName}</b>
+              )}
               <span>{settings.homeHeaderSubtitle || settings.tagline}</span>
             </button>
           </div>
@@ -645,6 +663,23 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           </nav>
 
           <div className="luxe-nav-left">
+            
+            <div className="header-socials">
+              {settings.homeHeaderInstagram && <a href={settings.homeHeaderInstagram} target="_blank" rel="noreferrer" title="Instagram">📷</a>}
+              {settings.homeHeaderTiktok && <a href={settings.homeHeaderTiktok} target="_blank" rel="noreferrer" title="TikTok">♪</a>}
+              {settings.homeHeaderSnapchat && <a href={settings.homeHeaderSnapchat} target="_blank" rel="noreferrer" title="Snapchat">👻</a>}
+              {settings.homeHeaderX && <a href={settings.homeHeaderX} target="_blank" rel="noreferrer" title="X">𝕏</a>}
+              {settings.homeHeaderWhatsapp && <a href={`https://wa.me/${settings.homeHeaderWhatsapp}`} target="_blank" rel="noreferrer" title="WhatsApp">☘️</a>}
+            </div>
+
+            <button
+              className="language-toggle"
+              type="button"
+              title="اللغة"
+            >
+              {settings.homeHeaderLang || "AR"}
+            </button>
+
             <button
               className="luxe-icon-btn"
               aria-label="حسابي"
@@ -1855,7 +1890,7 @@ return (
 
             <div className="homepage-sections-list">
               {[
-                { id: "header", label: "الهيدر", titleKey: "homeHeaderTitle", descKey: "homeHeaderSubtitle", imageKey: "homeHeaderImage" },
+                { id: "header", label: "الهيدر", titleKey: "homeHeaderTitle", descKey: "homeHeaderSubtitle", imageKey: "homeHeaderImage", headerExtra: true },
                 { id: "hero", label: "الهيرو", titleKey: "homeHeroTitle", descKey: "homeHeroDesc", imageKey: "homeHeroImage", buttonKey: "homeHeroButton" },
                 { id: "plants", label: "أقسام النباتات", titleKey: "homePlantSectionsTitle", descKey: "homePlantSectionsDesc", imageKey: "homePlantSectionsImage" },
                 { id: "care", label: "شريط العناية", titleKey: "homeCareTitle", descKey: "homeCareDesc", imageKey: "homeCareImage" },
@@ -1923,6 +1958,76 @@ return (
                           {draftSettings[section.imageKey] && (
                             <img className="section-image-preview" src={draftSettings[section.imageKey]} alt={section.label} />
                           )}
+                        </div>
+                      )}
+
+                      {section.headerExtra && (
+                        <div className="header-extra-tools">
+                          <Control label="لون خلفية الهيدر">
+                            <input
+                              type="color"
+                              value={draftSettings.homeHeaderBg || "#F5F1E8"}
+                              onChange={e => updateDraft("homeHeaderBg", e.target.value)}
+                            />
+                          </Control>
+
+                          <Control label="لون النص">
+                            <input
+                              type="color"
+                              value={draftSettings.homeHeaderText || "#0F3D2E"}
+                              onChange={e => updateDraft("homeHeaderText", e.target.value)}
+                            />
+                          </Control>
+
+                          <Control label="اللغة">
+                            <select
+                              value={draftSettings.homeHeaderLang || "AR"}
+                              onChange={e => updateDraft("homeHeaderLang", e.target.value)}
+                            >
+                              <option value="AR">AR</option>
+                              <option value="EN">EN</option>
+                            </select>
+                          </Control>
+
+                          <Control label="رقم واتساب">
+                            <input
+                              value={draftSettings.homeHeaderWhatsapp || ""}
+                              onChange={e => updateDraft("homeHeaderWhatsapp", e.target.value)}
+                              placeholder="9665XXXXXXXX"
+                            />
+                          </Control>
+
+                          <Control label="رابط Instagram">
+                            <input
+                              value={draftSettings.homeHeaderInstagram || ""}
+                              onChange={e => updateDraft("homeHeaderInstagram", e.target.value)}
+                              placeholder="https://instagram.com/..."
+                            />
+                          </Control>
+
+                          <Control label="رابط TikTok">
+                            <input
+                              value={draftSettings.homeHeaderTiktok || ""}
+                              onChange={e => updateDraft("homeHeaderTiktok", e.target.value)}
+                              placeholder="https://tiktok.com/@..."
+                            />
+                          </Control>
+
+                          <Control label="رابط Snapchat">
+                            <input
+                              value={draftSettings.homeHeaderSnapchat || ""}
+                              onChange={e => updateDraft("homeHeaderSnapchat", e.target.value)}
+                              placeholder="https://snapchat.com/add/..."
+                            />
+                          </Control>
+
+                          <Control label="رابط X / Twitter">
+                            <input
+                              value={draftSettings.homeHeaderX || ""}
+                              onChange={e => updateDraft("homeHeaderX", e.target.value)}
+                              placeholder="https://x.com/..."
+                            />
+                          </Control>
                         </div>
                       )}
 

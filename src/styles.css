@@ -4929,3 +4929,71 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     height: 210px !important;
   }
 }
+
+
+/* ===== HEADER SOCIAL + LANGUAGE CMS ===== */
+.header-socials {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.header-socials a,
+.language-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(255,250,240,.88);
+  border: 1px solid rgba(194,169,104,.32);
+  color: #0F3D2E;
+  font-weight: 900;
+  box-shadow: 0 8px 22px rgba(15,61,46,.06);
+}
+
+.language-toggle {
+  min-width: 44px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.header-extra-tools {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  background: #fffdf7;
+  border: 1px solid rgba(194,169,104,.24);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.header-extra-tools select {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(194,169,104,.30);
+  background: #fffdf7;
+  color: #0F3D2E;
+  font-weight: 800;
+  padding: 0 12px;
+}
+
+@media (max-width: 780px) {
+  .header-socials {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    padding-top: 8px;
+  }
+
+  .header-extra-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .language-toggle {
+    width: 42px;
+    height: 42px;
+  }
+}
