@@ -226,7 +226,6 @@ function firebaseError(err) {
 
 export default function App() {
   const [path, setPath] = useState(window.location.pathname);
-  const [openSection, setOpenSection] = useState(null);
   const [authUser, setAuthUser] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -1055,6 +1054,7 @@ function Feature({icon, title, text}) {
 
 function Admin({ settings, setSettings, products, customers, orders, coupons = [], go }) {
   const [tab, setTab] = useState("dashboard");
+  const [openSection, setOpenSection] = useState(null);
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
@@ -1596,7 +1596,8 @@ return (
           </section>
         )}
 
-             {tab === "identity" && (
+        
+        {tab === "identity" && (
           <section className="admin-grid">
             <div className="admin-card">
               <h2>ألوان جاهزة</h2>
@@ -1803,41 +1804,45 @@ return (
           </section>
         )}
 
-      {tab === "homepage" && (
-  <section className="homepage-admin-page">
-    <div className="admin-card">
-      <h2>إدارة الصفحة الرئيسية</h2>
-      <p>اضغط على أي قسم لعرض الإعدادات</p>
-    </div>
-
-    <div className="homepage-sections-list">
-      {[
-        "الهيدر",
-        "الهيرو",
-        "أقسام النباتات",
-        "شريط العناية",
-        "بنر العروض",
-        "المنتجات"
-      ].map((section, i) => (
-        <div
-          key={i}
-          className="homepage-section-row"
-          onClick={() => setOpenSection(openSection === i ? null : i)}
-        >
-          <span>{section}</span>
-
-          {openSection === i && (
-            <div className="section-form">
-              <p>تعديل قسم: {section}</p>
-              <input placeholder="عنوان" />
-              <input placeholder="وصف" />
+        
+        {tab === "homepage" && (
+          <section className="homepage-admin-page">
+            <div className="admin-card">
+              <h2>إدارة الصفحة الرئيسية</h2>
+              <p>اضغط على أي قسم لعرض الإعدادات</p>
             </div>
-          )}
-        </div>
-      ))}
-    </div>
-  </section>
-)}
+
+            <div className="homepage-sections-list">
+              {[
+                "الهيدر",
+                "الهيرو",
+                "أقسام النباتات",
+                "شريط العناية",
+                "بنر العروض",
+                "المنتجات"
+              ].map((section, i) => (
+                <div key={i} className="homepage-section-row">
+                  <div
+                    className="section-header"
+                    onClick={() => setOpenSection(openSection === i ? null : i)}
+                  >
+                    <span>{section}</span>
+                    <b>{openSection === i ? "−" : "+"}</b>
+                  </div>
+
+                  {openSection === i && (
+                    <div className="section-form">
+                      <p>نموذج تعديل قسم: {section}</p>
+                      <input placeholder="عنوان القسم" />
+                      <input placeholder="وصف القسم" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {tab === "customers" && <CustomersPanel customers={customers} orders={orders} />}
         {tab === "orders" && <OrdersPanel orders={orders} />}
       </main>
