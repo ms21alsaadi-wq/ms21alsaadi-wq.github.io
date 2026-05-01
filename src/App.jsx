@@ -226,6 +226,7 @@ function firebaseError(err) {
 
 export default function App() {
   const [path, setPath] = useState(window.location.pathname);
+  const [openSection, setOpenSection] = useState(null);
   const [authUser, setAuthUser] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
