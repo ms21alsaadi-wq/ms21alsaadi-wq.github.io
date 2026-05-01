@@ -4464,3 +4464,21 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     grid-template-columns: 1fr !important;
   }
 }
+
+.homepage-sections-list {
+  display: grid;
+  gap: 12px;
+}
+
+.homepage-section-row {
+  background: #fffdf7;
+  border: 1px solid rgba(194,169,104,.25);
+  border-radius: 18px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.homepage-section-row span {
+  font-weight: 900;
+  color: #0F3D2E;
+}
