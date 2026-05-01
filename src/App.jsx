@@ -1604,24 +1604,33 @@ return (
 
     <div className="homepage-sections-list">
       {[
-        "الهيدر",
-        "الهيرو",
-        "أقسام النباتات",
-        "شريط العناية",
-        "بنر العروض",
-        "المنتجات"
-      ].map((section, i) => (
-        <div
-          key={i}
-          className="homepage-section-row"
-          onClick={() => console.log(section)}
-        >
-          <span>{section}</span>
-        </div>
-      ))}
+  "الهيدر",
+  "الهيرو",
+  "أقسام النباتات",
+  "شريط العناية",
+  "بنر العروض",
+  "المنتجات"
+].map((section, i) => (
+  <div key={i} className="homepage-section-row">
+    
+    <div
+      className="section-header"
+      onClick={() => setOpenSection(openSection === i ? null : i)}
+    >
+      <span>{section}</span>
     </div>
-  </section>
-)}
+
+    {openSection === i && (
+      <div className="section-form">
+        <p>نموذج تعديل قسم: {section}</p>
+
+        <input placeholder="عنوان القسم" />
+        <input placeholder="وصف القسم" />
+      </div>
+    )}
+
+  </div>
+))}
 
         {tab === "identity" && (
           <section className="admin-grid">
