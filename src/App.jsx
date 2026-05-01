@@ -1596,44 +1596,7 @@ return (
           </section>
         )}
 
-      {tab === "homepage" && (
-  <section className="homepage-admin-page">
-    <div className="admin-card">
-      <h2>إدارة الصفحة الرئيسية</h2>
-      <p>اضغط على أي قسم لعرض الإعدادات</p>
-    </div>
-
-    <div className="homepage-sections-list">
-      {[
-  "الهيدر",
-  "الهيرو",
-  "أقسام النباتات",
-  "شريط العناية",
-  "بنر العروض",
-  "المنتجات"
-].map((section, i) => (
-  <div key={i} className="homepage-section-row">
-    
-    <div
-      className="section-header"
-      onClick={() => setOpenSection(openSection === i ? null : i)}
-    >
-      <span>{section}</span>
-    </div>
-
-    {openSection === i && (
-      <div className="section-form">
-        <p>نموذج تعديل قسم: {section}</p>
-
-        <input placeholder="عنوان القسم" />
-        <input placeholder="وصف القسم" />
-      </div>
-    )}
-
-  </div>
-))}
-
-        {tab === "identity" && (
+             {tab === "identity" && (
           <section className="admin-grid">
             <div className="admin-card">
               <h2>ألوان جاهزة</h2>
