@@ -1595,118 +1595,33 @@ return (
           </section>
         )}
 
-        {tab === "homepage" && (
-          <section className="homepage-admin-page">
-            <div className="admin-card homepage-admin-hero">
-              <div>
-                <span>Homepage CMS</span>
-                <h2>إدارة الصفحة الرئيسية</h2>
-                <p>عدّل محتوى الهيرو والإحصائيات من هنا، ثم اضغط حفظ التغييرات.</p>
-              </div>
-            </div>
+      {tab === "homepage" && (
+  <section className="homepage-admin-page">
+    <div className="admin-card">
+      <h2>إدارة الصفحة الرئيسية</h2>
+      <p>اضغط على أي قسم لعرض الإعدادات</p>
+    </div>
 
-            <div className="admin-grid homepage-admin-grid">
-              <div className="admin-card">
-                <h2>الهيرو الرئيسي</h2>
-
-                <Control label="الشارة الصغيرة">
-                  <input
-                    value={draftSettings.heroBadge || ""}
-                    onChange={e=>updateDraft("heroBadge", e.target.value)}
-                    placeholder="Rare Nature Boutique"
-                  />
-                </Control>
-
-                <Control label="عنوان الهيرو">
-                  <input
-                    value={draftSettings.heroTitle || ""}
-                    onChange={e=>updateDraft("heroTitle", e.target.value)}
-                    placeholder="نباتات طبيعية تضيف حياة لمساحتك"
-                  />
-                </Control>
-
-                <Control label="وصف الهيرو">
-                  <textarea
-                    value={draftSettings.heroSubtitle || ""}
-                    onChange={e=>updateDraft("heroSubtitle", e.target.value)}
-                    placeholder="اكتب وصف الصفحة الرئيسية"
-                  />
-                </Control>
-
-                <Control label="نص زر الهيرو">
-                  <input
-                    value={draftSettings.heroButtonText || ""}
-                    onChange={e=>updateDraft("heroButtonText", e.target.value)}
-                    placeholder="تسوق الآن"
-                  />
-                </Control>
-              </div>
-
-              <div className="admin-card">
-                <h2>صورة الهيرو</h2>
-
-                <Control label="رابط صورة الهيرو">
-                  <input
-                    value={draftSettings.heroImage || ""}
-                    onChange={e=>updateDraft("heroImage", e.target.value)}
-                    placeholder="https://..."
-                  />
-                </Control>
-
-                <Control label="أو ارفع صورة">
-                  <input type="file" accept="image/*" onChange={e=>uploadSettingImage("heroImage", e.target.files[0])} />
-                </Control>
-
-                <Control label={`ارتفاع الصورة: ${draftSettings.heroHeight}px`}>
-                  <input
-                    type="range"
-                    min="320"
-                    max="760"
-                    value={draftSettings.heroHeight}
-                    onChange={e=>updateDraft("heroHeight", Number(e.target.value))}
-                  />
-                </Control>
-
-                {draftSettings.heroImage && <img className="admin-image-preview" src={draftSettings.heroImage} />}
-              </div>
-
-              <div className="admin-card">
-                <h2>إحصائيات الهيرو</h2>
-
-                <Control label="عنوان الإحصائية الأولى">
-                  <input
-                    value={draftSettings.heroStatsProducts || ""}
-                    onChange={e=>updateDraft("heroStatsProducts", e.target.value)}
-                    placeholder="منتجات"
-                  />
-                </Control>
-
-                <Control label="عنوان الإحصائية الثانية">
-                  <input
-                    value={draftSettings.heroStatsPackaging || ""}
-                    onChange={e=>updateDraft("heroStatsPackaging", e.target.value)}
-                    placeholder="تغليف فاخر"
-                  />
-                </Control>
-
-                <Control label="عنوان الإحصائية الثالثة">
-                  <input
-                    value={draftSettings.heroStatsCustomers || ""}
-                    onChange={e=>updateDraft("heroStatsCustomers", e.target.value)}
-                    placeholder="حسابات عملاء"
-                  />
-                </Control>
-              </div>
-            </div>
-
-            <div className="admin-card homepage-preview-card">
-              <span>Live Preview</span>
-              <h2>{draftSettings.heroTitle}</h2>
-              <p>{draftSettings.heroSubtitle}</p>
-              <button className="admin-primary">{draftSettings.heroButtonText || "تسوق الآن"}</button>
-            </div>
-          </section>
-        )}
+    <div className="homepage-sections-list">
+      {[
+        "الهيدر",
+        "الهيرو",
+        "أقسام النباتات",
+        "شريط العناية",
+        "بنر العروض",
+        "المنتجات"
+      ].map((section, i) => (
+        <div
+          key={i}
+          className="homepage-section-row"
+          onClick={() => console.log(section)}
+        >
+          <span>{section}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
 
         {tab === "identity" && (
           <section className="admin-grid">
