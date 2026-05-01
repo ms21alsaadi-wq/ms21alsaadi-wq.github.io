@@ -29,25 +29,52 @@ const EMAILJS_PUBLIC_KEY = "c8wX_e15GQ-c3xseZ";
 const defaultSettings = {
   storeName: "GREEN DIXAM",
   tagline: "rare nature, refined living",
-  heroTitle: "Rare Nature, Refined Living",
-  heroSubtitle: "مجموعة نباتات نادرة وأصص فاخرة وإكسسوارات عناية مستوحاة من جمال سقطرى، مصممة لمساحات هادئة وراقية.",
-  heroBadge: "Rare Nature Boutique",
-  heroButtonText: "تسوق الآن",
-  heroStatsProducts: "منتجات",
-  heroStatsPackaging: "تغليف فاخر",
-  heroStatsCustomers: "حسابات عملاء",
+
   primaryColor: "#0F3D2E",
   accentColor: "#C2A968",
   backgroundColor: "#F5F1E8",
   cardColor: "#FFFFFF",
   fontFamily: "Cairo",
   logo: "",
+
+  heroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
+  heroSubtitle: "اختر نبتتك بسهولة – نباتات داخلية مختارة بعناية، تغليف أنيق، وتوصيل سريع داخل السعودية.",
+  heroBadge: "Green Dixam Boutique",
+  heroButtonText: "تسوق الآن",
   heroImage: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1400&q=80",
   heroHeight: 520,
-  bannerTitle: "Inspired by Socotra",
-  bannerSubtitle: "نباتات نادرة، هدايا فاخرة، وأصص مصممة لأسلوب حياة هادئ وخالد.",
+  heroStatsProducts: "منتجات",
+  heroStatsPackaging: "تغليف فاخر",
+  heroStatsCustomers: "حسابات عملاء",
+
+  bannerTitle: "عرض الإطلاق",
+  bannerSubtitle: "استخدم كوبون GREEN10 واحصل على خصم خاص على أول طلب.",
   bannerImage: "",
-  productImageHeight: 280
+  productImageHeight: 280,
+
+  homeHeaderTitle: "GREEN DIXAM",
+  homeHeaderSubtitle: "RARE NATURE, REFINED LIVING",
+  homeHeaderImage: "",
+
+  homeHeroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
+  homeHeroDesc: "اختر نبتتك بسهولة – نباتات داخلية مختارة بعناية، تغليف أنيق، وتوصيل سريع داخل السعودية.",
+  homeHeroImage: "",
+  homeHeroButton: "تسوق الآن",
+
+  homePlantSectionsTitle: "اختر طابعك الأخضر",
+  homePlantSectionsDesc: "نباتات داخلية، نباتات سهلة العناية، وأصص وإكسسوارات بطابع فاخر.",
+  homePlantSectionsImage: "",
+
+  homeCareTitle: "عناية هادئة لنباتات تدوم",
+  homeCareDesc: "اختر الإضاءة المناسبة، اسقِ النبات بدون إفراط، واستخدم أصيص بتصريف جيد.",
+  homeCareImage: "",
+
+  homeOfferTitle: "عرض الإطلاق",
+  homeOfferDesc: "استخدم كوبون GREEN10 واحصل على خصم خاص على أول طلب.",
+  homeOfferImage: "",
+
+  homeProductsTitle: "نباتات نادرة ومنتجات فاخرة مختارة بعناية",
+  homeProductsDesc: "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."
 };
 
 const defaultProducts = [
@@ -606,8 +633,8 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         <div className="container luxe-nav">
           <div className="luxe-nav-right">
             <button className="luxe-logo" onClick={() => go("/")}>
-              {settings.logo ? <img src={settings.logo} alt="logo" /> : <b>{settings.storeName}</b>}
-              <span>{settings.tagline}</span>
+              {settings.logo ? <img src={settings.logo} alt="logo" /> : <b>{settings.homeHeaderTitle || settings.storeName}</b>}
+              <span>{settings.homeHeaderSubtitle || settings.tagline}</span>
             </button>
           </div>
 
@@ -642,11 +669,11 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
       <section className="container hero">
         <div className="hero-copy">
-          <div className="pill">{settings.heroBadge || "Rare Nature Boutique"}</div>
-          <h1>{settings.heroTitle}</h1>
-          <p>{settings.heroSubtitle}</p>
+          <div className="pill">{settings.heroBadge || "Green Dixam Boutique"}</div>
+          <h1>{settings.homeHeroTitle || settings.heroTitle}</h1>
+          <p>{settings.homeHeroDesc || settings.heroSubtitle}</p>
           <div className="hero-actions">
-            <a href="#products" className="primary">{settings.heroButtonText || "تسوق الآن"}</a>
+            <a href="#products" className="primary">{settings.homeHeroButton || settings.heroButtonText || "تسوق الآن"}</a>
           </div>
           <div className="stats">
             <div><b>{products.length}+</b><span>{settings.heroStatsProducts || "منتجات"}</span></div>
@@ -654,7 +681,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
             <div><b>Rare</b><span>{settings.heroStatsCustomers || "حسابات عملاء"}</span></div>
           </div>
         </div>
-        <div className="hero-image"><img src={settings.heroImage} alt="hero" /></div>
+        <div className="hero-image"><img src={settings.homeHeroImage || settings.heroImage} alt="hero" /></div>
       </section>
 
       <section className="container feature-grid">
@@ -666,8 +693,16 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       <section className="container plant-categories">
         <div className="section-title">
           <span>Brand Essence</span>
-          <h2>اختر طابعك الأخضر</h2>
+          <h2>{settings.homePlantSectionsTitle || "اختر طابعك الأخضر"}</h2>
+          <p className="home-section-desc">{settings.homePlantSectionsDesc || "نباتات داخلية، نباتات سهلة العناية، وأصص وإكسسوارات بطابع فاخر."}</p>
         </div>
+
+        {settings.homePlantSectionsImage && (
+          <div className="home-admin-section-image">
+            <img src={settings.homePlantSectionsImage} alt="أقسام النباتات" />
+          </div>
+        )}
+
         <div className="plant-category-grid">
           <a href="#products" className="plant-category-card">
             <img src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80" alt="نباتات داخلية" />
@@ -684,10 +719,11 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         </div>
       </section>
 
-      <section className="container care-strip">
+      <section className="container care-strip cms-care-strip" style={{ backgroundImage: settings.homeCareImage ? `linear-gradient(135deg, rgba(15,61,46,.90), rgba(23,77,57,.82)), url(${settings.homeCareImage})` : undefined }}>
         <div>
-          <span>Refined Rare</span>
-          <h2>عناية هادئة لنباتات تدوم</h2>
+          <span>Care Guide</span>
+          <h2>{settings.homeCareTitle || "عناية هادئة لنباتات تدوم"}</h2>
+          <p>{settings.homeCareDesc || "اختر الإضاءة المناسبة، اسقِ النبات بدون إفراط، واستخدم أصيص بتصريف جيد."}</p>
         </div>
         <div className="care-items">
           <div><b>01</b><span>اختر الإضاءة المناسبة</span></div>
@@ -696,8 +732,12 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         </div>
       </section>
 
-      <section className="container promo" style={{ backgroundImage: settings.bannerImage ? `linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.2)), url(${settings.bannerImage})` : undefined }}>
-        <div><span>Exclusive Campaign</span><h2>{settings.bannerTitle}</h2><p>{settings.bannerSubtitle}</p></div>
+      <section className="container promo" style={{ backgroundImage: (settings.homeOfferImage || settings.bannerImage) ? `linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.2)), url(${settings.homeOfferImage || settings.bannerImage})` : undefined }}>
+        <div>
+          <span>Exclusive Campaign</span>
+          <h2>{settings.homeOfferTitle || settings.bannerTitle}</h2>
+          <p>{settings.homeOfferDesc || settings.bannerSubtitle}</p>
+        </div>
       </section>
 
       <section className="container filters">
@@ -705,9 +745,8 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         <select value={brand} onChange={e=>setBrand(e.target.value)}>{brands.map(b => <option key={b} value={b}>{b==="All"?"كل النوع/الموردات":b}</option>)}</select>
         <select value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c => <option key={c} value={c}>{c==="All"?"كل النباتات":c}</option>)}</select>
       </section>
-
-      <section id="products" className="container product-section">
-        <div className="section-title"><span>Rare Catalogue</span><h2>نباتات نادرة ومنتجات فاخرة مختارة بعناية</h2></div>
+<section id="products" className="container product-section">
+        <div className="section-title"><span>Rare Catalogue</span><h2>{settings.homeProductsTitle || "نباتات نادرة ومنتجات فاخرة مختارة بعناية"}</h2><p className="home-section-desc">{settings.homeProductsDesc || "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}</p></div>
         <div className="products-grid">
           {filtered.map(p => {
             const sizes = sizesArray(p.sizes);
@@ -1386,7 +1425,7 @@ return (
           <div className="admin-save-bar">
             <div>
               <b>التغييرات غير محفوظة حتى تضغط حفظ</b>
-              <span>أي تعديل في الهوية أو البنرات لن يظهر في المتجر إلا بعد الحفظ.</span>
+              <span>أي تعديل في الهوية أو البنرات أو الصفحة الرئيسية لن يظهر في المتجر إلا بعد الحفظ.</span>
             </div>
             <div className="save-bar-actions">
               <button className="admin-secondary" onClick={resetDraftSettings}>إلغاء التغييرات</button>
@@ -1804,37 +1843,94 @@ return (
           </section>
         )}
 
-        
         {tab === "homepage" && (
           <section className="homepage-admin-page">
-            <div className="admin-card">
-              <h2>إدارة الصفحة الرئيسية</h2>
-              <p>اضغط على أي قسم لعرض الإعدادات</p>
+            <div className="admin-card homepage-admin-intro">
+              <div>
+                <span>Homepage CMS</span>
+                <h2>إدارة الصفحة الرئيسية</h2>
+                <p>كل تعديل هنا لن يظهر في المتجر إلا بعد الضغط على حفظ التغييرات.</p>
+              </div>
             </div>
 
             <div className="homepage-sections-list">
               {[
-                "الهيدر",
-                "الهيرو",
-                "أقسام النباتات",
-                "شريط العناية",
-                "بنر العروض",
-                "المنتجات"
-              ].map((section, i) => (
-                <div key={i} className="homepage-section-row">
+                { id: "header", label: "الهيدر", titleKey: "homeHeaderTitle", descKey: "homeHeaderSubtitle", imageKey: "homeHeaderImage" },
+                { id: "hero", label: "الهيرو", titleKey: "homeHeroTitle", descKey: "homeHeroDesc", imageKey: "homeHeroImage", buttonKey: "homeHeroButton" },
+                { id: "plants", label: "أقسام النباتات", titleKey: "homePlantSectionsTitle", descKey: "homePlantSectionsDesc", imageKey: "homePlantSectionsImage" },
+                { id: "care", label: "شريط العناية", titleKey: "homeCareTitle", descKey: "homeCareDesc", imageKey: "homeCareImage" },
+                { id: "offer", label: "بنر العروض", titleKey: "homeOfferTitle", descKey: "homeOfferDesc", imageKey: "homeOfferImage" },
+                { id: "products", label: "المنتجات", titleKey: "homeProductsTitle", descKey: "homeProductsDesc", imageKey: "" }
+              ].map((section) => (
+                <div key={section.id} className="homepage-section-row">
                   <div
                     className="section-header"
-                    onClick={() => setOpenSection(openSection === i ? null : i)}
+                    onClick={() => setOpenSection(openSection === section.id ? null : section.id)}
                   >
-                    <span>{section}</span>
-                    <b>{openSection === i ? "−" : "+"}</b>
+                    <div>
+                      <span>{section.label}</span>
+                      <small>{draftSettings[section.titleKey] || "اضغط للتعديل"}</small>
+                    </div>
+                    <b>{openSection === section.id ? "−" : "+"}</b>
                   </div>
 
-                  {openSection === i && (
-                    <div className="section-form">
-                      <p>نموذج تعديل قسم: {section}</p>
-                      <input placeholder="عنوان القسم" />
-                      <input placeholder="وصف القسم" />
+                  {openSection === section.id && (
+                    <div className="section-form section-form-pro">
+                      <Control label="العنوان">
+                        <input
+                          value={draftSettings[section.titleKey] || ""}
+                          onChange={e => updateDraft(section.titleKey, e.target.value)}
+                          placeholder="عنوان القسم"
+                        />
+                      </Control>
+
+                      <Control label="الوصف">
+                        <textarea
+                          value={draftSettings[section.descKey] || ""}
+                          onChange={e => updateDraft(section.descKey, e.target.value)}
+                          placeholder="وصف القسم"
+                        />
+                      </Control>
+
+                      {section.buttonKey && (
+                        <Control label="نص الزر">
+                          <input
+                            value={draftSettings[section.buttonKey] || ""}
+                            onChange={e => updateDraft(section.buttonKey, e.target.value)}
+                            placeholder="تسوق الآن"
+                          />
+                        </Control>
+                      )}
+
+                      {section.imageKey && (
+                        <div className="section-image-tools">
+                          <Control label="رابط الصورة">
+                            <input
+                              value={draftSettings[section.imageKey] || ""}
+                              onChange={e => updateDraft(section.imageKey, e.target.value)}
+                              placeholder="https://..."
+                            />
+                          </Control>
+
+                          <Control label="أو ارفع صورة">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={e => uploadSettingImage(section.imageKey, e.target.files[0])}
+                            />
+                          </Control>
+
+                          {draftSettings[section.imageKey] && (
+                            <img className="section-image-preview" src={draftSettings[section.imageKey]} alt={section.label} />
+                          )}
+                        </div>
+                      )}
+
+                      <div className="section-mini-preview">
+                        <span>معاينة</span>
+                        <h3>{draftSettings[section.titleKey]}</h3>
+                        <p>{draftSettings[section.descKey]}</p>
+                      </div>
                     </div>
                   )}
                 </div>
