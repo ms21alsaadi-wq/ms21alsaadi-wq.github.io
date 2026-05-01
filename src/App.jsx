@@ -1840,6 +1840,41 @@ return (
           </section>
         )}
 
+      {tab === "homepage" && (
+  <section className="homepage-admin-page">
+    <div className="admin-card">
+      <h2>إدارة الصفحة الرئيسية</h2>
+      <p>اضغط على أي قسم لعرض الإعدادات</p>
+    </div>
+
+    <div className="homepage-sections-list">
+      {[
+        "الهيدر",
+        "الهيرو",
+        "أقسام النباتات",
+        "شريط العناية",
+        "بنر العروض",
+        "المنتجات"
+      ].map((section, i) => (
+        <div
+          key={i}
+          className="homepage-section-row"
+          onClick={() => setOpenSection(openSection === i ? null : i)}
+        >
+          <span>{section}</span>
+
+          {openSection === i && (
+            <div className="section-form">
+              <p>تعديل قسم: {section}</p>
+              <input placeholder="عنوان" />
+              <input placeholder="وصف" />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
         {tab === "customers" && <CustomersPanel customers={customers} orders={orders} />}
         {tab === "orders" && <OrdersPanel orders={orders} />}
       </main>
