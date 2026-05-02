@@ -5094,3 +5094,14 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
 .top-announcement-bar{background:#0F3D2E;color:#fff;text-align:center;padding:8px;font-weight:900;}
 .header-cta-pro{background:#C2A96B;color:#fff;padding:10px 16px;border-radius:10px;margin-left:10px;display:inline-block;}
 .header-socials a{margin:0 5px;font-weight:bold;}
+
+
+/* ===== HEADER CLEANUP ===== */
+.store-header .header-cta-pro,
+.store-header .header-socials {
+  display: none !important;
+}
+
+.store-header .top-announcement-bar + .top-announcement-bar {
+  display: none !important;
+}

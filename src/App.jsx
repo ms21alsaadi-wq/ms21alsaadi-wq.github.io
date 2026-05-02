@@ -648,11 +648,9 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         }}
       >
 <div className="top-announcement-bar">شحن سريع داخل السعودية 🚚</div>
-        {settings.homeHeaderTopBar && (
-          <div className="top-announcement-bar">
-            <span>{settings.homeHeaderTopBar}</span>
-          </div>
-        )}
+        
+{settings.homeHeaderTopBar && (
+)}
         <div className="container luxe-nav">
           <div className="luxe-nav-right">
             <button className="luxe-logo" onClick={() => go("/")}>
@@ -672,32 +670,8 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           </nav>
 
           <div className="luxe-nav-left">
-<div className="header-socials">
-<a href="#">IG</a>
-<a href="#">TT</a>
-<a href="#">SC</a>
-<a href="#">X</a>
-<a href="https://wa.me/966508983003">WA</a>
-</div>
-<a className="header-cta-pro" href="#products">اطلب الآن</a>
 
-            
-            <div className="header-socials">
-              {settings.homeHeaderInstagram && <a href={settings.homeHeaderInstagram} target="_blank" rel="noreferrer" title="Instagram">IG</a>}
-              {settings.homeHeaderTiktok && <a href={settings.homeHeaderTiktok} target="_blank" rel="noreferrer" title="TikTok">TT</a>}
-              {settings.homeHeaderSnapchat && <a href={settings.homeHeaderSnapchat} target="_blank" rel="noreferrer" title="Snapchat">SC</a>}
-              {settings.homeHeaderX && <a href={settings.homeHeaderX} target="_blank" rel="noreferrer" title="X">𝕏</a>}
-              {settings.homeHeaderWhatsapp && <a href={`https://wa.me/${settings.homeHeaderWhatsapp}`} target="_blank" rel="noreferrer" title="WhatsApp">WA</a>}
-            </div>
-
-            <a
-              className="header-cta-pro"
-              href="#products"
-            >
-              {settings.homeHeaderCtaText || "اطلب الآن"}
-            </a>
-
-            <button
+<button
               className="language-toggle"
               type="button"
               title="اللغة"
