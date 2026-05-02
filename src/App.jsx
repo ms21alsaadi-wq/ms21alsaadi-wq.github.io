@@ -67,6 +67,14 @@ const defaultSettings = {
   homeHeaderCtaText: "اطلب الآن",
   homeHeaderSticky: true,
 
+  homePagesSticky: false,
+  homePagesTitle: "الصفحات",
+  homePages: [
+    { label: "النباتات", href: "#products" },
+    { label: "العروض", href: "#products" },
+    { label: "دليل العناية", href: "#community" }
+  ],
+
   homeHeroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
   homeHeroDesc: "اختر نبتتك بسهولة – نباتات داخلية مختارة بعناية، تغليف أنيق، وتوصيل سريع داخل السعودية.",
   homeHeroImage: "",
@@ -501,6 +509,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [siteLang, setSiteLang] = useState(() => {
     try {
       return localStorage.getItem("green-dixam-lang") || settings.homeHeaderLang || "AR";
@@ -531,6 +540,11 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const shippingFee = subtotal ? 35 : 0;
   const discount = appliedCoupon ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100)) : 0;
   const total = Math.max(0, subtotal - discount) + shippingFee;
+  const filteredProducts = products.filter((p) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    return `${p.name || ""} ${p.category || ""} ${p.description || ""}`.toLowerCase().includes(q);
+  });
 
   function applyCoupon() {
     const code = couponCode.trim().toUpperCase();
@@ -680,9 +694,24 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           </div>
 
           <nav className="luxe-nav-center">
-            <a href="#products">{siteLang === "EN" ? "Plants" : "النباتات"}</a>
-            <a href="#products">{siteLang === "EN" ? "Offers" : "العروض"}</a>
-            <a href="#community">{siteLang === "EN" ? "Care Guide" : "دليل العناية"}</a>
+            <form
+              className="header-search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                  const productsEl = document.getElementById("products");
+                  productsEl?.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+            >
+              <Search size={18} />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={siteLang === "EN" ? "Search products..." : "ابحث عن منتج..."}
+              />
+              <button type="submit">{siteLang === "EN" ? "Search" : "بحث"}</button>
+            </form>
           </nav>
 
           <div className="luxe-nav-left">
@@ -744,6 +773,22 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           </div>
         </div>
       </header>
+
+      
+      <section className={`home-pages-strip ${settings.homePagesSticky ? "pages-sticky" : ""}`}>
+        <div className="container home-pages-inner">
+          <span>{settings.homePagesTitle || "الصفحات"}</span>
+          <div className="home-pages-links">
+            {(settings.homePages || [
+              { label: "النباتات", href: "#products" },
+              { label: "العروض", href: "#products" },
+              { label: "دليل العناية", href: "#community" }
+            ]).map((page, index) => (
+              <a key={index} href={page.href || "#"}>{page.label}</a>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="container hero">
         <div className="hero-copy">
@@ -1938,6 +1983,7 @@ return (
                 { id: "plants", label: "أقسام النباتات", titleKey: "homePlantSectionsTitle", descKey: "homePlantSectionsDesc", imageKey: "homePlantSectionsImage" },
                 { id: "care", label: "شريط العناية", titleKey: "homeCareTitle", descKey: "homeCareDesc", imageKey: "homeCareImage" },
                 { id: "offer", label: "بنر العروض", titleKey: "homeOfferTitle", descKey: "homeOfferDesc", imageKey: "homeOfferImage" },
+                { id: "pages", label: "الصفحات", titleKey: "homePagesTitle", descKey: "", imageKey: "", pagesExtra: true },
                 { id: "products", label: "المنتجات", titleKey: "homeProductsTitle", descKey: "homeProductsDesc", imageKey: "" }
               ].map((section) => (
                 <div key={section.id} className="homepage-section-row">
@@ -1962,13 +2008,15 @@ return (
                         />
                       </Control>
 
-                      <Control label="الوصف">
-                        <textarea
-                          value={draftSettings[section.descKey] || ""}
-                          onChange={e => updateDraft(section.descKey, e.target.value)}
-                          placeholder="وصف القسم"
-                        />
-                      </Control>
+                      {!section.pagesExtra && (
+                        <Control label="الوصف">
+                          <textarea
+                            value={draftSettings[section.descKey] || ""}
+                            onChange={e => updateDraft(section.descKey, e.target.value)}
+                            placeholder="وصف القسم"
+                          />
+                        </Control>
+                      )}
 
                       {section.buttonKey && (
                         <Control label="نص الزر">
@@ -2067,10 +2115,70 @@ return (
 </div>
                       )}
 
+                      {section.pagesExtra && (
+                        <div className="pages-admin-tools">
+                          <label className="feature-toggle">
+                            <input
+                              type="checkbox"
+                              checked={draftSettings.homePagesSticky || false}
+                              onChange={e => updateDraft("homePagesSticky", e.target.checked)}
+                            />
+                            <span>تثبيت قسم الصفحات تحت الهيدر</span>
+                          </label>
+
+                          <div className="pages-admin-list">
+                            {(draftSettings.homePages || []).map((page, pageIndex) => (
+                              <div className="page-row-editor" key={pageIndex}>
+                                <input
+                                  value={page.label || ""}
+                                  onChange={e => {
+                                    const next = [...(draftSettings.homePages || [])];
+                                    next[pageIndex] = { ...next[pageIndex], label: e.target.value };
+                                    updateDraft("homePages", next);
+                                  }}
+                                  placeholder="اسم الصفحة"
+                                />
+                                <input
+                                  value={page.href || ""}
+                                  onChange={e => {
+                                    const next = [...(draftSettings.homePages || [])];
+                                    next[pageIndex] = { ...next[pageIndex], href: e.target.value };
+                                    updateDraft("homePages", next);
+                                  }}
+                                  placeholder="#products"
+                                />
+                                <button
+                                  type="button"
+                                  className="admin-secondary"
+                                  onClick={() => {
+                                    const next = [...(draftSettings.homePages || [])];
+                                    next.splice(pageIndex, 1);
+                                    updateDraft("homePages", next);
+                                  }}
+                                >
+                                  حذف
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            className="admin-primary add-page-btn"
+                            onClick={() => updateDraft("homePages", [
+                              ...(draftSettings.homePages || []),
+                              { label: "صفحة جديدة", href: "#" }
+                            ])}
+                          >
+                            إضافة صفحة
+                          </button>
+                        </div>
+                      )}
+
                       <div className="section-mini-preview">
                         <span>معاينة</span>
                         <h3>{draftSettings[section.titleKey]}</h3>
-                        <p>{draftSettings[section.descKey]}</p>
+                        {!section.pagesExtra && <p>{draftSettings[section.descKey]}</p>}
                       </div>
                     </div>
                   )}

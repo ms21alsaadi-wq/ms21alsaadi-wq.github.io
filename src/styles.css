@@ -5433,3 +5433,136 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     transform: translateX(-50%) !important;
   }
 }
+
+
+/* ===== HEADER SEARCH + PAGES SECTION ===== */
+.store-header .luxe-nav-center {
+  min-width: min(480px, 42vw) !important;
+}
+
+.header-search {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fffdf7;
+  border: 1px solid rgba(194,169,104,.36);
+  border-radius: 22px;
+  padding: 8px 10px 8px 14px;
+  box-shadow: 0 12px 30px rgba(15,61,46,.06);
+}
+
+.header-search svg {
+  color: #0F3D2E;
+  flex: 0 0 auto;
+}
+
+.header-search input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #0F3D2E;
+  font-weight: 800;
+  min-width: 0;
+}
+
+.header-search input::placeholder {
+  color: rgba(15,61,46,.45);
+}
+
+.header-search button {
+  border: 0;
+  border-radius: 16px;
+  background: #0F3D2E;
+  color: #fff;
+  padding: 9px 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.home-pages-strip {
+  background: rgba(255,253,247,.92);
+  border-top: 1px solid rgba(194,169,104,.22);
+  border-bottom: 1px solid rgba(194,169,104,.24);
+  backdrop-filter: blur(14px);
+  z-index: 70;
+}
+
+.home-pages-strip.pages-sticky {
+  position: sticky;
+  top: var(--pages-sticky-top, 0px);
+}
+
+.home-pages-inner {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.home-pages-inner > span {
+  color: #C2A968;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .18em;
+}
+
+.home-pages-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.home-pages-links a {
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  background: #fffdf7;
+  border: 1px solid rgba(194,169,104,.28);
+  color: #0F3D2E;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 10px 26px rgba(15,61,46,.05);
+}
+
+.pages-admin-tools {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+  background: #fffdf7;
+  border: 1px solid rgba(194,169,104,.24);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.pages-admin-list {
+  display: grid;
+  gap: 10px;
+}
+
+.page-row-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.add-page-btn {
+  justify-self: start;
+}
+
+@media (max-width: 900px) {
+  .store-header .luxe-nav-center {
+    min-width: 100% !important;
+  }
+
+  .page-row-editor {
+    grid-template-columns: 1fr;
+  }
+}
