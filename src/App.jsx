@@ -67,12 +67,12 @@ const defaultSettings = {
   homeHeaderCtaText: "اطلب الآن",
   homeHeaderSticky: true,
 
-  homePagesSticky: false,
+  homePagesSticky: true,
   homePagesTitle: "الصفحات",
   homePages: [
-    { label: "النباتات", href: "#products" },
-    { label: "العروض", href: "#products" },
-    { label: "دليل العناية", href: "#community" }
+    { label: "النباتات", href: "#products", visible: true },
+    { label: "العروض", href: "#products", visible: true },
+    { label: "دليل العناية", href: "#community", visible: true }
   ],
 
   homeHeroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
@@ -773,24 +773,22 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           </div>
         </div>
       </header>
-
-      
-      <section className={`home-pages-strip ${settings.homePagesSticky ? "pages-sticky" : ""}`}>
+      <section className={`home-pages-strip ${settings.homePagesSticky !== false ? "pages-sticky" : ""}`}>
         <div className="container home-pages-inner">
           <span>{settings.homePagesTitle || "الصفحات"}</span>
           <div className="home-pages-links">
             {(settings.homePages || [
-              { label: "النباتات", href: "#products" },
-              { label: "العروض", href: "#products" },
-              { label: "دليل العناية", href: "#community" }
-            ]).map((page, index) => (
+              { label: "النباتات", href: "#products", visible: true },
+              { label: "العروض", href: "#products", visible: true },
+              { label: "دليل العناية", href: "#community", visible: true }
+            ]).filter(page => page.visible !== false).map((page, index) => (
               <a key={index} href={page.href || "#"}>{page.label}</a>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="container hero">
+<section className="container hero">
         <div className="hero-copy">
           <div className="pill">{settings.heroBadge || "Green Dixam Boutique"}</div>
           <h1>{settings.homeHeroTitle || settings.heroTitle}</h1>
@@ -1979,11 +1977,11 @@ return (
             <div className="homepage-sections-list">
               {[
                 { id: "header", label: "الهيدر", titleKey: "homeHeaderTitle", descKey: "homeHeaderSubtitle", imageKey: "homeHeaderImage", headerExtra: true },
+                { id: "pages", label: "الصفحات", titleKey: "homePagesTitle", descKey: "", imageKey: "", pagesExtra: true },
                 { id: "hero", label: "الهيرو", titleKey: "homeHeroTitle", descKey: "homeHeroDesc", imageKey: "homeHeroImage", buttonKey: "homeHeroButton" },
                 { id: "plants", label: "أقسام النباتات", titleKey: "homePlantSectionsTitle", descKey: "homePlantSectionsDesc", imageKey: "homePlantSectionsImage" },
                 { id: "care", label: "شريط العناية", titleKey: "homeCareTitle", descKey: "homeCareDesc", imageKey: "homeCareImage" },
                 { id: "offer", label: "بنر العروض", titleKey: "homeOfferTitle", descKey: "homeOfferDesc", imageKey: "homeOfferImage" },
-                { id: "pages", label: "الصفحات", titleKey: "homePagesTitle", descKey: "", imageKey: "", pagesExtra: true },
                 { id: "products", label: "المنتجات", titleKey: "homeProductsTitle", descKey: "homeProductsDesc", imageKey: "" }
               ].map((section) => (
                 <div key={section.id} className="homepage-section-row">
@@ -2129,11 +2127,24 @@ return (
                           <div className="pages-admin-list">
                             {(draftSettings.homePages || []).map((page, pageIndex) => (
                               <div className="page-row-editor" key={pageIndex}>
+                                <label className="page-visible-toggle">
+                                  <input
+                                    type="checkbox"
+                                    checked={page.visible !== false}
+                                    onChange={e => {
+                                      const next = [...(draftSettings.homePages || [])];
+                                      next[pageIndex] = { ...next[pageIndex], visible: e.target.checked };
+                                      updateDraft("homePages", next);
+                                    }}
+                                  />
+                                  <span>{page.visible === false ? "مخفي" : "ظاهر"}</span>
+                                </label>
+
                                 <input
                                   value={page.label || ""}
                                   onChange={e => {
                                     const next = [...(draftSettings.homePages || [])];
-                                    next[pageIndex] = { ...next[pageIndex], label: e.target.value };
+                                    next[pageIndex] = { ...next[pageIndex], label: e.target.value, visible: next[pageIndex]?.visible !== false };
                                     updateDraft("homePages", next);
                                   }}
                                   placeholder="اسم الصفحة"
@@ -2142,7 +2153,7 @@ return (
                                   value={page.href || ""}
                                   onChange={e => {
                                     const next = [...(draftSettings.homePages || [])];
-                                    next[pageIndex] = { ...next[pageIndex], href: e.target.value };
+                                    next[pageIndex] = { ...next[pageIndex], href: e.target.value, visible: next[pageIndex]?.visible !== false };
                                     updateDraft("homePages", next);
                                   }}
                                   placeholder="#products"
@@ -2167,7 +2178,7 @@ return (
                             className="admin-primary add-page-btn"
                             onClick={() => updateDraft("homePages", [
                               ...(draftSettings.homePages || []),
-                              { label: "صفحة جديدة", href: "#" }
+                              { label: "صفحة جديدة", href: "#", visible: true }
                             ])}
                           >
                             إضافة صفحة
