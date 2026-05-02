@@ -509,6 +509,8 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     }
   });
 
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+
   useEffect(() => {
     try {
       localStorage.setItem("green-dixam-lang", siteLang);
@@ -685,14 +687,41 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
           <div className="luxe-nav-left">
 
-<button
-              className="language-toggle"
-              type="button"
-              title={siteLang === "EN" ? "Language" : "اللغة"}
-              onClick={() => setSiteLang(siteLang === "AR" ? "EN" : "AR")}
-            >
-              {siteLang}
-            </button>
+<div className="language-menu-wrap">
+              <button
+                className="language-toggle"
+                type="button"
+                title={siteLang === "EN" ? "Language" : "اللغة"}
+                onClick={() => setLangMenuOpen(v => !v)}
+              >
+                🌐
+              </button>
+
+              {langMenuOpen && (
+                <div className="language-dropdown">
+                  <button
+                    type="button"
+                    className={siteLang === "AR" ? "active" : ""}
+                    onClick={() => {
+                      setSiteLang("AR");
+                      setLangMenuOpen(false);
+                    }}
+                  >
+                    العربية
+                  </button>
+                  <button
+                    type="button"
+                    className={siteLang === "EN" ? "active" : ""}
+                    onClick={() => {
+                      setSiteLang("EN");
+                      setLangMenuOpen(false);
+                    }}
+                  >
+                    English
+                  </button>
+                </div>
+              )}
+            </div>
 
             <button
               className="luxe-icon-btn"
