@@ -6104,14 +6104,6 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   content: none !important;
 }
 
-.store-header .header-search .search-icon-submit {
-  margin-inline-start: 0 !important;
-  margin-inline-end: 20px !important;
-  flex: 0 0 44px !important;
-  justify-self: flex-start !important;
-  position: static !important;
-}
-
 .store-header .header-search input {
   text-decoration: none !important;
   border: 0 !important;
