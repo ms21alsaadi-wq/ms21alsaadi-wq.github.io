@@ -1,1 +1,0 @@
-Tracking without API: direct carrier links for Aramex, SMSA, DHL, FedEx. Unknown carriers open Google search.
