@@ -681,11 +681,11 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         <div
           className="top-announcement-bar"
           style={{
-            background: settings.homeTopBarBg || "#0F3D2E",
+            backgroundColor: settings.homeTopBarBg || "#0F3D2E",
             color: settings.homeTopBarText || "#FFFFFF"
           }}
         >
-          <span>{settings.homeHeaderTopBar ?? "شحن سريع داخل السعودية 🚚"}</span>
+          <span>{settings.homeHeaderTopBar ?? ""}</span>
         </div>
 
 <div className="container luxe-nav">

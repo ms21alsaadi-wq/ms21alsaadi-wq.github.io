@@ -6188,3 +6188,116 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     justify-content: center !important;
   }
 }
+
+
+/* ===== STRICT HEADER FIX: search button position + real color binding + compact sticky ===== */
+
+/* Do not override inline header background from admin */
+.store-header.premium-store-header,
+.premium-store-header {
+  background-image: none !important;
+}
+
+/* Top bar must use inline colors from admin */
+.store-header .top-announcement-bar {
+  background-image: none !important;
+}
+
+/* Search button exactly at the left edge of search field in RTL layout */
+.store-header .header-search {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: row-reverse !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 5px 12px 5px 5px !important;
+  overflow: hidden !important;
+}
+
+.store-header .header-search .search-icon-submit {
+  order: 999 !important;
+  margin: 0 !important;
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #0F3D2E !important;
+  color: #fff !important;
+  transform: none !important;
+}
+
+.store-header .header-search .search-icon-submit svg {
+  width: 19px !important;
+  height: 19px !important;
+  stroke: #fff !important;
+}
+
+.store-header .header-search input {
+  order: 1 !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  text-align: right !important;
+}
+
+/* Header admin: title input + sticky same line and same height */
+.header-admin-clean-form {
+  grid-template-columns: 1fr 220px !important;
+  align-items: end !important;
+}
+
+.header-sticky-inline-control {
+  height: 54px !important;
+  min-height: 54px !important;
+  align-self: end !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 0 16px !important;
+  border-radius: 16px !important;
+  background: #fffdf7 !important;
+  border: 1px solid rgba(194,169,104,.30) !important;
+  color: #0F3D2E !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+.header-sticky-inline-control input {
+  width: 20px !important;
+  height: 20px !important;
+  flex: 0 0 20px !important;
+}
+
+.header-admin-clean-form .header-extra-tools .feature-toggle {
+  display: none !important;
+}
+
+/* Compact color row */
+.header-admin-clean-form .header-extra-tools {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+/* Make color inputs fill cleanly */
+.header-admin-clean-form input[type="color"] {
+  width: 100% !important;
+  min-height: 44px !important;
+  padding: 3px !important;
+  border-radius: 12px !important;
+}
+
+@media (max-width: 900px) {
+  .header-admin-clean-form,
+  .header-admin-clean-form .header-extra-tools {
+    grid-template-columns: 1fr !important;
+  }
+
+  .header-sticky-inline-control {
+    width: 100% !important;
+  }
+}
