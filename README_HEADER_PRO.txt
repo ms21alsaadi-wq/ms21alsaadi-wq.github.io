@@ -1,1 +1,0 @@
-Header Pro: sticky header, top announcement bar, CTA button, improved social icons and admin controls.\n
