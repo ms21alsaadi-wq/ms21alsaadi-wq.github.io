@@ -683,8 +683,8 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 <div className="container luxe-nav">
           <div className="luxe-nav-right">
             <button className="luxe-logo" onClick={() => go("/")}>
-              {(settings.homeHeaderImage || settings.logo) ? (
-                <img src={settings.homeHeaderImage || settings.logo} alt="logo" />
+              {settings.homeHeaderImage ? (
+                <img src={settings.homeHeaderImage} alt="logo" />
               ) : (
                 <b>{settings.homeHeaderTitle || settings.storeName}</b>
               )}
@@ -2156,11 +2156,13 @@ return (
                         </div>
                       )}
 
-                      <div className="section-mini-preview">
-                        <span>معاينة</span>
-                        <h3>{draftSettings[section.titleKey]}</h3>
-                        {!section.pagesExtra && !section.headerExtra && <p>{draftSettings[section.descKey]}</p>}
-                      </div>
+                      {!section.headerExtra && (
+                        <div className="section-mini-preview">
+                          <span>معاينة</span>
+                          <h3>{draftSettings[section.titleKey]}</h3>
+                          {!section.pagesExtra && <p>{draftSettings[section.descKey]}</p>}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
