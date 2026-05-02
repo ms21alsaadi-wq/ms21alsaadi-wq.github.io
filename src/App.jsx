@@ -672,8 +672,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       <header
         className={`store-header ${settings.homeHeaderSticky === false ? "" : "header-sticky-pro"}`}
         style={{
-          background: settings.homeHeaderBg || undefined,
-          color: settings.homeHeaderText || undefined
+          background: settings.homeHeaderBg || undefined
         }}
       >
 
@@ -689,7 +688,6 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
               ) : (
                 <b>{settings.homeHeaderTitle || settings.storeName}</b>
               )}
-              <span>{settings.homeHeaderSubtitle || settings.tagline}</span>
             </button>
           </div>
 
@@ -704,13 +702,12 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
                 }
               }}
             >
-              <Search size={18} />
-              <input
+<input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={siteLang === "EN" ? "Search products..." : "ابحث عن منتج..."}
               />
-              <button type="submit">{siteLang === "EN" ? "Search" : "بحث"}</button>
+              <button type="submit" className="search-icon-submit" aria-label={siteLang === "EN" ? "Search" : "بحث"}><Search size={18} /></button>
             </form>
           </nav>
 
@@ -1997,7 +1994,7 @@ return (
                   </div>
 
                   {openSection === section.id && (
-                    <div className="section-form section-form-pro">
+                    <div className={`section-form section-form-pro ${section.headerExtra ? "header-admin-clean-form" : ""}`}>
                       <Control label="العنوان">
                         <input
                           value={draftSettings[section.titleKey] || ""}
@@ -2006,7 +2003,7 @@ return (
                         />
                       </Control>
 
-                      {!section.pagesExtra && (
+                      {!section.pagesExtra && !section.headerExtra && (
                         <Control label="الوصف">
                           <textarea
                             value={draftSettings[section.descKey] || ""}
@@ -2059,16 +2056,7 @@ return (
                               onChange={e => updateDraft("homeHeaderBg", e.target.value)}
                             />
                           </Control>
-
-                          <Control label="لون النص">
-                            <input
-                              type="color"
-                              value={draftSettings.homeHeaderText || "#0F3D2E"}
-                              onChange={e => updateDraft("homeHeaderText", e.target.value)}
-                            />
-                          </Control>
-
-                          <Control label="اللغة">
+<Control label="اللغة">
                             <select
                               value={draftSettings.homeHeaderLang || "AR"}
                               onChange={e => updateDraft("homeHeaderLang", e.target.value)}
@@ -2077,32 +2065,14 @@ return (
                               <option value="EN">EN</option>
                             </select>
                           </Control>
-
-                          <Control label="رقم واتساب">
-                            <input
-                              value={draftSettings.homeHeaderWhatsapp || ""}
-                              onChange={e => updateDraft("homeHeaderWhatsapp", e.target.value)}
-                              placeholder="9665XXXXXXXX"
-                            />
-                          </Control>
-
-                          <Control label="الشريط العلوي">
+<Control label="الشريط العلوي">
                             <input
                               value={draftSettings.homeHeaderTopBar || ""}
                               onChange={e => updateDraft("homeHeaderTopBar", e.target.value)}
                               placeholder="شحن سريع داخل السعودية 🚚"
                             />
                           </Control>
-
-                          <Control label="نص زر الطلب">
-                            <input
-                              value={draftSettings.homeHeaderCtaText || ""}
-                              onChange={e => updateDraft("homeHeaderCtaText", e.target.value)}
-                              placeholder="اطلب الآن"
-                            />
-                          </Control>
-
-                          <label className="feature-toggle">
+<label className="feature-toggle">
                             <input
                               type="checkbox"
                               checked={draftSettings.homeHeaderSticky !== false}
@@ -2189,7 +2159,7 @@ return (
                       <div className="section-mini-preview">
                         <span>معاينة</span>
                         <h3>{draftSettings[section.titleKey]}</h3>
-                        {!section.pagesExtra && <p>{draftSettings[section.descKey]}</p>}
+                        {!section.pagesExtra && !section.headerExtra && <p>{draftSettings[section.descKey]}</p>}
                       </div>
                     </div>
                   )}

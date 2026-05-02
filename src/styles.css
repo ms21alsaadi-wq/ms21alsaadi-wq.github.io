@@ -5867,3 +5867,95 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     max-height: 74px !important;
   }
 }
+
+
+/* ===== FINAL REQUESTED HEADER CLEAN ADJUSTMENTS ===== */
+
+/* Header background must obey admin background color cleanly */
+.store-header.premium-store-header {
+  background: var(--gd-header-bg, inherit);
+}
+
+/* Search: green button sized for magnifier only */
+.premium-store-header .header-search {
+  padding: 6px 8px 6px 18px !important;
+}
+
+.premium-store-header .header-search .search-icon-submit {
+  width: 46px !important;
+  min-width: 46px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  background: linear-gradient(135deg, #0F3D2E, #174d39) !important;
+  color: #fff !important;
+}
+
+.premium-store-header .header-search .search-icon-submit svg {
+  stroke: #fff !important;
+}
+
+/* Hide old submit text styling if browser keeps inherited width */
+.premium-store-header .header-search button[type="submit"] {
+  font-size: 0 !important;
+}
+
+.premium-store-header .header-search button[type="submit"] svg {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+/* Logo: no fixed fake image sizing issue, only uploaded logo or text */
+.premium-store-header .luxe-logo b {
+  display: block !important;
+  color: #0F3D2E !important;
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  letter-spacing: .06em !important;
+  text-align: center !important;
+}
+
+.premium-store-header .luxe-logo span {
+  display: none !important;
+}
+
+/* Admin header form: compact, no empty spaces */
+.header-admin-clean-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: start !important;
+}
+
+.header-admin-clean-form .section-image-tools,
+.header-admin-clean-form .header-extra-tools,
+.header-admin-clean-form .section-mini-preview {
+  grid-column: 1 / -1 !important;
+}
+
+.header-admin-clean-form .header-extra-tools {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* remove blank visual feeling */
+.header-admin-clean-form .section-mini-preview p {
+  display: none !important;
+}
+
+/* If any CTA/social remnants exist in header, hide */
+.store-header .header-cta-pro,
+.store-header .header-socials {
+  display: none !important;
+}
+
+/* Admin controls that should not show anymore if CSS catches leftovers */
+.header-extra-tools label:has(input[value*="homeHeaderText"]) {
+  display: none !important;
+}
+
+@media (max-width: 850px) {
+  .header-admin-clean-form,
+  .header-admin-clean-form .header-extra-tools {
+    grid-template-columns: 1fr !important;
+  }
+}
