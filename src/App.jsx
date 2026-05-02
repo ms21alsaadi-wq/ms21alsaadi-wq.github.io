@@ -501,6 +501,19 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
+  const [siteLang, setSiteLang] = useState(() => {
+    try {
+      return localStorage.getItem("green-dixam-lang") || settings.homeHeaderLang || "AR";
+    } catch {
+      return settings.homeHeaderLang || "AR";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("green-dixam-lang", siteLang);
+    } catch {}
+  }, [siteLang]);
 
   const brands = ["All", ...new Set(products.map(p => p.brand).filter(Boolean))];
   const categories = ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
@@ -639,7 +652,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   };
 
   return (
-    <div className="store" style={theme} dir="rtl">
+    <div className="store" style={theme} dir={siteLang === "EN" ? "ltr" : "rtl"}>
       <header
         className={`store-header ${settings.homeHeaderSticky === false ? "" : "header-sticky-pro"}`}
         style={{
@@ -647,10 +660,10 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           color: settings.homeHeaderText || undefined
         }}
       >
-        <div className="top-announcement-bar">
-          <span>{settings.homeHeaderTopBar || "شحن سريع داخل السعودية 🚚"}</span>
-        </div>
 
+        <div className="top-announcement-bar">
+          <span>{siteLang === "EN" ? "Fast delivery across Saudi Arabia 🚚" : (settings.homeHeaderTopBar || "شحن سريع داخل السعودية 🚚")}</span>
+        </div>
 
 <div className="container luxe-nav">
           <div className="luxe-nav-right">
@@ -665,9 +678,9 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           </div>
 
           <nav className="luxe-nav-center">
-            <a href="#products">النباتات</a>
-            <a href="#products">العروض</a>
-            <a href="#community">دليل العناية</a>
+            <a href="#products">{siteLang === "EN" ? "Plants" : "النباتات"}</a>
+            <a href="#products">{siteLang === "EN" ? "Offers" : "العروض"}</a>
+            <a href="#community">{siteLang === "EN" ? "Care Guide" : "دليل العناية"}</a>
           </nav>
 
           <div className="luxe-nav-left">
@@ -675,25 +688,26 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 <button
               className="language-toggle"
               type="button"
-              title="اللغة"
+              title={siteLang === "EN" ? "Language" : "اللغة"}
+              onClick={() => setSiteLang(siteLang === "AR" ? "EN" : "AR")}
             >
-              {settings.homeHeaderLang || "AR"}
+              {siteLang}
             </button>
 
             <button
               className="luxe-icon-btn"
               aria-label="حسابي"
               onClick={() => go(authUser ? "/account" : "/login")}
-              title={authUser ? "حسابي" : "دخول العميل"}
+              title={siteLang === "EN" ? (authUser ? "Account" : "Login") : (authUser ? "حسابي" : "دخول العميل")}
             >
               👤
             </button>
 
             <button
               className="luxe-cart-icon"
-              aria-label="السلة"
+              aria-label={siteLang === "EN" ? "Cart" : "السلة"}
               onClick={() => setCartOpen(true)}
-              title="السلة"
+              title={siteLang === "EN" ? "Cart" : "السلة"}
             >
               🛒
               {cartCount > 0 && <span>{cartCount}</span>}
@@ -2021,39 +2035,7 @@ return (
                             />
                             <span>تثبيت الهيدر أثناء التصفح</span>
                           </label>
-
-                          <Control label="رابط Instagram">
-                            <input
-                              value={draftSettings.homeHeaderInstagram || ""}
-                              onChange={e => updateDraft("homeHeaderInstagram", e.target.value)}
-                              placeholder="https://instagram.com/..."
-                            />
-                          </Control>
-
-                          <Control label="رابط TikTok">
-                            <input
-                              value={draftSettings.homeHeaderTiktok || ""}
-                              onChange={e => updateDraft("homeHeaderTiktok", e.target.value)}
-                              placeholder="https://tiktok.com/@..."
-                            />
-                          </Control>
-
-                          <Control label="رابط Snapchat">
-                            <input
-                              value={draftSettings.homeHeaderSnapchat || ""}
-                              onChange={e => updateDraft("homeHeaderSnapchat", e.target.value)}
-                              placeholder="https://snapchat.com/add/..."
-                            />
-                          </Control>
-
-                          <Control label="رابط X / Twitter">
-                            <input
-                              value={draftSettings.homeHeaderX || ""}
-                              onChange={e => updateDraft("homeHeaderX", e.target.value)}
-                              placeholder="https://x.com/..."
-                            />
-                          </Control>
-                        </div>
+</div>
                       )}
 
                       <div className="section-mini-preview">
