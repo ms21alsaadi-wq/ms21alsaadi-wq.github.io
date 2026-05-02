@@ -5105,3 +5105,13 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
 .store-header .top-announcement-bar + .top-announcement-bar {
   display: none !important;
 }
+
+
+/* ===== HEADER BUILD FIX ===== */
+.store-header .header-cta-pro,
+.store-header .header-socials {
+  display: none !important;
+}
+.store-header .top-announcement-bar + .top-announcement-bar {
+  display: none !important;
+}

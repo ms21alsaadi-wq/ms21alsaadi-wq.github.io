@@ -647,11 +647,12 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           color: settings.homeHeaderText || undefined
         }}
       >
-<div className="top-announcement-bar">شحن سريع داخل السعودية 🚚</div>
-        
-{settings.homeHeaderTopBar && (
-)}
-        <div className="container luxe-nav">
+        <div className="top-announcement-bar">
+          <span>{settings.homeHeaderTopBar || "شحن سريع داخل السعودية 🚚"}</span>
+        </div>
+
+
+<div className="container luxe-nav">
           <div className="luxe-nav-right">
             <button className="luxe-logo" onClick={() => go("/")}>
               {(settings.homeHeaderImage || settings.logo) ? (
