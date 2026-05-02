@@ -6071,3 +6071,120 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     grid-template-columns: 1fr !important;
   }
 }
+
+
+/* ===== FINAL UI FIX: search underline, button position, admin compact, colors binding ===== */
+
+/* Let admin background color win */
+.store-header.premium-store-header {
+  background-image: none !important;
+}
+
+/* Search: no hover/focus underline, button at far start/end with no empty gap */
+.store-header .header-search {
+  position: relative !important;
+  gap: 8px !important;
+  padding-inline-start: 7px !important;
+  padding-inline-end: 16px !important;
+  overflow: hidden !important;
+}
+
+.store-header .header-search,
+.store-header .header-search *,
+.store-header .header-search *:hover,
+.store-header .header-search *:focus {
+  text-decoration: none !important;
+}
+
+.store-header .header-search::after,
+.store-header .header-search button::after,
+.store-header .header-search a::after {
+  display: none !important;
+  content: none !important;
+}
+
+.store-header .header-search .search-icon-submit {
+  margin-inline-start: 0 !important;
+  margin-inline-end: 0 !important;
+  flex: 0 0 44px !important;
+  justify-self: flex-start !important;
+  position: static !important;
+}
+
+.store-header .header-search input {
+  text-decoration: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Top bar colors are inline from admin; keep layout only */
+.store-header .top-announcement-bar {
+  background-image: none !important;
+  min-height: 40px !important;
+}
+
+/* Header admin: title + sticky in same row */
+.header-admin-clean-form {
+  grid-template-columns: 1fr auto !important;
+}
+
+.header-admin-clean-form > label:first-of-type,
+.header-admin-clean-form > .control:first-of-type {
+  grid-column: auto !important;
+}
+
+.header-sticky-inline-control {
+  min-height: 48px !important;
+  align-self: end !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 14px !important;
+  border-radius: 14px !important;
+  background: #fffdf7 !important;
+  border: 1px solid rgba(194,169,104,.28) !important;
+  color: #0F3D2E !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+.header-sticky-inline-control input {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Hide the old big sticky toggle inside header extra tools only */
+.header-admin-clean-form .header-extra-tools .feature-toggle {
+  display: none !important;
+}
+
+/* More compact admin rows */
+.header-admin-clean-form .section-image-tools,
+.header-admin-clean-form .header-extra-tools {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  padding: 12px !important;
+}
+
+.header-admin-clean-form input,
+.header-admin-clean-form select,
+.header-admin-clean-form textarea {
+  min-height: 42px !important;
+}
+
+.header-admin-clean-form .section-image-preview {
+  max-height: 180px !important;
+}
+
+@media (max-width: 900px) {
+  .header-admin-clean-form,
+  .header-admin-clean-form .section-image-tools,
+  .header-admin-clean-form .header-extra-tools {
+    grid-template-columns: 1fr !important;
+  }
+
+  .header-sticky-inline-control {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}

@@ -64,6 +64,8 @@ const defaultSettings = {
   homeHeaderSnapchat: "",
   homeHeaderX: "",
   homeHeaderTopBar: "شحن سريع داخل السعودية 🚚",
+  homeTopBarBg: "#0F3D2E",
+  homeTopBarText: "#FFFFFF",
   homeHeaderCtaText: "اطلب الآن",
   homeHeaderSticky: true,
 
@@ -676,8 +678,14 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         }}
       >
 
-        <div className="top-announcement-bar">
-          <span>{siteLang === "EN" ? "Fast delivery across Saudi Arabia 🚚" : (settings.homeHeaderTopBar || "شحن سريع داخل السعودية 🚚")}</span>
+        <div
+          className="top-announcement-bar"
+          style={{
+            background: settings.homeTopBarBg || "#0F3D2E",
+            color: settings.homeTopBarText || "#FFFFFF"
+          }}
+        >
+          <span>{settings.homeHeaderTopBar ?? "شحن سريع داخل السعودية 🚚"}</span>
         </div>
 
 <div className="container luxe-nav">
@@ -2002,6 +2010,17 @@ return (
                           placeholder="عنوان القسم"
                         />
                       </Control>
+
+                      {section.headerExtra && (
+                        <label className="header-sticky-inline-control">
+                          <input
+                            type="checkbox"
+                            checked={draftSettings.homeHeaderSticky !== false}
+                            onChange={e => updateDraft("homeHeaderSticky", e.target.checked)}
+                          />
+                          <span>تثبيت الهيدر</span>
+                        </label>
+                      )}
 
                       {!section.pagesExtra && !section.headerExtra && (
                         <Control label="الوصف">
