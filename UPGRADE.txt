@@ -1,6 +1,0 @@
-FINAL UPGRADE INCLUDED:
-1. Coupon UX improvements (copy/use)
-2. Basic checkout structure
-3. Simple dashboard metrics
-
-(Full UI already scaffolded in App.jsx modifications stage)
