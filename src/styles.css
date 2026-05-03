@@ -5981,7 +5981,6 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   color: #fff !important;
   font-size: 0 !important;
   box-shadow: 0 10px 24px rgba(15,61,46,.18) !important;
-  margin-right: 40px !important;
 }
 
 .premium-store-header .header-search .search-icon-submit svg,
@@ -6109,7 +6108,8 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   margin-inline-end: 0 !important;
   flex: 0 0 44px !important;
   justify-self: flex-start !important;
-  position: static !important;
+  position: relative !important;
+  left: -10px !important;
 }
 
 .store-header .header-search input {
