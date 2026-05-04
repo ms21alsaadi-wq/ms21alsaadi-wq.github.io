@@ -6513,3 +6513,22 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     gap: 12px !important;
   }
 }
+
+
+/* ===== STICKY LABEL OUTSIDE FINAL ===== */
+.header-sticky-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.header-sticky-label {
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: #0F3D2E !important;
+}
+
+/* remove text inside button */
+.header-sticky-inline-control span {
+  display: none !important;
+}
