@@ -5233,7 +5233,7 @@
   color: #0F3D2E;
 }/* hover */
 .header-admin-clean-form > .header-sticky-inline-control:hover {
-  transform: translateY(-1px);
+  transform: translateY(-10px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.08);
 }/* ===== HEADER STICKY TOGGLE CLICKABLE FIX ===== */
 
