@@ -6429,3 +6429,30 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
 .header-admin-clean-form > .header-sticky-inline-control input[type="checkbox"]::after {
   display: none !important;
 }
+
+/* ===== HEADER TOGGLE VISUAL + EMPTY TOP BAR FIX ===== */
+
+/* لا يتغير لون خانة تثبيت الهيدر بالكامل عند التفعيل */
+.header-admin-clean-form > .header-sticky-inline-control:has(input[type="checkbox"]:checked) {
+  background: linear-gradient(135deg, #fffdf7, #f6f1e3) !important;
+  color: #0F3D2E !important;
+  border-color: rgba(194,169,104,.35) !important;
+}
+
+/* الصح فقط يظهر عند التفعيل */
+.header-admin-clean-form > .header-sticky-inline-control::after {
+  background: rgba(15,61,46,.08) !important;
+  border-color: rgba(15,61,46,.18) !important;
+  color: transparent !important;
+}
+
+.header-admin-clean-form > .header-sticky-inline-control:has(input[type="checkbox"]:checked)::after {
+  background: #C2A968 !important;
+  border-color: #C2A968 !important;
+  color: #0F3D2E !important;
+}
+
+/* إخفاء الشريط العلوي إذا صار النص فاضي */
+.top-announcement-bar:empty {
+  display: none !important;
+}
