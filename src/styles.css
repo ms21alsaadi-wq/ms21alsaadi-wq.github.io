@@ -6330,3 +6330,29 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.08);
 }
+
+
+/* ===== STICKY LABEL OUTSIDE BOX ===== */
+
+/* نخلي العنوان فوق */
+.header-admin-clean-form > .header-sticky-inline-control {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding: 8px 14px !important;
+}
+
+/* نخلي النص فوق زي باقي الحقول */
+.header-admin-clean-form > .header-sticky-inline-control span,
+.header-admin-clean-form > .header-sticky-inline-control::before {
+  display: block !important;
+  font-size: 14px !important;
+  margin-bottom: 6px !important;
+  color: #0F3D2E !important;
+  font-weight: 800 !important;
+}
+
+/* الأيقونة تحت */
+.header-admin-clean-form > .header-sticky-inline-control::after {
+  align-self: flex-end !important;
+}
