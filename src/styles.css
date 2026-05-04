@@ -6457,36 +6457,59 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   display: none !important;
 }
 
-/* ===== HEADER EXTRA TOOLS EXACT 4 COLUMNS ===== */
-@media (min-width: 1000px) {
+/* ===== TOP BAR COLOR FIELD LAYOUT FIX ===== */
+
+/* نخلي قسم الشريط العلوي 4 خانات في صف واحد */
+.header-admin-clean-form > .header-extra-tools {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr 1fr !important;
+  gap: 12px !important;
+  align-items: center !important;
+}
+
+/* توحيد المقاسات */
+.header-admin-clean-form > .header-extra-tools > * {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* توحيد الارتفاع */
+.header-admin-clean-form > .header-extra-tools input,
+.header-admin-clean-form > .header-extra-tools select {
+  height: 52px !important;
+  box-sizing: border-box !important;
+}
+
+/* دعم الجوال */
+@media (max-width: 900px) {
   .header-admin-clean-form > .header-extra-tools {
-    grid-column: 1 / -1 !important;
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ===== MERGE TWO ROWS INTO ONE (5 COLUMNS) FINAL ===== */
+@media (min-width: 1000px) {
+
+  .header-admin-clean-form {
     display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     gap: 14px !important;
     align-items: end !important;
   }
 
+  .header-admin-clean-form > .header-extra-tools {
+    display: contents !important;
+  }
+
+  .header-admin-clean-form > .control,
   .header-admin-clean-form > .header-extra-tools > .control {
     width: 100% !important;
     min-width: 0 !important;
-    margin: 0 !important;
   }
 
-  .header-admin-clean-form > .header-extra-tools input,
-  .header-admin-clean-form > .header-extra-tools select {
-    width: 100% !important;
-    max-width: none !important;
+  .header-admin-clean-form input,
+  .header-admin-clean-form select {
     height: 52px !important;
-    min-height: 52px !important;
-    box-sizing: border-box !important;
-  }
-}
-
-@media (max-width: 999px) {
-  .header-admin-clean-form > .header-extra-tools {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
   }
 }
