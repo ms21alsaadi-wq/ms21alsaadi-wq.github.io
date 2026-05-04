@@ -2013,6 +2013,16 @@ return (
                         />
                       </Control>
 
+<Control label="اللغة">
+                            <select
+                              value={draftSettings.homeHeaderLang || "AR"}
+                              onChange={e => updateDraft("homeHeaderLang", e.target.value)}
+                            >
+                              <option value="AR">AR</option>
+                              <option value="EN">EN</option>
+                            </select>
+                          </Control>
+
                       {section.headerExtra && (
                         <label className="header-sticky-inline-control">
                           <input
@@ -2077,23 +2087,14 @@ return (
                               onChange={e => updateDraft("homeHeaderBg", e.target.value)}
                             />
                           </Control>
-<Control label="اللغة">
-                            <select
-                              value={draftSettings.homeHeaderLang || "AR"}
-                              onChange={e => updateDraft("homeHeaderLang", e.target.value)}
-                            >
-                              <option value="AR">AR</option>
-                              <option value="EN">EN</option>
-                            </select>
-                          </Control>
-<Control label="الشريط العلوي">
+                          <Control label="الشريط العلوي">
                             <input
                               value={draftSettings.homeHeaderTopBar || ""}
                               onChange={e => updateDraft("homeHeaderTopBar", e.target.value)}
                               placeholder="شحن سريع داخل السعودية 🚚"
                             />
                           </Control>
-<Control label="لون الشريط العلوي">
+                          <Control label="لون الشريط العلوي">
                             <input
                               type="color"
                               value={draftSettings.homeTopBarBg || "#0F3D2E"}
