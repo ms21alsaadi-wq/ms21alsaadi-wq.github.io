@@ -6108,7 +6108,8 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   margin-inline-end: 0 !important;
   flex: 0 0 44px !important;
   justify-self: flex-start !important;
-  position: static !important;
+  position: relative !important;
+  left: -10px !important;
 }
 
 .store-header .header-search input {
@@ -6189,11 +6190,11 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   }
 }
 
-/* ===== HEADER ADMIN EXACT ONE ROW FIX ===== */
-@media (min-width: 1000px) {
+/* ===== HEADER ADMIN ONE LINE LATEST FILE FIX ===== */
+@media (min-width: 1100px) {
   .header-admin-clean-form {
     display: grid !important;
-    grid-template-columns: minmax(190px, .9fr) minmax(260px, 1.6fr) minmax(260px, 1.35fr) minmax(260px, 1.35fr) !important;
+    grid-template-columns: minmax(180px, .85fr) minmax(260px, 1.4fr) minmax(260px, 1.2fr) minmax(260px, 1.2fr) !important;
     gap: 14px !important;
     align-items: end !important;
   }
@@ -6202,47 +6203,56 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     display: contents !important;
   }
 
-  .header-admin-clean-form > .header-sticky-inline-control {
+  .header-admin-clean-form > .control,
+  .header-admin-clean-form > .header-sticky-inline-control,
+  .header-admin-clean-form > .section-image-tools > .control {
     width: 100% !important;
-    min-height: 52px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  .header-admin-clean-form > .header-sticky-inline-control {
     height: 52px !important;
+    min-height: 52px !important;
     box-sizing: border-box !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 10px !important;
-    margin: 0 !important;
+    padding: 0 14px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(194,169,104,.28) !important;
+    background: #fffdf7 !important;
+    color: #0F3D2E !important;
+    font-weight: 900 !important;
     white-space: nowrap !important;
   }
 
-  .header-admin-clean-form .control,
-  .header-admin-clean-form .field,
-  .header-admin-clean-form label {
-    min-width: 0 !important;
+  .header-admin-clean-form .control span {
+    min-height: 24px !important;
+    margin-bottom: 8px !important;
   }
 
+  .header-admin-clean-form input,
   .header-admin-clean-form input[type="text"],
   .header-admin-clean-form input[type="url"],
-  .header-admin-clean-form input:not([type]),
   .header-admin-clean-form input[type="file"] {
     width: 100% !important;
     max-width: none !important;
+    min-width: 0 !important;
     height: 52px !important;
+    min-height: 52px !important;
     box-sizing: border-box !important;
   }
 
-  .header-admin-clean-form .section-image-preview {
+  .header-admin-clean-form .section-image-preview,
+  .header-admin-clean-form > .header-extra-tools,
+  .header-admin-clean-form > .section-mini-preview {
     grid-column: 1 / -1 !important;
-    max-height: 90px !important;
-  }
-
-  .header-admin-clean-form > .header-extra-tools {
-    grid-column: 1 / -1 !important;
-    margin-top: 4px !important;
   }
 }
 
-@media (max-width: 999px) {
+@media (max-width: 1099px) {
   .header-admin-clean-form {
     display: grid !important;
     grid-template-columns: 1fr !important;
