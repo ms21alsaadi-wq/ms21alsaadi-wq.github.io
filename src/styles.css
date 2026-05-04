@@ -6622,3 +6622,57 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   transform: translateY(-1px) !important;
   box-shadow: 0 8px 18px rgba(15,61,46,.08) !important;
 }
+
+
+/* ===== TOGGLE SWITCH STYLE + LABEL FIX ===== */
+
+/* توحيد شكل العنوان */
+.header-sticky-label {
+  font-size: 16px !important;
+  font-weight: 900 !important;
+}
+
+/* شكل التوجل */
+.header-sticky-wrapper > .header-sticky-inline-control {
+  justify-content: flex-start !important;
+  padding: 0 14px !important;
+}
+
+/* إخفاء دائرة الصح القديمة */
+.header-sticky-wrapper > .header-sticky-inline-control::after {
+  display: none !important;
+}
+
+/* toggle */
+.header-sticky-wrapper > .header-sticky-inline-control::before {
+  content: "";
+  width: 44px;
+  height: 24px;
+  border-radius: 20px;
+  background: rgba(15,61,46,.15);
+  position: relative;
+  transition: all .25s ease;
+}
+
+/* الدائرة */
+.header-sticky-wrapper > .header-sticky-inline-control input[type="checkbox"] + span::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  top: 3px;
+  right: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  transition: all .25s ease;
+}
+
+/* حالة التفعيل */
+.header-sticky-wrapper > .header-sticky-inline-control:has(input:checked)::before {
+  background: #0F3D2E;
+}
+
+.header-sticky-wrapper > .header-sticky-inline-control:has(input:checked) input[type="checkbox"] + span::after {
+  right: 22px;
+}
