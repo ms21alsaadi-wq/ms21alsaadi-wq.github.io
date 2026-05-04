@@ -6108,8 +6108,7 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   margin-inline-end: 0 !important;
   flex: 0 0 44px !important;
   justify-self: flex-start !important;
-  position: relative !important;
-  left: -10px !important;
+  position: static !important;
 }
 
 .store-header .header-search input {
@@ -6190,56 +6189,67 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   }
 }
 
-/* ===== ADMIN HEADER FORM ALIGNMENT FIX ===== */
-@media (min-width: 900px) {
-  .admin-panel [class*="header"] .form-row,
-  .admin-panel [class*="header"] .input-row,
-  .admin-panel [class*="header"] .field-row,
-  .admin-panel [class*="header"] .upload-row {
+/* ===== HEADER ADMIN EXACT ONE ROW FIX ===== */
+@media (min-width: 1000px) {
+  .header-admin-clean-form {
     display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-columns: minmax(190px, .9fr) minmax(260px, 1.6fr) minmax(260px, 1.35fr) minmax(260px, 1.35fr) !important;
     gap: 14px !important;
     align-items: end !important;
   }
 
-  .admin-panel [class*="header"] .form-group,
-  .admin-panel [class*="header"] .field,
-  .admin-panel [class*="header"] .input-group,
-  .admin-panel [class*="header"] label {
-    min-width: 0 !important;
+  .header-admin-clean-form > .section-image-tools {
+    display: contents !important;
   }
 
-  .admin-panel [class*="header"] input[type="text"],
-  .admin-panel [class*="header"] input[type="url"],
-  .admin-panel [class*="header"] input[type="file"],
-  .admin-panel [class*="header"] select,
-  .admin-panel [class*="header"] textarea {
+  .header-admin-clean-form > .header-sticky-inline-control {
     width: 100% !important;
-    max-width: none !important;
-    box-sizing: border-box !important;
-  }
-
-  .admin-panel [class*="header"] label:has(input[type="checkbox"]) {
     min-height: 52px !important;
+    height: 52px !important;
+    box-sizing: border-box !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 10px !important;
-    padding: 0 16px !important;
-    border: 1px solid rgba(201, 174, 107, .28) !important;
-    border-radius: 14px !important;
-    background: #fffdf8 !important;
+    margin: 0 !important;
     white-space: nowrap !important;
+  }
+
+  .header-admin-clean-form .control,
+  .header-admin-clean-form .field,
+  .header-admin-clean-form label {
+    min-width: 0 !important;
+  }
+
+  .header-admin-clean-form input[type="text"],
+  .header-admin-clean-form input[type="url"],
+  .header-admin-clean-form input:not([type]),
+  .header-admin-clean-form input[type="file"] {
     width: 100% !important;
+    max-width: none !important;
+    height: 52px !important;
     box-sizing: border-box !important;
+  }
+
+  .header-admin-clean-form .section-image-preview {
+    grid-column: 1 / -1 !important;
+    max-height: 90px !important;
+  }
+
+  .header-admin-clean-form > .header-extra-tools {
+    grid-column: 1 / -1 !important;
+    margin-top: 4px !important;
   }
 }
 
-@media (max-width: 899px) {
-  .admin-panel [class*="header"] .form-row,
-  .admin-panel [class*="header"] .input-row,
-  .admin-panel [class*="header"] .field-row,
-  .admin-panel [class*="header"] .upload-row {
+@media (max-width: 999px) {
+  .header-admin-clean-form {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .header-admin-clean-form > .section-image-tools {
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 12px !important;
