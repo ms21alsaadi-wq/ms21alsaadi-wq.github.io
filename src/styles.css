@@ -5578,7 +5578,7 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
 .header-search {
   height: 48px !important;
   border-radius: 999px !important;
-  padding: 6px 8px 6px 18px !important;
+  padding: 6px 8px 6px 6px !important;
   background:
     linear-gradient(#fffdf7, #fffdf7) padding-box,
     linear-gradient(135deg, rgba(194,169,104,.55), rgba(15,61,46,.18)) border-box !important;
@@ -5878,7 +5878,7 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
 
 /* Search: green button sized for magnifier only */
 .premium-store-header .header-search {
-  padding: 6px 8px 6px 18px !important;
+  padding: 6px 8px 6px 6px !important;
 }
 
 .premium-store-header .header-search .search-icon-submit {
@@ -5965,7 +5965,7 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
 .premium-store-header .header-search,
 .store-header .header-search {
   height: 52px !important;
-  padding: 6px 8px 6px 18px !important;
+  padding: 6px 8px 6px 6px !important;
 }
 
 .premium-store-header .header-search .search-icon-submit,
@@ -6108,8 +6108,7 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   margin-inline-end: 0 !important;
   flex: 0 0 44px !important;
   justify-self: flex-start !important;
-  position: relative !important;
-  left: -10px !important;
+  position: static !important;
 }
 
 .store-header .header-search input {
@@ -6190,58 +6189,30 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   }
 }
 
-/* ===== ADMIN HEADER FORM ALIGNMENT FIX ===== */
-@media (min-width: 900px) {
-  .admin-panel [class*="header"] .form-row,
-  .admin-panel [class*="header"] .input-row,
-  .admin-panel [class*="header"] .field-row,
-  .admin-panel [class*="header"] .upload-row {
-    display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 14px !important;
-    align-items: end !important;
-  }
 
-  .admin-panel [class*="header"] .form-group,
-  .admin-panel [class*="header"] .field,
-  .admin-panel [class*="header"] .input-group,
-  .admin-panel [class*="header"] label {
-    min-width: 0 !important;
-  }
-
-  .admin-panel [class*="header"] input[type="text"],
-  .admin-panel [class*="header"] input[type="url"],
-  .admin-panel [class*="header"] input[type="file"],
-  .admin-panel [class*="header"] select,
-  .admin-panel [class*="header"] textarea {
-    width: 100% !important;
-    max-width: none !important;
-    box-sizing: border-box !important;
-  }
-
-  .admin-panel [class*="header"] label:has(input[type="checkbox"]) {
-    min-height: 52px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 10px !important;
-    padding: 0 16px !important;
-    border: 1px solid rgba(201, 174, 107, .28) !important;
-    border-radius: 14px !important;
-    background: #fffdf8 !important;
-    white-space: nowrap !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
+/* ===== FORCE HEADER FIELDS IN ONE ROW ===== */
+.store-header .header-settings {
+  display: grid !important;
+  grid-template-columns: 1fr 2fr 2fr 2fr !important;
+  gap: 12px !important;
+  align-items: center !important;
 }
 
-@media (max-width: 899px) {
-  .admin-panel [class*="header"] .form-row,
-  .admin-panel [class*="header"] .input-row,
-  .admin-panel [class*="header"] .field-row,
-  .admin-panel [class*="header"] .upload-row {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
+.store-header .header-settings > * {
+  width: 100% !important;
+}
+
+.store-header .header-settings input,
+.store-header .header-settings .form-control,
+.store-header .header-settings .upload-field,
+.store-header .header-settings label {
+  height: 52px !important;
+  box-sizing: border-box !important;
+}
+
+.store-header .header-settings label:has(input[type="checkbox"]) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
 }
