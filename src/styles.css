@@ -5448,8 +5448,8 @@
   transition: all .2s ease !important;
 }/* عند التفعيل: تظهر علامة الصح فقط بدون تغيير لون الخانة كلها */
 .header-sticky-wrapper > .header-sticky-inline-control:has(input[type="checkbox"]:checked)::after {
-  background: #000000 !important;
-  border-color: #C2A968 !important;
+  background: #C2A968 !important;
+  border-color: #000000 !important;
   color: #0F3D2E !important;
 }/* ===== TOGGLE SWITCH STYLE + LABEL FIX ===== */
 
