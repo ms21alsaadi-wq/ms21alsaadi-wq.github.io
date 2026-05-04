@@ -6189,3 +6189,59 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     justify-content: center !important;
   }
 }
+
+/* ===== ADMIN HEADER FORM ALIGNMENT FIX ===== */
+@media (min-width: 900px) {
+  .admin-panel [class*="header"] .form-row,
+  .admin-panel [class*="header"] .input-row,
+  .admin-panel [class*="header"] .field-row,
+  .admin-panel [class*="header"] .upload-row {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    align-items: end !important;
+  }
+
+  .admin-panel [class*="header"] .form-group,
+  .admin-panel [class*="header"] .field,
+  .admin-panel [class*="header"] .input-group,
+  .admin-panel [class*="header"] label {
+    min-width: 0 !important;
+  }
+
+  .admin-panel [class*="header"] input[type="text"],
+  .admin-panel [class*="header"] input[type="url"],
+  .admin-panel [class*="header"] input[type="file"],
+  .admin-panel [class*="header"] select,
+  .admin-panel [class*="header"] textarea {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-panel [class*="header"] label:has(input[type="checkbox"]) {
+    min-height: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: 0 16px !important;
+    border: 1px solid rgba(201, 174, 107, .28) !important;
+    border-radius: 14px !important;
+    background: #fffdf8 !important;
+    white-space: nowrap !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 899px) {
+  .admin-panel [class*="header"] .form-row,
+  .admin-panel [class*="header"] .input-row,
+  .admin-panel [class*="header"] .field-row,
+  .admin-panel [class*="header"] .upload-row {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
