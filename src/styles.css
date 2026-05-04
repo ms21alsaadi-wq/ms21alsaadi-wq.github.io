@@ -6265,3 +6265,68 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
     gap: 12px !important;
   }
 }
+
+
+/* ===== STICKY HEADER BUTTON PREMIUM STYLE ===== */
+.header-admin-clean-form > .header-sticky-inline-control {
+  height: 52px !important;
+  min-height: 52px !important;
+  box-sizing: border-box !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+
+  padding: 0 16px !important;
+  border-radius: 14px !important;
+
+  border: 1px solid rgba(194,169,104,.35) !important;
+  background: linear-gradient(135deg, #fffdf7, #f6f1e3) !important;
+
+  color: #0F3D2E !important;
+  font-weight: 800 !important;
+  cursor: pointer;
+  transition: all .25s ease;
+}
+
+/* remove default checkbox look */
+.header-admin-clean-form input[type="checkbox"] {
+  display: none !important;
+}
+
+/* custom check icon */
+.header-admin-clean-form > .header-sticky-inline-control::after {
+  content: "✓";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+
+  border-radius: 50%;
+  background: #0F3D2E;
+  color: #fff;
+
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* active state */
+.header-admin-clean-form input:checked + .header-sticky-inline-control {
+  background: linear-gradient(135deg, #0F3D2E, #1c5c47) !important;
+  color: #fff !important;
+  border-color: #0F3D2E !important;
+}
+
+.header-admin-clean-form input:checked + .header-sticky-inline-control::after {
+  background: #C2A968;
+  color: #0F3D2E;
+}
+
+/* hover */
+.header-admin-clean-form > .header-sticky-inline-control:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
