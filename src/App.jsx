@@ -678,15 +678,17 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         }}
       >
 
-        <div
-          className="top-announcement-bar"
-          style={{
-            background: settings.homeTopBarBg || "#0F3D2E",
-            color: settings.homeTopBarText || "#FFFFFF"
-          }}
-        >
-          <span>{settings.homeHeaderTopBar ?? "شحن سريع داخل السعودية 🚚"}</span>
-        </div>
+        {(settings.homeHeaderTopBar || "").trim() && (
+          <div
+            className="top-announcement-bar"
+            style={{
+              background: settings.homeTopBarBg || "#0F3D2E",
+              color: settings.homeTopBarText || "#FFFFFF"
+            }}
+          >
+            <span>{settings.homeHeaderTopBar}</span>
+          </div>
+        )}
 
 <div className="container luxe-nav">
           <div className="luxe-nav-right">
@@ -2091,14 +2093,13 @@ return (
                               placeholder="شحن سريع داخل السعودية 🚚"
                             />
                           </Control>
-<label className="feature-toggle">
+<Control label="لون الشريط العلوي">
                             <input
-                              type="checkbox"
-                              checked={draftSettings.homeHeaderSticky !== false}
-                              onChange={e => updateDraft("homeHeaderSticky", e.target.checked)}
+                              type="color"
+                              value={draftSettings.homeTopBarBg || "#0F3D2E"}
+                              onChange={e => updateDraft("homeTopBarBg", e.target.value)}
                             />
-                            <span>تثبيت الهيدر أثناء التصفح</span>
-                          </label>
+                          </Control>
 </div>
                       )}
 
