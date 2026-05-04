@@ -5452,7 +5452,7 @@
   border-color: #C2A968 !important;
   color: #0F3D2E !important;
 }.header-sticky-wrapper > .header-sticky-inline-control:hover {
-  transform: translateY(-5px) !important;
+  transform: translateY(-10px) !important;
   box-shadow: 0 8px 18px rgba(15,61,46,.08) !important;
 }/* ===== TOGGLE SWITCH STYLE + LABEL FIX ===== */
 
