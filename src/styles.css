@@ -6676,3 +6676,38 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
 .header-sticky-wrapper > .header-sticky-inline-control:has(input:checked) input[type="checkbox"] + span::after {
   right: 22px;
 }
+
+/* ===== FINAL STICKY LABEL ALIGNMENT ===== */
+
+/* نخلي عنوان تثبيت الهيدر بنفس مستوى عناوين الخانات الثانية */
+.header-sticky-wrapper {
+  align-self: end !important;
+  display: grid !important;
+  grid-template-rows: 28px 52px !important;
+  gap: 8px !important;
+}
+
+/* نفس ارتفاع وسماكة عناوين: العنوان / اللغة / رابط الصورة */
+.header-sticky-label {
+  height: 28px !important;
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  color: #0F3D2E !important;
+}
+
+/* تثبيت ارتفاع خانة التوجل تحت العنوان */
+.header-sticky-wrapper > .header-sticky-inline-control {
+  height: 52px !important;
+  min-height: 52px !important;
+  margin: 0 !important;
+  align-self: end !important;
+}
