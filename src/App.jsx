@@ -2024,21 +2024,17 @@ return (
                           </Control>
 
                       {section.headerExtra && (
-                        
-<div className="header-sticky-wrapper">
-  <span className="header-sticky-label">تثبيت الهيدر</span>
-  <label className="header-sticky-inline-control">
-    
-                          <input
-                            type="checkbox"
-                            checked={draftSettings.homeHeaderSticky !== false}
-                            onChange={e => updateDraft("homeHeaderSticky", e.target.checked)}
-                          />
-                          <span>تثبيت الهيدر</span>
-                        
-  </label>
-</div>
-
+                        <div className="header-sticky-wrapper">
+                          <span className="header-sticky-label">تثبيت الهيدر</span>
+                          <label className="header-sticky-inline-control" aria-label="تثبيت الهيدر">
+                            <input
+                              type="checkbox"
+                              checked={draftSettings.homeHeaderSticky !== false}
+                              onChange={e => updateDraft("homeHeaderSticky", e.target.checked)}
+                            />
+                            <span>تثبيت الهيدر</span>
+                          </label>
+                        </div>
                       )}
 
                       {!section.pagesExtra && !section.headerExtra && (

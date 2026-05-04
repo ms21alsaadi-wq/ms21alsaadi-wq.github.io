@@ -6204,6 +6204,7 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   }
 
   .header-admin-clean-form > .control,
+  .header-admin-clean-form > .header-sticky-wrapper,
   .header-admin-clean-form > .header-sticky-inline-control,
   .header-admin-clean-form > .section-image-tools > .control {
     width: 100% !important;
@@ -6468,6 +6469,7 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   }
 
   .header-admin-clean-form > .control,
+  .header-admin-clean-form > .header-sticky-wrapper,
   .header-admin-clean-form > .header-sticky-inline-control,
   .header-admin-clean-form > .section-image-tools > .control {
     width: 100% !important;
@@ -6514,28 +6516,109 @@ h1, h2, h3, .hero h1, .section-title h2, .logo b, .luxe-logo b, .admin-brand b, 
   }
 }
 
+/* ===== POLISHED STICKY FIELD FINAL ===== */
+@media (min-width: 1000px) {
+  .header-admin-clean-form > .header-sticky-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+}
 
-/* ===== CLEAN STICKY LABEL FIX (NO BREAK) ===== */
+/* Label فوق مثل باقي الخانات */
+.header-sticky-wrapper {
+  display: grid !important;
+  gap: 8px !important;
+  align-self: end !important;
+}
 
-.header-admin-clean-form > .header-sticky-inline-control {
+.header-sticky-label {
   display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 24px !important;
+  color: #0F3D2E !important;
+  font-weight: 900 !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+}
+
+/* الخانة نفسها: بدون نص، فقط دائرة الصح */
+.header-sticky-wrapper > .header-sticky-inline-control {
+  position: relative !important;
+  overflow: hidden !important;
+
+  width: 100% !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  box-sizing: border-box !important;
+
+  display: flex !important;
+  align-items: center !important;
   justify-content: center !important;
 
-  padding: 8px 14px !important;
-  height: auto !important;
+  padding: 0 14px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(194,169,104,.35) !important;
+  background: linear-gradient(135deg, #fffdf7, #f6f1e3) !important;
+
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
 }
 
-/* النص فوق */
-.header-admin-clean-form > .header-sticky-inline-control span {
+/* نخفي النص الداخلي حتى ما يتكرر */
+.header-sticky-wrapper > .header-sticky-inline-control > span {
+  display: none !important;
+}
+
+/* نخلي checkbox الحقيقي يغطي الزر كامل عشان الضغط يشتغل */
+.header-sticky-wrapper > .header-sticky-inline-control input[type="checkbox"] {
   display: block !important;
-  font-size: 14px !important;
-  font-weight: 800 !important;
-  margin-bottom: 6px !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
 }
 
-/* زر الصح تحت */
-.header-admin-clean-form > .header-sticky-inline-control::after {
-  align-self: flex-start !important;
+/* دائرة الصح مخفية وهي غير مفعلة */
+.header-sticky-wrapper > .header-sticky-inline-control::after {
+  content: "✓" !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 50% !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  background: rgba(15,61,46,.08) !important;
+  border: 1px solid rgba(15,61,46,.18) !important;
+  color: transparent !important;
+
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  pointer-events: none !important;
+  transition: all .2s ease !important;
+}
+
+/* عند التفعيل: تظهر علامة الصح فقط بدون تغيير لون الخانة كلها */
+.header-sticky-wrapper > .header-sticky-inline-control:has(input[type="checkbox"]:checked)::after {
+  background: #C2A968 !important;
+  border-color: #C2A968 !important;
+  color: #0F3D2E !important;
+}
+
+.header-sticky-wrapper > .header-sticky-inline-control:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 18px rgba(15,61,46,.08) !important;
 }
