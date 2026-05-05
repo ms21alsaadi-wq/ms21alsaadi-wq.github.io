@@ -2024,7 +2024,6 @@ return (
                             <option value="EN">EN</option>
                           </select>
                         </Control>
-                     
                       {section.headerExtra && (
                         <div className="header-sticky-wrapper">
                           <span className="header-sticky-label">تثبيت الهيدر</span>
