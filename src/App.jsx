@@ -64,6 +64,7 @@ const defaultSettings = {
   homeHeaderSnapchat: "",
   homeHeaderX: "",
   homeHeaderTopBar: "شحن سريع داخل السعودية 🚚",
+  homeTopBarEnabled: true,
   homeTopBarBg: "#0F3D2E",
   homeTopBarText: "#FFFFFF",
   homeHeaderCtaText: "اطلب الآن",
@@ -678,7 +679,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         }}
       >
 
-        {(settings.homeHeaderTopBar || "").trim() && (
+        {settings.homeTopBarEnabled !== false && (settings.homeHeaderTopBar || "").trim() && (
           <div
             className="top-announcement-bar"
             style={{
@@ -2104,6 +2105,24 @@ return (
                               onChange={e => updateDraft("homeTopBarBg", e.target.value)}
                             />
                           </Control>
+                          <Control label="لون نص الشريط">
+                            <input
+                              type="color"
+                              value={draftSettings.homeTopBarText || "#FFFFFF"}
+                              onChange={e => updateDraft("homeTopBarText", e.target.value)}
+                            />
+                          </Control>
+                          <div className="topbar-toggle-wrapper">
+                            <span className="topbar-toggle-label">إظهار الشريط</span>
+                            <label className="topbar-toggle-control" aria-label="إظهار الشريط العلوي">
+                              <input
+                                type="checkbox"
+                                checked={draftSettings.homeTopBarEnabled !== false}
+                                onChange={e => updateDraft("homeTopBarEnabled", e.target.checked)}
+                              />
+                              <span>إظهار الشريط</span>
+                            </label>
+                          </div>
 </div>
                       )}
 
