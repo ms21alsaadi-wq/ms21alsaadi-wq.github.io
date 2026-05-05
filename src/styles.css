@@ -5500,7 +5500,7 @@
   gap: 8px !important;
 }/* نفس ارتفاع وسماكة عناوين: العنوان / اللغة / رابط الصورة */
 .header-sticky-label {
-  height: 28px !important;
+  height: 8px !important;
   min-height: 8px !important;
   display: flex !important;
   align-items: center !important;
