@@ -71,9 +71,9 @@ const defaultSettings = {
   homeHeaderSticky: true,
   homePagesTitle: "الصفحات",
   homePages: [
-    { label: "النباتات", href: "#products", visible: true },
-    { label: "العروض", href: "#products", visible: true },
-    { label: "دليل العناية", href: "#community", visible: true }
+    { label: "النباتات", href: "/page/products", visible: true },
+    { label: "العروض", href: "/page/offers", visible: true },
+    { label: "دليل العناية", href: "/page/care-guide", visible: true }
   ],
 
   homeHeroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
@@ -262,6 +262,27 @@ function fileToDataUrl(file, options = {}) {
 function uid() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
+
+function makePageSlug(text, fallback = "page") {
+  const cleaned = String(text || fallback)
+    .trim()
+    .toLowerCase()
+    .replace(/[^\u0600-\u06FFa-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return cleaned || fallback;
+}
+
+function normalizePageHref(page, index = 0) {
+  const href = String(page?.href || "").trim();
+
+  if (href.startsWith("/page/")) return href;
+  if (href.startsWith("#")) return `/page/${makePageSlug(page?.label, `page-${index + 1}`)}`;
+  if (!href) return `/page/${makePageSlug(page?.label, `page-${index + 1}`)}`;
+  if (href.startsWith("/")) return href;
+
+  return `/page/${makePageSlug(href || page?.label, `page-${index + 1}`)}`;
+}
+
 function firebaseError(err) {
   const code = err?.code || "";
   if (code.includes("invalid-credential")) return "بيانات الدخول غير صحيحة";
@@ -547,6 +568,16 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     return `${p.name || ""} ${p.category || ""} ${p.description || ""}`.toLowerCase().includes(q);
   });
 
+  const visibleHomePages = (settings.homePages || [
+    { label: "النباتات", href: "/page/products", visible: true },
+    { label: "العروض", href: "/page/offers", visible: true },
+    { label: "دليل العناية", href: "/page/care-guide", visible: true }
+  ]).filter(page => page.visible !== false);
+
+  const currentStorePage = path.startsWith("/page/")
+    ? visibleHomePages.find((page, index) => normalizePageHref(page, index) === path)
+    : null;
+
   function applyCoupon() {
     const code = couponCode.trim().toUpperCase();
     if (!code) {
@@ -786,17 +817,24 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         <div className="container home-pages-inner">
           <span>{settings.homePagesTitle || "الصفحات"}</span>
           <div className="home-pages-links">
-            {(settings.homePages || [
-              { label: "النباتات", href: "#products", visible: true },
-              { label: "العروض", href: "#products", visible: true },
-              { label: "دليل العناية", href: "#community", visible: true }
-            ]).filter(page => page.visible !== false).map((page, index) => (
-              <a key={index} href={page.href || "#"}>{page.label}</a>
+            {visibleHomePages.map((page, index) => (
+              <button
+                key={index}
+                type="button"
+                className={currentStorePage === page ? "active" : ""}
+                onClick={() => go(normalizePageHref(page, index))}
+              >
+                {page.label}
+              </button>
             ))}
           </div>
         </div>
       </section>
 
+{currentStorePage ? (
+        <StoreCustomPage page={currentStorePage} products={products} go={go} />
+      ) : (
+        <>
 <section className="container hero">
         <div className="hero-copy">
           <div className="pill">{settings.heroBadge || "Green Dixam Boutique"}</div>
@@ -899,6 +937,9 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         </div>
       </section>
 
+        </>
+      )}
+
       <Footer settings={settings} />
 
       {cartOpen && (
@@ -948,6 +989,74 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     </div>
   );
 }
+
+
+function StoreCustomPage({ page, products, go }) {
+  const label = page?.label || "صفحة";
+  const slug = makePageSlug(page?.href || label);
+  const keyword = label.toLowerCase();
+
+  const pageProducts = products.filter((product) => {
+    const text = `${product.name || ""} ${product.category || ""} ${product.brand || ""} ${product.description || ""}`.toLowerCase();
+
+    if (slug.includes("offer") || keyword.includes("عرض") || keyword.includes("العروض")) {
+      return Number(product.oldPrice || 0) > Number(product.price || 0);
+    }
+
+    if (slug.includes("product") || keyword.includes("نبات") || keyword.includes("منتج")) {
+      return true;
+    }
+
+    return text.includes(keyword) || text.includes(slug.replace(/-/g, " "));
+  });
+
+  return (
+    <main className="container store-page-view">
+      <button type="button" className="store-page-back" onClick={() => go("/")}>← رجوع للرئيسية</button>
+
+      <div className="store-page-hero">
+        <span>Store Page</span>
+        <h1>{label}</h1>
+        <p>هذه صفحة مستقلة داخل المتجر ويمكن التحكم باسمها ورابطها وظهورها من قسم الصفحات في لوحة التحكم.</p>
+      </div>
+
+      {pageProducts.length > 0 ? (
+        <div className="products-grid store-page-products">
+          {pageProducts.map(product => (
+            <article className="product" key={product.id}>
+              <div className="product-img">
+                <img src={product.image} alt={product.name} />
+                <span>{product.tag}</span>
+              </div>
+              <div className="product-body">
+                <div className="product-top">
+                  <div>
+                    <small>{product.brand}</small>
+                    <h3>{product.name}</h3>
+                  </div>
+                  <em>{product.category}</em>
+                </div>
+                <div className="rating"><Star size={15} fill="currentColor"/> {product.rating}</div>
+                <div className="product-foot">
+                  <div>
+                    <b>{formatPrice(product.price)} ر.س</b>
+                    {product.oldPrice && <del>{formatPrice(product.oldPrice)} ر.س</del>}
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="store-page-empty">
+          <h2>{label}</h2>
+          <p>لا يوجد محتوى مخصص لهذه الصفحة حتى الآن. تقدر تغيّر اسم الصفحة أو رابطها من لوحة التحكم.</p>
+        </div>
+      )}
+    </main>
+  );
+}
+
 
 function Account({ customer, setCustomer, orders = [], coupons = [], go, settings }) {
   const [message, setMessage] = useState("");
@@ -2164,7 +2273,7 @@ return (
                                     next[pageIndex] = { ...next[pageIndex], href: e.target.value, visible: next[pageIndex]?.visible !== false };
                                     updateDraft("homePages", next);
                                   }}
-                                  placeholder="#products"
+                                  placeholder="/page/products"
                                 />
                                 <button
                                   type="button"
@@ -2186,7 +2295,7 @@ return (
                             className="admin-primary add-page-btn"
                             onClick={() => updateDraft("homePages", [
                               ...(draftSettings.homePages || []),
-                              { label: "صفحة جديدة", href: "#", visible: true }
+                              { label: "صفحة جديدة", href: "/page/new-page", visible: true }
                             ])}
                           >
                             إضافة صفحة
