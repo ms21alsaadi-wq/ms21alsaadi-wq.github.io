@@ -5500,8 +5500,8 @@
   gap: 8px !important;
 }/* نفس ارتفاع وسماكة عناوين: العنوان / اللغة / رابط الصورة */
 .header-sticky-label {
-  height: 28px !important;
-  min-height: 28px !important;
+  height: 48px !important;
+  min-height: 48px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
@@ -5509,7 +5509,7 @@
   padding: 0 !important;
   font-size: 18px !important;
   font-weight: 950 !important;
-  line-height: -10 !important;
+  line-height: 1 !important;
   color: #0F3D2E !important;
 }/* تثبيت ارتفاع خانة التوجل تحت العنوان */
 .header-sticky-wrapper > .header-sticky-inline-control {
