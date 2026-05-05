@@ -1544,13 +1544,13 @@ return (
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
         <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> الطلبات</button>
         <button className={tab==="coupons"?"on":""} onClick={()=>setTab("coupons")}><Palette/> الكوبونات</button>
-        <div className="side-bottom"><button onClick={()=>go("/")}><button onClick={()=>signOut(auth)}><LogOut/> خروج</button></div>
+        <div className="side-bottom"><button onClick={()=>go("/")}><Eye/> معاينة المتجر</button><button onClick={()=>signOut(auth)}><LogOut/> خروج</button></div>
       </aside>
 
       <main className="admin-main">
         <header className="admin-top">
           <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
-          <div className="admin-actions"><button onClick={()=>go("/")}><Eye size={16}/> معاينة</button><button onClick={()=>setDoc(doc(db,"store","settings"), defaultSettings)}></div>
+          <div className="admin-actions"><button onClick={()=>go("/")}><Eye size={16}/> معاينة</button><button onClick={()=>setDoc(doc(db,"store","settings"), defaultSettings)}><RotateCw size={16}/> إعادة الهوية</button></div>
         </header>
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "banners" || tab === "homepage") && (
