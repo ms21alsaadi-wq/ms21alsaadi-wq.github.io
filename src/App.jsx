@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ShoppingBag, Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
+  Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, Image as ImageIcon, LogOut, Pencil,
-  Save, Eye, Users, Lock, Mail, Settings, RotateCw, User, MapPin, Phone, Home,
+  Save, Eye, Users, Lock, Mail, User, MapPin, Phone, Home,
   ClipboardList
 } from "lucide-react";
 import {
@@ -69,8 +69,6 @@ const defaultSettings = {
   homeTopBarText: "#FFFFFF",
   homeHeaderCtaText: "اطلب الآن",
   homeHeaderSticky: true,
-
-  homePagesSticky: true,
   homePagesTitle: "الصفحات",
   homePages: [
     { label: "النباتات", href: "#products", visible: true },
@@ -784,7 +782,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           </div>
         </div>
       </header>
-      <section className={`home-pages-strip ${settings.homePagesSticky !== false ? "pages-sticky" : ""}`}>
+      <section className="home-pages-strip">
         <div className="container home-pages-inner">
           <span>{settings.homePagesTitle || "الصفحات"}</span>
           <div className="home-pages-links">
@@ -1497,7 +1495,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     }, { merge: true });
   };
 
-  
+
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
@@ -1544,13 +1542,13 @@ return (
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
         <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> الطلبات</button>
         <button className={tab==="coupons"?"on":""} onClick={()=>setTab("coupons")}><Palette/> الكوبونات</button>
-        <div className="side-bottom"><button onClick={()=>go("/")}><Eye/> معاينة المتجر</button><button onClick={()=>signOut(auth)}><LogOut/> خروج</button></div>
+        <div className="side-bottom"><button onClick={()=>signOut(auth)}><LogOut/> خروج</button></div>
       </aside>
 
       <main className="admin-main">
         <header className="admin-top">
           <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
-          <div className="admin-actions"><button onClick={()=>go("/")}><Eye size={16}/> معاينة</button><button onClick={()=>setDoc(doc(db,"store","settings"), defaultSettings)}><RotateCw size={16}/> إعادة الهوية</button></div>
+          <div className="admin-actions"><button onClick={()=>go("/")}><Eye size={16}/> معاينة</button></div>
         </header>
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "banners" || tab === "homepage") && (
@@ -1677,7 +1675,6 @@ return (
           </section>
         )}
 
-        
 
         {tab === "coupons" && (
           <section className="coupons-admin-page">
@@ -1767,7 +1764,7 @@ return (
           </section>
         )}
 
-        
+
         {tab === "identity" && (
           <section className="admin-grid">
             <div className="admin-card">
@@ -2017,15 +2014,20 @@ return (
                         />
                       </Control>
 
-<Control label="اللغة">
-                            <select
-                              value={draftSettings.homeHeaderLang || "AR"}
-                              onChange={e => updateDraft("homeHeaderLang", e.target.value)}
-                            >
-                              <option value="AR">AR</option>
-                              <option value="EN">EN</option>
-                            </select>
-                          </Control>
+                      {section.headerExtra && (
+                        <Control label="اللغة">
+                          <select
+                            value={draftSettings.homeHeaderLang || "AR"}
+                            onChange={e => updateDraft("homeHeaderLang", e.target.value)}
+                          >
+                            <option value="AR">AR</option>
+                            <option value="EN">EN</option>
+                          </select>
+                        </Control>
+                      )}
+                      {section.headerExtra && (
+)}
+
 
                       {section.headerExtra && (
                         <div className="header-sticky-wrapper">
@@ -2131,14 +2133,6 @@ return (
 
                       {section.pagesExtra && (
                         <div className="pages-admin-tools">
-                          <label className="feature-toggle">
-                            <input
-                              type="checkbox"
-                              checked={draftSettings.homePagesSticky || false}
-                              onChange={e => updateDraft("homePagesSticky", e.target.checked)}
-                            />
-                            <span>تثبيت قسم الصفحات تحت الهيدر</span>
-                          </label>
 
                           <div className="pages-admin-list">
                             {(draftSettings.homePages || []).map((page, pageIndex) => (
@@ -2599,7 +2593,7 @@ function OrdersPanel({ orders }) {
           </div>
         )}
       </div>
-    
+
       {selectedOrder && (
         <div className="order-modal-backdrop" onClick={() => setSelectedOrder(null)}>
           <div className="order-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -2667,6 +2661,8 @@ function titleFor(tab) {
     banners:"البنرات والصور",
     products:"إدارة المنتجات",
     customers:"العملاء",
-    orders:"الطلبات"
+    orders:"الطلبات",
+    coupons:"الكوبونات",
+    homepage:"الصفحة الرئيسية"
   }[tab];
 }
