@@ -818,14 +818,17 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           <span>{settings.homePagesTitle || "الصفحات"}</span>
           <div className="home-pages-links">
             {visibleHomePages.map((page, index) => (
-              <button
+              <a
                 key={index}
-                type="button"
+                href={normalizePageHref(page, index)}
                 className={currentStorePage === page ? "active" : ""}
-                onClick={() => go(normalizePageHref(page, index))}
+                onClick={(e) => {
+                  e.preventDefault();
+                  go(normalizePageHref(page, index));
+                }}
               >
                 {page.label}
-              </button>
+              </a>
             ))}
           </div>
         </div>
@@ -1012,7 +1015,7 @@ function StoreCustomPage({ page, products, go }) {
 
   return (
     <main className="container store-page-view">
-      <button type="button" className="store-page-back" onClick={() => go("/")}>← رجوع للرئيسية</button>
+      <button type="button" className="primary store-page-back" onClick={() => go("/")}>← رجوع للرئيسية</button>
 
       <div className="store-page-hero">
         <span>Store Page</span>
