@@ -5501,7 +5501,7 @@
 }/* نفس ارتفاع وسماكة عناوين: العنوان / اللغة / رابط الصورة */
 .header-sticky-label {
   height: 28px !important;
-  min-height: 48px !important;
+  min-height: 18px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
