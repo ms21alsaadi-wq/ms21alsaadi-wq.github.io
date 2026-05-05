@@ -5509,7 +5509,7 @@
   padding: 0 !important;
   font-size: 18px !important;
   font-weight: 950 !important;
-  line-height: 10 !important;
+  line-height: -10 !important;
   color: #0F3D2E !important;
 }/* تثبيت ارتفاع خانة التوجل تحت العنوان */
 .header-sticky-wrapper > .header-sticky-inline-control {
