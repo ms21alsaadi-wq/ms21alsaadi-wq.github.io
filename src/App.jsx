@@ -812,27 +812,31 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
             </button>
           </div>
         </div>
+
+
+        <section className="home-pages-strip">
+                <div className="container home-pages-inner">
+                  <span>{settings.homePagesTitle || "الصفحات"}</span>
+                  <div className="home-pages-links">
+                    {visibleHomePages.map((page, index) => (
+                      <a
+                        key={index}
+                        href={normalizePageHref(page, index)}
+                        className={currentStorePage === page ? "active" : ""}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          go(normalizePageHref(page, index));
+                        }}
+                      >
+                        {page.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </section>
       </header>
-      <section className="home-pages-strip">
-        <div className="container home-pages-inner">
-          <span>{settings.homePagesTitle || "الصفحات"}</span>
-          <div className="home-pages-links">
-            {visibleHomePages.map((page, index) => (
-              <a
-                key={index}
-                href={normalizePageHref(page, index)}
-                className={currentStorePage === page ? "active" : ""}
-                onClick={(e) => {
-                  e.preventDefault();
-                  go(normalizePageHref(page, index));
-                }}
-              >
-                {page.label}
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+
+
 
 {currentStorePage ? (
         <StoreCustomPage page={currentStorePage} products={products} go={go} />
