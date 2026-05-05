@@ -667,7 +667,10 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     "--card": settings.cardColor,
     "--font": `"${settings.fontFamily}", system-ui, sans-serif`,
     "--hero-h": `${settings.heroHeight}px`,
-    "--product-h": `${settings.productImageHeight}px`
+    "--product-h": `${settings.productImageHeight}px`,
+    "--home-header-bg": settings.homeHeaderBg || "#F5F1E8",
+    "--topbar-bg": settings.homeTopBarBg || "#0F3D2E",
+    "--topbar-text": settings.homeTopBarText || "#FFFFFF"
   };
 
   return (

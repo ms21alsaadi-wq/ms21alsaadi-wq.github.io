@@ -5660,3 +5660,18 @@
     gap: 12px !important;
   }
 }
+
+/* ===== HEADER COLOR LIVE SETTINGS FIX ===== */
+/* يربط ألوان لوحة التحكم بالهيدر الفعلي في المتجر حتى مع وجود !important قديم */
+.store .store-header {
+  background: var(--home-header-bg, #F5F1E8) !important;
+}
+
+.store .top-announcement-bar {
+  background: var(--topbar-bg, #0F3D2E) !important;
+  color: var(--topbar-text, #FFFFFF) !important;
+}
+
+.store .top-announcement-bar span {
+  color: var(--topbar-text, #FFFFFF) !important;
+}
