@@ -1138,6 +1138,62 @@ function HeroStyle() {
         border-radius: 28px;
       }
 
+
+      .hero-admin-compact-form {
+        max-width: 1180px !important;
+        margin-inline: auto !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+        align-items: end !important;
+      }
+
+      .hero-admin-compact-form > .control:first-child,
+      .hero-admin-compact-form > .control:nth-child(2) {
+        grid-column: span 1 !important;
+      }
+
+      .hero-admin-compact-form textarea {
+        min-height: 86px !important;
+        resize: vertical !important;
+      }
+
+      .hero-admin-options-grid,
+      .hero-admin-image-tools {
+        grid-column: 1 / -1 !important;
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+        align-items: end !important;
+      }
+
+      .hero-admin-compact-form .section-image-preview {
+        grid-column: 1 / -1 !important;
+        max-height: 170px !important;
+        object-fit: cover !important;
+        border-radius: 14px !important;
+      }
+
+      .hero-admin-compact-form .control,
+      .hero-admin-options-grid .control,
+      .hero-admin-image-tools .control {
+        margin: 0 !important;
+      }
+
+      .hero-admin-compact-form input,
+      .hero-admin-compact-form select,
+      .hero-admin-compact-form textarea {
+        min-height: 48px !important;
+      }
+
+      @media (max-width: 900px) {
+        .hero-admin-compact-form,
+        .hero-admin-options-grid,
+        .hero-admin-image-tools {
+          grid-template-columns: 1fr !important;
+        }
+      }
+
       @media (max-width: 780px) {
         .hero-full-media {
           min-height: 620px;
@@ -2254,7 +2310,7 @@ return (
                   </div>
 
                   {openSection === section.id && (
-                    <div className={`section-form section-form-pro ${section.headerExtra ? "header-admin-clean-form" : ""}`}>
+                    <div className={`section-form section-form-pro ${section.headerExtra ? "header-admin-clean-form" : ""} ${section.heroExtra ? "hero-admin-compact-form" : ""}`}>
                       <Control label="العنوان">
                         <input
                           value={draftSettings[section.titleKey] || ""}
@@ -2300,18 +2356,8 @@ return (
                         </Control>
                       )}
 
-                      {section.buttonKey && (
-                        <Control label="نص الزر">
-                          <input
-                            value={draftSettings[section.buttonKey] || ""}
-                            onChange={e => updateDraft(section.buttonKey, e.target.value)}
-                            placeholder="تسوق الآن"
-                          />
-                        </Control>
-                      )}
-
                       {section.heroExtra && (
-                        <>
+                        <div className="hero-admin-options-grid">
                           <Control label="شكل الهيرو">
                             <select
                               value={draftSettings.homeHeroLayout || "split"}
@@ -2323,6 +2369,14 @@ return (
                             </select>
                           </Control>
 
+                          <Control label="نص الزر">
+                            <input
+                              value={draftSettings.homeHeroButton || ""}
+                              onChange={e => updateDraft("homeHeroButton", e.target.value)}
+                              placeholder="تسوق الآن"
+                            />
+                          </Control>
+
                           <Control label="رابط زر الهيرو">
                             <input
                               value={draftSettings.homeHeroButtonLink || "#products"}
@@ -2331,26 +2385,40 @@ return (
                             />
                           </Control>
 
-                          <Control label="رابط فيديو الهيرو">
-                            <input
-                              value={draftSettings.homeHeroVideo || ""}
-                              onChange={e => updateDraft("homeHeroVideo", e.target.value)}
-                              placeholder="https://...mp4"
-                            />
-                          </Control>
+                          {draftSettings.homeHeroLayout === "video" && (
+                            <>
+                              <Control label="رابط فيديو الهيرو">
+                                <input
+                                  value={draftSettings.homeHeroVideo || ""}
+                                  onChange={e => updateDraft("homeHeroVideo", e.target.value)}
+                                  placeholder="https://...mp4"
+                                />
+                              </Control>
 
-                          <Control label="أو ارفع فيديو">
-                            <input
-                              type="file"
-                              accept="video/mp4,video/webm,video/*"
-                              onChange={e => uploadSettingImage("homeHeroVideo", e.target.files[0])}
-                            />
-                          </Control>
-                        </>
+                              <Control label="أو ارفع فيديو">
+                                <input
+                                  type="file"
+                                  accept="video/mp4,video/webm,video/*"
+                                  onChange={e => uploadSettingImage("homeHeroVideo", e.target.files[0])}
+                                />
+                              </Control>
+                            </>
+                          )}
+                        </div>
                       )}
 
-                      {section.imageKey && (
-                        <div className="section-image-tools">
+                      {!section.heroExtra && section.buttonKey && (
+                        <Control label="نص الزر">
+                          <input
+                            value={draftSettings[section.buttonKey] || ""}
+                            onChange={e => updateDraft(section.buttonKey, e.target.value)}
+                            placeholder="تسوق الآن"
+                          />
+                        </Control>
+                      )}
+
+                      {section.imageKey && !(section.heroExtra && draftSettings.homeHeroLayout === "video") && (
+                        <div className={`section-image-tools ${section.heroExtra ? "hero-admin-image-tools" : ""}`}>
                           <Control label="رابط الصورة">
                             <input
                               value={draftSettings[section.imageKey] || ""}
@@ -2482,7 +2550,7 @@ return (
                         </div>
                       )}
 
-                      {!section.headerExtra && (
+                      {!section.headerExtra && !section.heroExtra && (
                         <div className="section-mini-preview">
                           <span>معاينة</span>
                           <h3>{draftSettings[section.titleKey]}</h3>
