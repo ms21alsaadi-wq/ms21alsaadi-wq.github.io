@@ -997,7 +997,6 @@ function HeroSection({ settings, products }) {
 
   const content = (
     <div className="hero-copy hero-dynamic-copy">
-      <div className="pill">{settings.homeHeroBadge || "Green Dixam Boutique"}</div>
       <h1>{title}</h1>
       <p>{desc}</p>
       <div className="hero-actions">
