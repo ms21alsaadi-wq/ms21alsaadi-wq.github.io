@@ -997,12 +997,12 @@ function HeroSection({ settings, products }) {
 
   const content = (
     <div className="hero-copy hero-dynamic-copy">
-      <h1>{title}</h1>
+<h1>{title}</h1>
       <p>{desc}</p>
       <div className="hero-actions">
         <a href={buttonLink} className="primary">{buttonText}</a>
       </div>
-      <div className="stats">
+</div>
   );
 
   if (layout === "video") {
@@ -2429,7 +2429,7 @@ return (
                             />
                           </Control>
 
-                          
+
                         </div>
                       )}
 
