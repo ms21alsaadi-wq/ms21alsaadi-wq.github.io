@@ -79,7 +79,10 @@ const defaultSettings = {
   homeHeroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
   homeHeroDesc: "اختر نبتتك بسهولة – نباتات داخلية مختارة بعناية، تغليف أنيق، وتوصيل سريع داخل السعودية.",
   homeHeroImage: "",
+  homeHeroVideo: "",
+  homeHeroLayout: "split",
   homeHeroButton: "تسوق الآن",
+  homeHeroButtonLink: "#products",
 
   homePlantSectionsTitle: "اختر طابعك الأخضر",
   homePlantSectionsDesc: "نباتات داخلية، نباتات سهلة العناية، وأصص وإكسسوارات بطابع فاخر.",
@@ -704,6 +707,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
   return (
     <div className="store" style={theme} dir={siteLang === "EN" ? "ltr" : "rtl"}>
+      <HeroStyle />
       <header
         className={`store-header ${settings.homeHeaderSticky === false ? "" : "header-sticky-pro"}`}
         style={{
@@ -841,22 +845,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         <StoreCustomPage page={currentStorePage} products={products} go={go} />
       ) : (
         <>
-<section className="container hero">
-        <div className="hero-copy">
-          <div className="pill">{settings.homeHeroBadge || "Green Dixam Boutique"}</div>
-          <h1>{settings.homeHeroTitle}</h1>
-          <p>{settings.homeHeroDesc}</p>
-          <div className="hero-actions">
-            <a href="#products" className="primary">{settings.homeHeroButton || "تسوق الآن"}</a>
-          </div>
-          <div className="stats">
-            <div><b>{products.length}+</b><span>{settings.heroStatsProducts || "منتجات"}</span></div>
-            <div><b>24H</b><span>{settings.heroStatsPackaging || "تغليف فاخر"}</span></div>
-            <div><b>Rare</b><span>{settings.heroStatsCustomers || "حسابات عملاء"}</span></div>
-          </div>
-        </div>
-        <div className="hero-image"><img src={settings.homeHeroImage || ""} alt="hero" /></div>
-      </section>
+<HeroSection settings={settings} products={products} />
 
       <section className="container feature-grid">
         <Feature icon={<Truck/>} title="توصيل سريع" text="تغليف فاخر للنباتات مع تغليف يحافظ عليها." />
@@ -993,6 +982,177 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         </div>
       )}
     </div>
+  );
+}
+
+
+function HeroSection({ settings, products }) {
+  const layout = settings.homeHeroLayout || "split";
+  const title = settings.homeHeroTitle || "";
+  const desc = settings.homeHeroDesc || "";
+  const buttonText = settings.homeHeroButton || "تسوق الآن";
+  const buttonLink = settings.homeHeroButtonLink || "#products";
+  const image = settings.homeHeroImage || "";
+  const video = settings.homeHeroVideo || "";
+
+  const content = (
+    <div className="hero-copy hero-dynamic-copy">
+      <div className="pill">{settings.homeHeroBadge || "Green Dixam Boutique"}</div>
+      <h1>{title}</h1>
+      <p>{desc}</p>
+      <div className="hero-actions">
+        <a href={buttonLink} className="primary">{buttonText}</a>
+      </div>
+      <div className="stats">
+        <div><b>{products.length}+</b><span>{settings.heroStatsProducts || "منتجات"}</span></div>
+        <div><b>24H</b><span>{settings.heroStatsPackaging || "تغليف فاخر"}</span></div>
+        <div><b>Rare</b><span>{settings.heroStatsCustomers || "حسابات عملاء"}</span></div>
+      </div>
+    </div>
+  );
+
+  if (layout === "video") {
+    return (
+      <section className="hero-full-media hero-video-mode">
+        {video ? (
+          <video className="hero-full-video" src={video} autoPlay muted loop playsInline />
+        ) : image ? (
+          <img className="hero-full-video" src={image} alt={title} />
+        ) : (
+          <div className="hero-full-placeholder">ارفع فيديو الهيرو من لوحة التحكم</div>
+        )}
+        <div className="hero-media-overlay" />
+        <div className="container hero-media-content">{content}</div>
+      </section>
+    );
+  }
+
+  if (layout === "banner") {
+    return (
+      <section className="hero-full-media hero-banner-mode">
+        {image ? (
+          <img className="hero-full-video" src={image} alt={title} />
+        ) : (
+          <div className="hero-full-placeholder">ارفع بنر الهيرو من لوحة التحكم</div>
+        )}
+        <div className="hero-media-overlay light" />
+        <div className="container hero-media-content centered">{content}</div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="container hero hero-split-mode">
+      {content}
+      <div className="hero-image">
+        {image ? <img src={image} alt={title} /> : <div className="hero-full-placeholder">ارفع صورة الهيرو</div>}
+      </div>
+    </section>
+  );
+}
+
+function HeroStyle() {
+  return (
+    <style>{`
+      .hero-full-media {
+        position: relative;
+        width: 100%;
+        min-height: min(760px, 86vh);
+        overflow: hidden;
+        display: grid;
+        align-items: center;
+        background: #0F3D2E;
+      }
+
+      .hero-full-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .hero-media-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(0,0,0,.64), rgba(0,0,0,.18), rgba(0,0,0,.48));
+        z-index: 1;
+      }
+
+      .hero-media-overlay.light {
+        background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.46));
+      }
+
+      .hero-media-content {
+        position: relative;
+        z-index: 2;
+        padding-top: 90px;
+        padding-bottom: 90px;
+      }
+
+      .hero-media-content .hero-dynamic-copy {
+        max-width: 620px;
+        color: #fff;
+      }
+
+      .hero-media-content.centered {
+        display: flex;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .hero-media-content.centered .hero-dynamic-copy {
+        align-items: center;
+        margin: 0 auto;
+      }
+
+      .hero-media-content .pill {
+        background: rgba(255,255,255,.16);
+        color: #fff;
+        border-color: rgba(255,255,255,.28);
+      }
+
+      .hero-media-content h1,
+      .hero-media-content p,
+      .hero-media-content .stats span,
+      .hero-media-content .stats b {
+        color: #fff;
+      }
+
+      .hero-full-placeholder {
+        min-height: 360px;
+        display: grid;
+        place-items: center;
+        color: rgba(255,255,255,.85);
+        background: linear-gradient(135deg, #0F3D2E, #174d39);
+        font-weight: 900;
+        text-align: center;
+        padding: 24px;
+      }
+
+      .hero-split-mode .hero-full-placeholder {
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+        border-radius: 28px;
+      }
+
+      @media (max-width: 780px) {
+        .hero-full-media {
+          min-height: 620px;
+        }
+
+        .hero-media-content {
+          padding-top: 60px;
+          padding-bottom: 60px;
+        }
+
+        .hero-media-content .hero-dynamic-copy {
+          max-width: 100%;
+        }
+      }
+    `}</style>
   );
 }
 
@@ -2075,7 +2235,7 @@ return (
               {[
                 { id: "header", label: "الهيدر", titleKey: "homeHeaderTitle", descKey: "homeHeaderSubtitle", imageKey: "homeHeaderImage", headerExtra: true },
                 { id: "pages", label: "الصفحات", titleKey: "homePagesTitle", descKey: "", imageKey: "", pagesExtra: true },
-                { id: "hero", label: "الهيرو", titleKey: "homeHeroTitle", descKey: "homeHeroDesc", imageKey: "homeHeroImage", buttonKey: "homeHeroButton" },
+                { id: "hero", label: "الهيرو", titleKey: "homeHeroTitle", descKey: "homeHeroDesc", imageKey: "homeHeroImage", buttonKey: "homeHeroButton", heroExtra: true },
                 { id: "plants", label: "أقسام النباتات", titleKey: "homePlantSectionsTitle", descKey: "homePlantSectionsDesc", imageKey: "homePlantSectionsImage" },
                 { id: "care", label: "شريط العناية", titleKey: "homeCareTitle", descKey: "homeCareDesc", imageKey: "homeCareImage" },
                 { id: "offer", label: "بنر العروض", titleKey: "homeOfferTitle", descKey: "homeOfferDesc", imageKey: "homeOfferImage" },
@@ -2148,6 +2308,45 @@ return (
                             placeholder="تسوق الآن"
                           />
                         </Control>
+                      )}
+
+                      {section.heroExtra && (
+                        <>
+                          <Control label="شكل الهيرو">
+                            <select
+                              value={draftSettings.homeHeroLayout || "split"}
+                              onChange={e => updateDraft("homeHeroLayout", e.target.value)}
+                            >
+                              <option value="video">فيديو بعرض الصفحة</option>
+                              <option value="banner">بنر صورة بعرض الصفحة</option>
+                              <option value="split">مقسم نص وصورة</option>
+                            </select>
+                          </Control>
+
+                          <Control label="رابط زر الهيرو">
+                            <input
+                              value={draftSettings.homeHeroButtonLink || "#products"}
+                              onChange={e => updateDraft("homeHeroButtonLink", e.target.value)}
+                              placeholder="#products أو /page/offers"
+                            />
+                          </Control>
+
+                          <Control label="رابط فيديو الهيرو">
+                            <input
+                              value={draftSettings.homeHeroVideo || ""}
+                              onChange={e => updateDraft("homeHeroVideo", e.target.value)}
+                              placeholder="https://...mp4"
+                            />
+                          </Control>
+
+                          <Control label="أو ارفع فيديو">
+                            <input
+                              type="file"
+                              accept="video/mp4,video/webm,video/*"
+                              onChange={e => uploadSettingImage("homeHeroVideo", e.target.files[0])}
+                            />
+                          </Control>
+                        </>
                       )}
 
                       {section.imageKey && (
