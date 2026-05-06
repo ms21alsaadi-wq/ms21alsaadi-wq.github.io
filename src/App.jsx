@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ShoppingBag, Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
-  Trash2, LayoutDashboard, Palette, PackagePlus, Image as ImageIcon, LogOut, Pencil,
+  Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
   Save, Eye, Users, Lock, Mail, Settings, RotateCw, User, MapPin, Phone, Home,
   ClipboardList
 } from "lucide-react";
@@ -837,18 +837,17 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       </header>
 
 
-
 {currentStorePage ? (
         <StoreCustomPage page={currentStorePage} products={products} go={go} />
       ) : (
         <>
 <section className="container hero">
         <div className="hero-copy">
-          <div className="pill">{settings.heroBadge || "Green Dixam Boutique"}</div>
-          <h1>{settings.homeHeroTitle || settings.heroTitle}</h1>
-          <p>{settings.homeHeroDesc || settings.heroSubtitle}</p>
+          <div className="pill">{settings.homeHeroBadge || "Green Dixam Boutique"}</div>
+          <h1>{settings.homeHeroTitle}</h1>
+          <p>{settings.homeHeroDesc}</p>
           <div className="hero-actions">
-            <a href="#products" className="primary">{settings.homeHeroButton || settings.heroButtonText || "تسوق الآن"}</a>
+            <a href="#products" className="primary">{settings.homeHeroButton || "تسوق الآن"}</a>
           </div>
           <div className="stats">
             <div><b>{products.length}+</b><span>{settings.heroStatsProducts || "منتجات"}</span></div>
@@ -856,7 +855,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
             <div><b>Rare</b><span>{settings.heroStatsCustomers || "حسابات عملاء"}</span></div>
           </div>
         </div>
-        <div className="hero-image"><img src={settings.homeHeroImage || settings.heroImage} alt="hero" /></div>
+        <div className="hero-image"><img src={settings.homeHeroImage || ""} alt="hero" /></div>
       </section>
 
       <section className="container feature-grid">
@@ -1652,7 +1651,6 @@ return (
         </div>
         <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
         <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> الهوية</button>
-        <button className={tab==="banners"?"on":""} onClick={()=>setTab("banners")}><ImageIcon/> البنرات والصور</button>
         <button className={tab==="homepage"?"on":""} onClick={()=>setTab("homepage")}><Home/> الصفحة الرئيسية</button>
         <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> المنتجات</button>
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
@@ -1667,7 +1665,7 @@ return (
           <div className="admin-actions"><button onClick={()=>go("/")}><Eye size={16}/> معاينة</button></div>
         </header>
         {notice && <div className="notice">{notice}</div>}
-        {(tab === "identity" || tab === "banners" || tab === "homepage") && (
+        {(tab === "identity" || tab === "homepage") && (
           <div className="admin-save-bar">
             <div>
               <b>التغييرات غير محفوظة حتى تضغط حفظ</b>
@@ -1903,31 +1901,6 @@ return (
               <Control label="رابط الشعار"><input value={draftSettings.logo} onChange={e=>updateDraft("logo",e.target.value)} /></Control>
               <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control><p className="admin-help-text">يفضل رفع شعار PNG أو JPG بحجم صغير. سيتم ضغطه تلقائيًا قبل الحفظ.</p>
               {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} />}
-            </div>
-          </section>
-        )}
-
-        {tab === "banners" && (
-          <section className="admin-grid">
-            <div className="admin-card">
-              <h2>الهيرو الرئيسي</h2>
-              <Control label="عنوان الهيرو"><input value={draftSettings.heroTitle} onChange={e=>updateDraft("heroTitle",e.target.value)} /></Control>
-              <Control label="وصف الهيرو"><textarea value={draftSettings.heroSubtitle} onChange={e=>updateDraft("heroSubtitle",e.target.value)} /></Control>
-              <Control label="رابط صورة الهيرو"><input value={draftSettings.heroImage} onChange={e=>updateDraft("heroImage",e.target.value)} /></Control>
-              <Control label="أو ارفع صورة"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("heroImage", e.target.files[0])} /></Control>
-              <Control label={`ارتفاع البنر: ${draftSettings.heroHeight}px`}><input type="range" min="320" max="760" value={draftSettings.heroHeight} onChange={e=>updateDraft("heroHeight",Number(e.target.value))} /></Control>
-            </div>
-            <div className="admin-card">
-              <h2>بنر العروض</h2>
-              <Control label="عنوان البنر"><input value={draftSettings.bannerTitle} onChange={e=>updateDraft("bannerTitle",e.target.value)} /></Control>
-              <Control label="وصف البنر"><textarea value={draftSettings.bannerSubtitle} onChange={e=>updateDraft("bannerSubtitle",e.target.value)} /></Control>
-              <Control label="رابط صورة البنر"><input value={draftSettings.bannerImage} onChange={e=>updateDraft("bannerImage",e.target.value)} /></Control>
-              <Control label="أو ارفع صورة"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("bannerImage", e.target.files[0])} /></Control>
-            </div>
-            <div className="admin-card">
-              <h2>أحجام الصور</h2>
-              <Control label={`ارتفاع صور المنتجات: ${draftSettings.productImageHeight}px`}><input type="range" min="180" max="420" value={draftSettings.productImageHeight} onChange={e=>updateDraft("productImageHeight",Number(e.target.value))} /></Control>
-              <img className="admin-image-preview" src={draftSettings.heroImage} />
             </div>
           </section>
         )}
@@ -2772,7 +2745,6 @@ function titleFor(tab) {
   return {
     dashboard:"الرئيسية",
     identity:"الهوية والألوان",
-    banners:"البنرات والصور",
     products:"إدارة المنتجات",
     customers:"العملاء",
     orders:"الطلبات",
