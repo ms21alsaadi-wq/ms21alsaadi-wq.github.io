@@ -1003,11 +1003,6 @@ function HeroSection({ settings, products }) {
         <a href={buttonLink} className="primary">{buttonText}</a>
       </div>
       <div className="stats">
-        <div><b>{products.length}+</b><span>{settings.heroStatsProducts || "منتجات"}</span></div>
-        <div><b>24H</b><span>{settings.heroStatsPackaging || "تغليف فاخر"}</span></div>
-        <div><b>Rare</b><span>{settings.heroStatsCustomers || "حسابات عملاء"}</span></div>
-      </div>
-    </div>
   );
 
   if (layout === "video") {
