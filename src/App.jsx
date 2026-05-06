@@ -2435,9 +2435,7 @@ return (
                             />
                           </Control>
 
-                          {draftSettings[section.imageKey] && (
-                            <img className="section-image-preview" src={draftSettings[section.imageKey]} alt={section.label} />
-                          )}
+                          
                         </div>
                       )}
 
