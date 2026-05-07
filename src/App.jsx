@@ -79,6 +79,8 @@ const defaultSettings = {
   homeHeroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
   homeHeroDesc: "اختر نبتتك بسهولة – نباتات داخلية مختارة بعناية، تغليف أنيق، وتوصيل سريع داخل السعودية.",
   homeHeroImage: "",
+  homeHeroBgImage: "",
+  homeHeroImagePosition: "left",
   homeHeroVideo: "",
   homeHeroLayout: "split",
   homeHeroButton: "تسوق الآن",
@@ -993,16 +995,18 @@ function HeroSection({ settings, products }) {
   const buttonText = settings.homeHeroButton || "تسوق الآن";
   const buttonLink = settings.homeHeroButtonLink || "#products";
   const image = settings.homeHeroImage || "";
+  const bgImage = settings.homeHeroBgImage || "";
+  const imagePosition = settings.homeHeroImagePosition || "left";
   const video = settings.homeHeroVideo || "";
 
   const content = (
     <div className="hero-copy hero-dynamic-copy">
-<h1>{title}</h1>
+      <h1>{title}</h1>
       <p>{desc}</p>
       <div className="hero-actions">
         <a href={buttonLink} className="primary">{buttonText}</a>
       </div>
-</div>
+    </div>
   );
 
   if (layout === "video") {
@@ -1036,10 +1040,17 @@ function HeroSection({ settings, products }) {
   }
 
   return (
-    <section className="container hero hero-split-mode">
-      {content}
-      <div className="hero-image">
-        {image ? <img src={image} alt={title} /> : <div className="hero-full-placeholder">ارفع صورة الهيرو</div>}
+    <section
+      className={`hero-layered hero-layered-${imagePosition}`}
+      style={{
+        backgroundImage: bgImage ? `linear-gradient(90deg, rgba(245,241,232,.86), rgba(245,241,232,.48)), url(${bgImage})` : undefined
+      }}
+    >
+      <div className="container hero-layered-inner">
+        <div className="hero-layered-text">{content}</div>
+        <div className="hero-layered-image-card">
+          {image ? <img src={image} alt={title} /> : <div className="hero-full-placeholder">ارفع الصورة الأمامية للهيرو</div>}
+        </div>
       </div>
     </section>
   );
@@ -1186,6 +1197,115 @@ function HeroStyle() {
         .hero-admin-image-tools {
           grid-template-columns: 1fr !important;
         }
+      }
+
+
+      .hero-layered {
+        position: relative;
+        width: 100%;
+        min-height: min(760px, 86vh);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: grid;
+        align-items: center;
+        overflow: hidden;
+        padding: 70px 0;
+      }
+      .hero-layered:not([style*="background-image"]) {
+        background: linear-gradient(135deg, #fbf8ef, #eef4ef);
+      }
+      .hero-layered-inner {
+        display: grid;
+        grid-template-columns: 1fr 1.1fr;
+        gap: 42px;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+      }
+      .hero-layered-right .hero-layered-inner {
+        grid-template-columns: 1.1fr 1fr;
+      }
+      .hero-layered-right .hero-layered-image-card { order: 2; }
+      .hero-layered-right .hero-layered-text { order: 1; }
+      .hero-layered-left .hero-layered-image-card { order: 1; }
+      .hero-layered-left .hero-layered-text { order: 2; }
+      .hero-layered-image-card {
+        border-radius: 34px;
+        overflow: hidden;
+        background: rgba(255,255,255,.72);
+        padding: 14px;
+        box-shadow: 0 28px 70px rgba(15,61,46,.14);
+        border: 1px solid rgba(194,169,104,.26);
+        min-height: 420px;
+      }
+      .hero-layered-image-card img {
+        width: 100%;
+        height: 100%;
+        min-height: 420px;
+        object-fit: cover;
+        border-radius: 24px;
+        display: block;
+      }
+      .hero-layered-text {
+        display: flex;
+        justify-content: center;
+      }
+      .hero-layered-text .hero-dynamic-copy {
+        max-width: 640px;
+      }
+      .hero-layered-text h1 {
+        font-size: clamp(42px, 5vw, 78px);
+        line-height: 1.08;
+      }
+      .hero-layered-text p {
+        font-size: clamp(16px, 1.4vw, 21px);
+      }
+      .hero-admin-compact-form {
+        max-width: 1180px !important;
+        margin-inline: auto !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+        align-items: end !important;
+      }
+      .hero-admin-compact-form textarea {
+        min-height: 86px !important;
+        resize: vertical !important;
+      }
+      .hero-admin-options-grid,
+      .hero-admin-image-tools,
+      .hero-admin-bg-tools {
+        grid-column: 1 / -1 !important;
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+        align-items: end !important;
+      }
+      .hero-admin-compact-form .control,
+      .hero-admin-options-grid .control,
+      .hero-admin-image-tools .control,
+      .hero-admin-bg-tools .control { margin: 0 !important; }
+      .hero-admin-compact-form input,
+      .hero-admin-compact-form select,
+      .hero-admin-compact-form textarea { min-height: 48px !important; }
+      @media (max-width: 900px) {
+        .hero-layered { min-height: auto; padding: 42px 0; }
+        .hero-layered-inner,
+        .hero-layered-right .hero-layered-inner {
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+        .hero-layered-image-card,
+        .hero-layered-image-card img { min-height: 320px; }
+        .hero-layered-left .hero-layered-image-card,
+        .hero-layered-right .hero-layered-image-card,
+        .hero-layered-left .hero-layered-text,
+        .hero-layered-right .hero-layered-text { order: initial; }
+        .hero-admin-compact-form,
+        .hero-admin-options-grid,
+        .hero-admin-image-tools,
+        .hero-admin-bg-tools { grid-template-columns: 1fr !important; }
       }
 
       @media (max-width: 780px) {
@@ -2211,8 +2331,8 @@ return (
                     <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
                     <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={editing?.sizes || "صغير,متوسط,كبير"} /></Control>
                   </div>
-                  <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
-                  <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
+                  <Control label={section.heroExtra && draftSettings.homeHeroLayout === "split" ? "رابط الصورة الأمامية" : "رابط الصورة"}><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
+                  <Control label={section.heroExtra && draftSettings.homeHeroLayout === "split" ? "أو ارفع الصورة الأمامية" : "أو ارفع صورة"}><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
                   {imagePreview && <div className="product-image-preview pro-preview"><span>معاينة الصورة</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
                   <label className="feature-toggle">
                     <input name="featured" type="checkbox" defaultChecked={editing?.featured || false} />
@@ -2351,36 +2471,47 @@ return (
                       )}
 
                       {section.heroExtra && (
-                        <div className="hero-admin-options-grid">
-                          <Control label="شكل الهيرو">
-                            <select
-                              value={draftSettings.homeHeroLayout || "split"}
-                              onChange={e => updateDraft("homeHeroLayout", e.target.value)}
-                            >
-                              <option value="video">فيديو بعرض الصفحة</option>
-                              <option value="banner">بنر صورة بعرض الصفحة</option>
-                              <option value="split">مقسم نص وصورة</option>
-                            </select>
-                          </Control>
-
-                          <Control label="نص الزر">
-                            <input
-                              value={draftSettings.homeHeroButton || ""}
-                              onChange={e => updateDraft("homeHeroButton", e.target.value)}
-                              placeholder="تسوق الآن"
-                            />
-                          </Control>
-
-                          <Control label="رابط زر الهيرو">
-                            <input
-                              value={draftSettings.homeHeroButtonLink || "#products"}
-                              onChange={e => updateDraft("homeHeroButtonLink", e.target.value)}
-                              placeholder="#products أو /page/offers"
-                            />
-                          </Control>
+                        <>
+                          <div className="hero-admin-options-grid">
+                            <Control label="شكل الهيرو">
+                              <select
+                                value={draftSettings.homeHeroLayout || "split"}
+                                onChange={e => updateDraft("homeHeroLayout", e.target.value)}
+                              >
+                                <option value="video">فيديو بعرض الصفحة</option>
+                                <option value="banner">بنر صورة بعرض الصفحة</option>
+                                <option value="split">مقسم: بنر + صورة + نص</option>
+                              </select>
+                            </Control>
+                            <Control label="نص الزر">
+                              <input
+                                value={draftSettings.homeHeroButton || ""}
+                                onChange={e => updateDraft("homeHeroButton", e.target.value)}
+                                placeholder="تسوق الآن"
+                              />
+                            </Control>
+                            <Control label="رابط زر الهيرو">
+                              <input
+                                value={draftSettings.homeHeroButtonLink || "#products"}
+                                onChange={e => updateDraft("homeHeroButtonLink", e.target.value)}
+                                placeholder="#products أو /page/offers"
+                              />
+                            </Control>
+                            {draftSettings.homeHeroLayout === "split" && (
+                              <Control label="مكان الصورة الأمامية">
+                                <select
+                                  value={draftSettings.homeHeroImagePosition || "left"}
+                                  onChange={e => updateDraft("homeHeroImagePosition", e.target.value)}
+                                >
+                                  <option value="left">يسار</option>
+                                  <option value="right">يمين</option>
+                                </select>
+                              </Control>
+                            )}
+                          </div>
 
                           {draftSettings.homeHeroLayout === "video" && (
-                            <>
+                            <div className="hero-admin-options-grid">
                               <Control label="رابط فيديو الهيرو">
                                 <input
                                   value={draftSettings.homeHeroVideo || ""}
@@ -2388,7 +2519,6 @@ return (
                                   placeholder="https://...mp4"
                                 />
                               </Control>
-
                               <Control label="أو ارفع فيديو">
                                 <input
                                   type="file"
@@ -2396,9 +2526,28 @@ return (
                                   onChange={e => uploadSettingImage("homeHeroVideo", e.target.files[0])}
                                 />
                               </Control>
-                            </>
+                            </div>
                           )}
-                        </div>
+
+                          {draftSettings.homeHeroLayout === "split" && (
+                            <div className="hero-admin-bg-tools">
+                              <Control label="رابط بنر الخلفية">
+                                <input
+                                  value={draftSettings.homeHeroBgImage || ""}
+                                  onChange={e => updateDraft("homeHeroBgImage", e.target.value)}
+                                  placeholder="https://..."
+                                />
+                              </Control>
+                              <Control label="أو ارفع بنر الخلفية">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={e => uploadSettingImage("homeHeroBgImage", e.target.files[0])}
+                                />
+                              </Control>
+                            </div>
+                          )}
+                        </>
                       )}
 
                       {!section.heroExtra && section.buttonKey && (
