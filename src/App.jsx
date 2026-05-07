@@ -1191,38 +1191,6 @@ function HeroStyle() {
         min-height: 48px !important;
       }
 
-
-      /* ===== SAFE FIX: LANGUAGE DROPDOWN ABOVE PAGES STRIP ===== */
-      .store .store-header {
-        z-index: 3000 !important;
-        overflow: visible !important;
-      }
-
-      .store .store-header .actions {
-        overflow: visible !important;
-      }
-
-      .store .store-header .lang-menu,
-      .store .store-header .language-menu,
-      .store .store-header .language-menu-wrap {
-        position: relative !important;
-        z-index: 5000 !important;
-        overflow: visible !important;
-      }
-
-      .store .store-header .lang-menu > div,
-      .store .store-header .language-menu > div,
-      .store .store-header .language-menu-wrap > div {
-        position: absolute !important;
-        z-index: 7000 !important;
-      }
-
-      .store .home-pages-strip {
-        position: relative;
-        z-index: 100 !important;
-      }
-
-
       @media (max-width: 900px) {
         .hero-admin-compact-form,
         .hero-admin-options-grid,
