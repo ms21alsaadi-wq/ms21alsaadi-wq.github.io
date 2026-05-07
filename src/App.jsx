@@ -1191,7 +1191,27 @@ function HeroStyle() {
         min-height: 48px !important;
       }
 
-      @media (max-width: 900px) {
+      
+      .language-menu-wrap,
+      .lang-switcher,
+      .language-switcher {
+        position: relative;
+        z-index: 9999 !important;
+      }
+
+      .language-dropdown,
+      .lang-dropdown {
+        position: absolute;
+        z-index: 10000 !important;
+      }
+
+      .home-pages-strip,
+      .pages-strip,
+      .header-pages-nav {
+        z-index: 20 !important;
+      }
+
+@media (max-width: 900px) {
         .hero-admin-compact-form,
         .hero-admin-options-grid,
         .hero-admin-image-tools {
