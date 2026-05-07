@@ -2733,14 +2733,6 @@ return (
                           </button>
                         </div>
                       )}
-
-                      {!section.headerExtra && !section.heroExtra && (
-                        <div className="section-mini-preview">
-                          <span>معاينة</span>
-                          <h3>{draftSettings[section.titleKey]}</h3>
-                          {!section.pagesExtra && <p>{draftSettings[section.descKey]}</p>}
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
