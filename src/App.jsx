@@ -2369,8 +2369,8 @@ return (
                     <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
                     <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={editing?.sizes || "صغير,متوسط,كبير"} /></Control>
                   </div>
-                  <Control label={section.heroExtra && draftSettings.homeHeroLayout === "split" ? "رابط الصورة الأمامية" : "رابط الصورة"}><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
-                  <Control label={section.heroExtra && draftSettings.homeHeroLayout === "split" ? "أو ارفع الصورة الأمامية" : "أو ارفع صورة"}><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
+                  <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
+                  <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
                   {imagePreview && <div className="product-image-preview pro-preview"><span>معاينة الصورة</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
                   <label className="feature-toggle">
                     <input name="featured" type="checkbox" defaultChecked={editing?.featured || false} />
