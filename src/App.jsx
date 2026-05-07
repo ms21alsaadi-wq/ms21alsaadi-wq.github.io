@@ -1309,6 +1309,47 @@ function HeroStyle() {
       .hero-admin-compact-form input,
       .hero-admin-compact-form select,
       .hero-admin-compact-form textarea { min-height: 48px !important; }
+
+/* ===== FIX LANGUAGE DROPDOWN ABOVE PAGES STRIP ===== */
+.store-header,
+.store-header * {
+  overflow: visible !important;
+}
+
+.store-header {
+  position: relative;
+  z-index: 5000 !important;
+}
+
+.store-actions,
+.store-actions > div,
+.store-actions .icon-btn,
+.store-actions button,
+.store-actions [class*="lang"],
+.store-actions [class*="language"] {
+  position: relative;
+  z-index: 9000 !important;
+  overflow: visible !important;
+}
+
+.store-actions ul,
+.store-actions menu,
+.store-actions .dropdown,
+.store-actions [class*="dropdown"],
+.store-actions [class*="menu"],
+.store-actions [class*="lang"] > div,
+.store-actions [class*="language"] > div {
+  position: absolute !important;
+  z-index: 99999 !important;
+  overflow: visible !important;
+}
+
+.home-pages-strip {
+  position: relative;
+  z-index: 100 !important;
+}
+
+
       @media (max-width: 900px) {
         .hero-layered { min-height: auto; padding: 42px 0; }
         .hero-layered-inner,
