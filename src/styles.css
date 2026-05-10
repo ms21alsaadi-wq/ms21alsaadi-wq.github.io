@@ -6808,3 +6808,85 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== PRODUCTS PHASE 2 ===== */
+.gallery-manager {
+  margin-top: 18px;
+  background: rgba(15,61,46,.04);
+  border: 1px solid rgba(15,61,46,.08);
+  border-radius: 22px;
+  padding: 14px;
+}
+
+.gallery-manager-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.gallery-manager-head b {
+  color: var(--gd-primary, #0F3D2E);
+}
+
+.gallery-manager-head small {
+  color: #7b7569;
+  font-weight: 800;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.gallery-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #fffaf0;
+  border: 2px solid transparent;
+}
+
+.gallery-item.primary {
+  border-color: #0F3D2E;
+}
+
+.gallery-item img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px;
+}
+
+.gallery-actions button {
+  min-height: 34px;
+  border-radius: 10px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.gallery-actions button:first-child {
+  background: rgba(15,61,46,.10);
+  color: #0F3D2E;
+}
+
+.gallery-actions button.danger {
+  background: rgba(220,38,38,.12);
+  color: #991b1b;
+}
+
+@media (max-width: 760px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

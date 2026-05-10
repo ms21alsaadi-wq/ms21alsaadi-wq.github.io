@@ -2042,6 +2042,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
   useEffect(() => {
     setImagePreview(editing?.image || "");
+    setGalleryImages(editing?.gallery || []);
   }, [editing]);
 
   const updateDraft = (key, value) => {
@@ -2210,6 +2211,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       await Promise.all(products.map(product => deleteDoc(doc(db, "products", product.id))));
       setEditing(null);
       setImagePreview("");
+      setGalleryImages([]);
       clearProductSelection();
       setNotice("تم حذف كل المنتجات بنجاح");
       setTimeout(() => setNotice(""), 3000);
@@ -2824,6 +2826,26 @@ return (
                     <input name="expiresAt" type="date" />
                   </Control>
 
+                <div className="pro-form-section">
+                  <h3>SEO المنتج</h3>
+
+                  <Control label="عنوان SEO">
+                    <input
+                      name="seoTitle"
+                      defaultValue={editing?.seoTitle || ""}
+                      placeholder="عنوان يظهر في Google"
+                    />
+                  </Control>
+
+                  <Control label="وصف SEO">
+                    <textarea
+                      name="seoDescription"
+                      defaultValue={editing?.seoDescription || ""}
+                      placeholder="وصف مختصر لمحركات البحث"
+                    />
+                  </Control>
+                </div>
+
                   <label className="feature-toggle">
                     <input name="active" type="checkbox" defaultChecked />
                     <span>كوبون مفعل</span>
@@ -2997,11 +3019,70 @@ return (
                   <h3>الخيارات والصورة</h3>
                   <div className="two">
                     <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
-                    <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={editing?.sizes || "صغير,متوسط,كبير"} /></Control>
+                    <Control label="المقاسات">
+                      <input
+                        name="sizes"
+                        defaultValue={Array.isArray(editing?.sizes) ? editing?.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")}
+                        placeholder="صغير, متوسط, كبير"
+                      />
+                    </Control>
+                    <Control label="الألوان">
+                      <input
+                        name="colors"
+                        defaultValue={Array.isArray(editing?.colors) ? editing?.colors.join(",") : (editing?.colors || "")}
+                        placeholder="أخضر, أبيض, أسود"
+                      />
+                    </Control>
                   </div>
                   <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
-                  <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
-                  {imagePreview && <div className="product-image-preview pro-preview"><span>معاينة الصورة</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
+                  <Control label="أو ارفع صورة">
+                    <input
+                      name="imageFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={async e=>{
+                        const file=e.target.files[0];
+                        if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 }));
+                      }}
+                    />
+                  </Control>
+
+                  <Control label="رفع صور متعددة للمعرض">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={e => uploadGalleryImages(e.target.files)}
+                    />
+                  </Control>
+                  {imagePreview && (
+                    <div className="product-image-preview pro-preview">
+                      <span>الصورة الأساسية</span>
+                      <img src={imagePreview} alt="معاينة المنتج" />
+                    </div>
+                  )}
+
+                  {galleryImages.length > 0 && (
+                    <div className="gallery-manager">
+                      <div className="gallery-manager-head">
+                        <b>معرض الصور</b>
+                        <small>{galleryImages.length} صورة</small>
+                      </div>
+
+                      <div className="gallery-grid">
+                        {galleryImages.map((img, index) => (
+                          <div className={`gallery-item ${imagePreview === img ? "primary" : ""}`} key={index}>
+                            <img src={img} alt={`gallery-${index}`} />
+
+                            <div className="gallery-actions">
+                              <button type="button" onClick={() => setPrimaryGalleryImage(img)}>أساسية</button>
+                              <button type="button" className="danger" onClick={() => removeGalleryImage(index)}>حذف</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <label className="feature-toggle">
                     <input name="featured" type="checkbox" defaultChecked={editing?.featured || false} />
                     <span>منتج مميز في الواجهة</span>
