@@ -312,6 +312,39 @@ function getTrafficSource() {
   }
 }
 
+
+async function getVisitorGeo() {
+  try {
+    const cached = localStorage.getItem("gdVisitorGeo");
+    if (cached) return JSON.parse(cached);
+
+    const res = await fetch("https://ipwho.is/");
+    const data = await res.json();
+
+    const geo = {
+      city: data.city || "",
+      country: data.country || "",
+      countryCode: data.country_code || "",
+      latitude: Number(data.latitude || 0),
+      longitude: Number(data.longitude || 0),
+      timezone: data.timezone?.id || ""
+    };
+
+    localStorage.setItem("gdVisitorGeo", JSON.stringify(geo));
+    return geo;
+  } catch {
+    return {
+      city: "",
+      country: "",
+      countryCode: "",
+      latitude: 0,
+      longitude: 0,
+      timezone: ""
+    };
+  }
+}
+
+
 function formatDuration(ms) {
   const seconds = Math.max(0, Math.floor(Number(ms || 0) / 1000));
   if (seconds < 60) return `${seconds}ث`;
@@ -584,6 +617,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       try {
         const cartCount = cart.reduce((sum, item) => sum + Number(item.qty || 1), 0);
         const now = Date.now();
+        const geo = await getVisitorGeo();
 
         let sessionStart = Number(localStorage.getItem("gdSessionStart") || 0);
         if (!sessionStart) {
@@ -604,7 +638,12 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
             qty: Number(item.qty || 1)
           })),
           language: navigator.language || "",
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+          timezone: geo.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+          city: geo.city || "",
+          country: geo.country || "",
+          countryCode: geo.countryCode || "",
+          latitude: Number(geo.latitude || 0),
+          longitude: Number(geo.longitude || 0),
           screen: `${window.innerWidth || 0}x${window.innerHeight || 0}`,
           lastAction: cartCount > 0 ? "لديه منتجات في السلة" : "يتصفح المتجر",
           updatedAt: serverTimestamp()
@@ -3045,32 +3084,42 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
           <div><b>{timezones.length || 1}</b><span>منطقة زمنية</span></div>
         </div>
 
-        <div className="live-modal-map">
-          <div className="live-map-card">
-            <div className="live-map-grid">
-              {visitors.slice(0, 12).map((visitor, index) => (
-                <span
-                  key={visitor.id}
-                  className={`live-map-dot dot-${index % 6}`}
-                  title={visitor.timezone || "زائر مباشر"}
-                />
-              ))}
-            </div>
-            <div className="live-map-label">
-              <b>خريطة تقريبية</b>
-              <span>حسب المنطقة الزمنية والمتصفح، وليست موقعًا دقيقًا.</span>
-            </div>
+        <div className="live-modal-map real-map-layout">
+          <div className="live-real-map-card">
+            {(() => {
+              const located = visitors.filter(v => Number(v.latitude || 0) && Number(v.longitude || 0));
+              const center = located[0];
+              const lat = Number(center?.latitude || 24.7136);
+              const lon = Number(center?.longitude || 46.6753);
+              const bbox = `${lon - 8},${lat - 5},${lon + 8},${lat + 5}`;
+              const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+
+              return (
+                <>
+                  <iframe
+                    title="خريطة الزوار المباشرين"
+                    src={mapSrc}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                  <div className="live-real-map-note">
+                    <b>خريطة فعلية تقريبية</b>
+                    <span>تعتمد على IP الزائر، لذلك الموقع تقريبي وليس عنوانًا دقيقًا.</span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           <div className="live-zone-list">
-            <h3>أماكن/مناطق الظهور</h3>
-            {timezones.length ? timezones.map(zone => (
-              <div key={zone}>
-                <span>{zone}</span>
-                <b>{visitors.filter(v => v.timezone === zone).length}</b>
+            <h3>أماكن تواجد الزوار</h3>
+            {visitors.length ? visitors.map((visitor, index) => (
+              <div key={visitor.id}>
+                <span>{visitor.city || visitor.country ? `${visitor.city || "مدينة غير معروفة"}${visitor.country ? `، ${visitor.country}` : ""}` : visitor.timezone || "موقع غير معروف"}</span>
+                <b>#{index + 1}</b>
               </div>
             )) : (
-              <p>لا توجد بيانات منطقة زمنية بعد</p>
+              <p>لا توجد بيانات موقع بعد</p>
             )}
           </div>
         </div>
@@ -3088,7 +3137,7 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
             <div className="live-table-row" key={visitor.id}>
               <span>زائر #{index + 1}</span>
               <span>{visitor.path || "/"}</span>
-              <span>{Number(visitor.cartCount || 0)} منتج</span>
+              <span>{visitor.city || visitor.country ? `${visitor.city || ""} ${visitor.country || ""}` : `${Number(visitor.cartCount || 0)} منتج`}</span>
               <span>{visitor.lastAction || "يتصفح المتجر"} • {visitor.source || "مباشر"}</span>
               <span>{formatLiveTime(visitor.lastSeen)} • {formatDuration(visitor.sessionDuration)}</span>
             </div>
