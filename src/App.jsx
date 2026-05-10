@@ -2026,6 +2026,16 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
   const uploadSettingImage = async (key, file) => {
     if (!file) return;
+
+    if (key === "homeHeroVideo") {
+      const maxVideoSize = 750 * 1024;
+      if (file.size > maxVideoSize) {
+        setNotice("حجم الفيديو كبير جدًا للرفع المباشر. استخدم رابط فيديو خارجي أو ارفع فيديو أقل من 750KB.");
+        setTimeout(() => setNotice(""), 6000);
+        return;
+      }
+    }
+
     const data = await fileToDataUrl(file, key === "logo" ? {
       maxWidth: 520,
       maxHeight: 220,
@@ -2865,6 +2875,15 @@ return (
 
                   {openSection === section.id && (
                     <div className={`section-form section-form-pro ${section.headerExtra ? "header-admin-clean-form" : ""} ${section.heroExtra ? "hero-admin-compact-form" : ""}`}>
+                      {section.heroExtra && (
+                        <div className="hero-admin-top-note">
+                          <div>
+                            <span>Hero Builder</span>
+                            <b>إعدادات الهيرو</b>
+                            <p>اختر نوع الهيرو، ثم أضف النصوص والميديا المناسبة. استخدم رابط فيديو خارجي إذا كان حجم الفيديو كبير.</p>
+                          </div>
+                        </div>
+                      )}
                       <Control label="العنوان">
                         <input
                           value={draftSettings[section.titleKey] || ""}
@@ -2969,6 +2988,7 @@ return (
                                   accept="video/mp4,video/webm,video/*"
                                   onChange={e => uploadSettingImage("homeHeroVideo", e.target.files[0])}
                                 />
+                                <small className="hero-upload-note">الرفع المباشر محدود بـ 750KB فقط. للأفضل استخدم رابط فيديو خارجي.</small>
                               </Control>
                             </div>
                           )}

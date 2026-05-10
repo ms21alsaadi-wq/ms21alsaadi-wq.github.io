@@ -6400,3 +6400,113 @@
     min-height: 280px !important;
   }
 }
+
+/* ===== HERO ADMIN BUILDER UPGRADE ===== */
+.homepage-section-row .hero-admin-compact-form {
+  background: linear-gradient(135deg, rgba(255,250,240,.96), rgba(248,246,239,.88)) !important;
+  border: 1px solid rgba(194,169,104,.22) !important;
+  border-radius: 28px !important;
+  padding: 20px !important;
+  box-shadow: 0 18px 50px rgba(15,61,46,.06) !important;
+}
+
+.hero-admin-top-note {
+  grid-column: 1 / -1 !important;
+  background:
+    radial-gradient(circle at top left, rgba(194,169,104,.14), transparent 32%),
+    linear-gradient(135deg, rgba(15,61,46,.08), rgba(255,255,255,.72));
+  border: 1px solid rgba(194,169,104,.22);
+  border-radius: 22px;
+  padding: 18px 20px;
+  margin-bottom: 2px;
+}
+
+.hero-admin-top-note span {
+  color: #b08d57;
+  font-weight: 900;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.hero-admin-top-note b {
+  display: block;
+  color: var(--gd-primary, #0F3D2E);
+  font-size: 24px;
+  margin: 5px 0;
+}
+
+.hero-admin-top-note p {
+  margin: 0;
+  color: #6b6b5f;
+  font-weight: 700;
+}
+
+.homepage-section-row .hero-admin-compact-form > .control,
+.homepage-section-row .hero-admin-options-grid .control,
+.homepage-section-row .hero-admin-bg-tools .control,
+.homepage-section-row .hero-admin-image-tools .control {
+  background: rgba(255,255,255,.74) !important;
+  border: 1px solid rgba(194,169,104,.18) !important;
+  border-radius: 20px !important;
+  padding: 14px !important;
+  box-shadow: 0 10px 30px rgba(15,61,46,.035) !important;
+}
+
+.homepage-section-row .hero-admin-compact-form .control > span {
+  color: var(--gd-primary, #0F3D2E) !important;
+  font-weight: 900 !important;
+  margin-bottom: 9px !important;
+}
+
+.homepage-section-row .hero-admin-compact-form input,
+.homepage-section-row .hero-admin-compact-form select,
+.homepage-section-row .hero-admin-compact-form textarea {
+  background: #fffaf0 !important;
+  border: 1px solid rgba(15,61,46,.12) !important;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease !important;
+}
+
+.homepage-section-row .hero-admin-compact-form input:focus,
+.homepage-section-row .hero-admin-compact-form select:focus,
+.homepage-section-row .hero-admin-compact-form textarea:focus {
+  border-color: rgba(15,61,46,.42) !important;
+  box-shadow: 0 0 0 4px rgba(15,61,46,.08) !important;
+  outline: none !important;
+}
+
+.hero-upload-note {
+  display: block;
+  margin-top: 8px;
+  color: #9a6a2f;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.homepage-section-row .hero-admin-options-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.homepage-section-row .hero-admin-bg-tools,
+.homepage-section-row .hero-admin-image-tools {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 1100px) {
+  .homepage-section-row .hero-admin-options-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .homepage-section-row .hero-admin-options-grid,
+  .homepage-section-row .hero-admin-bg-tools,
+  .homepage-section-row .hero-admin-image-tools {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-admin-top-note b {
+    font-size: 20px;
+  }
+}
