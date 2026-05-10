@@ -548,10 +548,20 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
     const touchVisitor = async () => {
       try {
+        const cartCount = cart.reduce((sum, item) => sum + Number(item.qty || 1), 0);
+
         await setDoc(visitorRef, {
           lastSeen: Date.now(),
           path: window.location.pathname || "/",
-          userAgent: navigator.userAgent || "",
+          cartCount,
+          cartItems: cart.slice(0, 5).map(item => ({
+            name: item.name || "منتج",
+            qty: Number(item.qty || 1)
+          })),
+          language: navigator.language || "",
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+          screen: `${window.innerWidth || 0}x${window.innerHeight || 0}`,
+          lastAction: cartCount > 0 ? "لديه منتجات في السلة" : "يتصفح المتجر",
           updatedAt: serverTimestamp()
         }, { merge: true });
       } catch (error) {
@@ -575,7 +585,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [path]);
+  }, [path, cart]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [siteLang, setSiteLang] = useState(() => {
@@ -674,6 +684,19 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       if (found) return prev.map(i => i.id === product.id && i.size === size ? { ...i, qty: i.qty + 1 } : i);
       return [...prev, { ...product, size, qty: 1 }];
     });
+
+    try {
+      const visitorId = localStorage.getItem("gdVisitorId");
+      if (visitorId) {
+        setDoc(doc(db, "liveVisitors", visitorId), {
+          lastAction: `أضاف للسلة: ${product.name || "منتج"}`,
+          lastAddedProduct: product.name || "",
+          lastCartAt: Date.now(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+    } catch {}
+
     setCartOpen(true);
   }
 
@@ -1754,6 +1777,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [imagePreview, setImagePreview] = useState(editing?.image || "");
   const [pendingImport, setPendingImport] = useState([]);
   const [liveVisitors, setLiveVisitors] = useState(0);
+  const [liveVisitorRows, setLiveVisitorRows] = useState([]);
+  const [showLiveVisitors, setShowLiveVisitors] = useState(false);
 
   useEffect(() => {
     setDraftSettings(settings);
@@ -1763,12 +1788,13 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "liveVisitors"), (snapshot) => {
       const now = Date.now();
-      const activeVisitors = snapshot.docs.filter((visitorDoc) => {
-        const data = visitorDoc.data() || {};
-        return Number(data.lastSeen || 0) > now - 60000;
-      }).length;
+      const rows = snapshot.docs
+        .map((visitorDoc) => ({ id: visitorDoc.id, ...(visitorDoc.data() || {}) }))
+        .filter((visitor) => Number(visitor.lastSeen || 0) > now - 60000)
+        .sort((a, b) => Number(b.lastSeen || 0) - Number(a.lastSeen || 0));
 
-      setLiveVisitors(activeVisitors);
+      setLiveVisitorRows(rows);
+      setLiveVisitors(rows.length);
     });
 
     return () => unsubscribe();
@@ -2119,11 +2145,11 @@ return (
             </div>
 
             <div className="dashboard-stats-grid">
-              <div className="dash-stat-card live-visitors-card">
+              <button type="button" className="dash-stat-card live-visitors-card live-visitors-clickable" onClick={() => setShowLiveVisitors(true)}>
                 <span>الزوار الآن</span>
                 <b>{liveVisitors}</b>
                 <small><i></i> مباشر الآن</small>
-              </div>
+              </button>
 
               <div className="dash-stat-card">
                 <span>طلبات اليوم</span>
@@ -2149,6 +2175,13 @@ return (
                 <small>من كل الطلبات المسجلة</small>
               </div>
             </div>
+
+            {showLiveVisitors && (
+              <LiveVisitorsModal
+                visitors={liveVisitorRows}
+                onClose={() => setShowLiveVisitors(false)}
+              />
+            )}
 
             <div className="dashboard-main-grid">
               <div className="admin-card dashboard-panel">
@@ -2813,6 +2846,95 @@ return (
     </div>
   );
 }
+
+
+function LiveVisitorsModal({ visitors = [], onClose }) {
+  const formatLiveTime = (value) => {
+    const stamp = Number(value || 0);
+    if (!stamp) return "غير معروف";
+    const diff = Math.max(0, Math.round((Date.now() - stamp) / 1000));
+    if (diff < 10) return "الآن";
+    if (diff < 60) return `قبل ${diff} ثانية`;
+    return `قبل ${Math.round(diff / 60)} دقيقة`;
+  };
+
+  const activeCartVisitors = visitors.filter(v => Number(v.cartCount || 0) > 0);
+  const timezones = [...new Set(visitors.map(v => v.timezone).filter(Boolean))];
+
+  return (
+    <div className="live-modal-backdrop" onClick={onClose}>
+      <div className="live-modal-card" onClick={e => e.stopPropagation()}>
+        <div className="live-modal-head">
+          <div>
+            <span>Live Visitors</span>
+            <h2>الزوار المباشرون</h2>
+            <p>متابعة الزوار النشطين خلال آخر دقيقة، بدون تخزين بيانات شخصية حساسة.</p>
+          </div>
+          <button type="button" onClick={onClose}><X size={18} /></button>
+        </div>
+
+        <div className="live-modal-summary">
+          <div><b>{visitors.length}</b><span>زائر نشط</span></div>
+          <div><b>{activeCartVisitors.length}</b><span>لديهم منتجات بالسلة</span></div>
+          <div><b>{timezones.length || 1}</b><span>منطقة زمنية</span></div>
+        </div>
+
+        <div className="live-modal-map">
+          <div className="live-map-card">
+            <div className="live-map-grid">
+              {visitors.slice(0, 12).map((visitor, index) => (
+                <span
+                  key={visitor.id}
+                  className={`live-map-dot dot-${index % 6}`}
+                  title={visitor.timezone || "زائر مباشر"}
+                />
+              ))}
+            </div>
+            <div className="live-map-label">
+              <b>خريطة تقريبية</b>
+              <span>حسب المنطقة الزمنية والمتصفح، وليست موقعًا دقيقًا.</span>
+            </div>
+          </div>
+
+          <div className="live-zone-list">
+            <h3>أماكن/مناطق الظهور</h3>
+            {timezones.length ? timezones.map(zone => (
+              <div key={zone}>
+                <span>{zone}</span>
+                <b>{visitors.filter(v => v.timezone === zone).length}</b>
+              </div>
+            )) : (
+              <p>لا توجد بيانات منطقة زمنية بعد</p>
+            )}
+          </div>
+        </div>
+
+        <div className="live-visitors-table">
+          <div className="live-table-head">
+            <span>الزائر</span>
+            <span>آخر صفحة</span>
+            <span>السلة</span>
+            <span>آخر نشاط</span>
+            <span>آخر ظهور</span>
+          </div>
+
+          {visitors.length ? visitors.map((visitor, index) => (
+            <div className="live-table-row" key={visitor.id}>
+              <span>زائر #{index + 1}</span>
+              <span>{visitor.path || "/"}</span>
+              <span>{Number(visitor.cartCount || 0)} منتج</span>
+              <span>{visitor.lastAction || "يتصفح المتجر"}</span>
+              <span>{formatLiveTime(visitor.lastSeen)}</span>
+            </div>
+          )) : (
+            <div className="live-empty">لا يوجد زوار نشطون الآن</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function CustomersPanel({ customers, orders }) {
   const [selected, setSelected] = useState(null);
