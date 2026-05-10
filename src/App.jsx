@@ -2054,6 +2054,29 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setTimeout(() => setNotice(""), 1800);
   };
 
+  const deleteAllProducts = async () => {
+    if (!products.length) {
+      setNotice("لا توجد منتجات لحذفها");
+      setTimeout(() => setNotice(""), 2200);
+      return;
+    }
+
+    const ok = window.confirm(`هل أنت متأكد من حذف كل المنتجات؟ سيتم حذف ${products.length} منتج نهائيًا.`);
+    if (!ok) return;
+
+    try {
+      await Promise.all(products.map(product => deleteDoc(doc(db, "products", product.id))));
+      setEditing(null);
+      setImagePreview("");
+      setNotice("تم حذف كل المنتجات بنجاح");
+      setTimeout(() => setNotice(""), 3000);
+    } catch (error) {
+      console.error("Delete all products failed:", error);
+      setNotice("تعذر حذف كل المنتجات. حاول مرة أخرى.");
+      setTimeout(() => setNotice(""), 4000);
+    }
+  };
+
   const totalValue = products.reduce((n,p)=>n+Number(p.price || 0),0);
 
   const saveSettings = async (patch) => {
