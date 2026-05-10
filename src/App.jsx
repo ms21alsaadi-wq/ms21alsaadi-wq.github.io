@@ -2875,15 +2875,6 @@ return (
 
                   {openSection === section.id && (
                     <div className={`section-form section-form-pro ${section.headerExtra ? "header-admin-clean-form" : ""} ${section.heroExtra ? "hero-admin-compact-form" : ""}`}>
-                      {section.heroExtra && (
-                        <div className="hero-admin-top-note">
-                          <div>
-                            <span>Hero Builder</span>
-                            <b>إعدادات الهيرو</b>
-                            <p>اختر نوع الهيرو، ثم أضف النصوص والميديا المناسبة. استخدم رابط فيديو خارجي إذا كان حجم الفيديو كبير.</p>
-                          </div>
-                        </div>
-                      )}
                       <Control label="العنوان">
                         <input
                           value={draftSettings[section.titleKey] || ""}
