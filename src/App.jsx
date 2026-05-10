@@ -355,6 +355,26 @@ function formatDuration(ms) {
 }
 
 
+
+async function trackFunnelStep(step, extra = {}) {
+  try {
+    const visitorId = localStorage.getItem("gdVisitorId");
+    if (!visitorId) return;
+
+    const eventTime = Date.now();
+
+    await setDoc(doc(db, "funnelEvents", `${visitorId}-${step}-${eventTime}`), {
+      visitorId,
+      step,
+      createdAtMs: eventTime,
+      createdAt: serverTimestamp(),
+      path: window.location.pathname || "/",
+      ...extra
+    }, { merge: true });
+  } catch {}
+}
+
+
 function firebaseError(err) {
   const code = err?.code || "";
   if (code.includes("invalid-credential")) return "بيانات الدخول غير صحيحة";
@@ -675,6 +695,11 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     };
   }, [path, cart]);
 
+
+  useEffect(() => {
+    trackFunnelStep("visit_store");
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [siteLang, setSiteLang] = useState(() => {
     try {
@@ -796,6 +821,8 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       }
     } catch {}
 
+    trackFunnelStep("add_to_cart", { productId: product.id, productName: product.name });
+
     setCartOpen(true);
   }
 
@@ -826,6 +853,8 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         }, { merge: true });
       }
     } catch {}
+
+    trackFunnelStep("checkout", { cartItems: cart.length });
 
     const order = {
       customerId: authUser.uid,
@@ -1894,6 +1923,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [liveVisitorRows, setLiveVisitorRows] = useState([]);
   const [showLiveVisitors, setShowLiveVisitors] = useState(false);
   const [liveEvents, setLiveEvents] = useState([]);
+  const [funnelStats, setFunnelStats] = useState({ visit_store:0, view_product:0, add_to_cart:0, checkout:0, purchase:0 });
 
   useEffect(() => {
     setDraftSettings(settings);
@@ -1927,6 +1957,31 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
         .slice(0, 12);
 
       setLiveEvents(rows);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "funnelEvents"), (snapshot) => {
+      const stats = {
+        visit_store: 0,
+        view_product: 0,
+        add_to_cart: 0,
+        checkout: 0,
+        purchase: 0
+      };
+
+      snapshot.docs.forEach((eventDoc) => {
+        const data = eventDoc.data() || {};
+        if (stats[data.step] !== undefined) {
+          stats[data.step] += 1;
+        }
+      });
+
+      setFunnelStats(stats);
     });
 
     return () => unsubscribe();
@@ -2334,7 +2389,52 @@ return (
               </div>
             </div>
 
-            <div className="admin-card live-analytics-panel">
+            
+            <div className="admin-card funnel-panel">
+              <div className="panel-head">
+                <div>
+                  <span>Sales Funnel</span>
+                  <h2>مسار التحويل</h2>
+                </div>
+              </div>
+
+              <div className="funnel-grid">
+                <div className="funnel-step">
+                  <b>{funnelStats.visit_store}</b>
+                  <span>زار المتجر</span>
+                </div>
+
+                <div className="funnel-arrow">→</div>
+
+                <div className="funnel-step">
+                  <b>{funnelStats.view_product}</b>
+                  <span>فتح منتج</span>
+                </div>
+
+                <div className="funnel-arrow">→</div>
+
+                <div className="funnel-step">
+                  <b>{funnelStats.add_to_cart}</b>
+                  <span>أضاف للسلة</span>
+                </div>
+
+                <div className="funnel-arrow">→</div>
+
+                <div className="funnel-step">
+                  <b>{funnelStats.checkout}</b>
+                  <span>وصل الدفع</span>
+                </div>
+
+                <div className="funnel-arrow">→</div>
+
+                <div className="funnel-step success">
+                  <b>{funnelStats.purchase}</b>
+                  <span>تم الطلب</span>
+                </div>
+              </div>
+            </div>
+
+<div className="admin-card live-analytics-panel">
               <div className="panel-head">
                 <div>
                   <span>Live Analytics</span>

@@ -6203,3 +6203,57 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== FUNNEL TRACKING ===== */
+.funnel-panel {
+  margin-top: 18px;
+}
+
+.funnel-grid {
+  display: grid;
+  grid-template-columns: repeat(9, auto);
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.funnel-step {
+  min-width: 140px;
+  background: #fffaf0;
+  border: 1px solid rgba(194,169,104,.24);
+  border-radius: 22px;
+  padding: 18px;
+  text-align: center;
+}
+
+.funnel-step.success {
+  background: linear-gradient(135deg, rgba(34,197,94,.12), rgba(255,250,240,.94));
+}
+
+.funnel-step b {
+  display: block;
+  font-size: 34px;
+  color: var(--gd-primary, #0F3D2E);
+}
+
+.funnel-step span {
+  color: #666;
+  font-weight: 800;
+}
+
+.funnel-arrow {
+  font-size: 26px;
+  color: #b08d57;
+  font-weight: 900;
+}
+
+@media (max-width: 900px) {
+  .funnel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .funnel-arrow {
+    display: none;
+  }
+}
