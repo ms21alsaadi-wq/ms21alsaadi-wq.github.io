@@ -1970,6 +1970,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [productStatusFilter, setProductStatusFilter] = useState("all");
   const [productSort, setProductSort] = useState("newest");
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [draggedProductId, setDraggedProductId] = useState(null);
   const [liveVisitors, setLiveVisitors] = useState(0);
   const [liveVisitorRows, setLiveVisitorRows] = useState([]);
   const [showLiveVisitors, setShowLiveVisitors] = useState(false);
@@ -2078,7 +2079,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       if (productSort === "price_low") return Number(a.price || 0) - Number(b.price || 0);
       if (productSort === "stock_low") return Number(a.stock || 0) - Number(b.stock || 0);
       if (productSort === "name") return String(a.name || "").localeCompare(String(b.name || ""), "ar");
-      return String(b.id || "").localeCompare(String(a.id || ""));
+      if (productSort === "newest") return String(b.id || "").localeCompare(String(a.id || ""));
+      return Number(a.order ?? 999999) - Number(b.order ?? 999999);
     });
 
   const toggleProductSelection = (id) => {
@@ -2127,6 +2129,70 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       console.error("Delete selected products failed:", error);
       setNotice("تعذر حذف المنتجات المحددة");
       setTimeout(() => setNotice(""), 3500);
+    }
+  };
+
+  const quickUpdateProduct = async (id, patch) => {
+    try {
+      await setDoc(doc(db, "products", id), patch, { merge: true });
+      setNotice("تم التحديث السريع");
+      setTimeout(() => setNotice(""), 1600);
+    } catch (error) {
+      console.error("Quick update failed:", error);
+      setNotice("تعذر تحديث المنتج");
+      setTimeout(() => setNotice(""), 2800);
+    }
+  };
+
+  const duplicateProduct = async (product) => {
+    const id = uid();
+    const copy = {
+      ...product,
+      name: `${product.name || "منتج"} - نسخة`,
+      sku: product.sku ? `${product.sku}-COPY` : "",
+      status: "hidden",
+      featured: false,
+      order: Date.now(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    delete copy.id;
+
+    try {
+      await setDoc(doc(db, "products", id), copy, { merge: true });
+      setNotice("تم نسخ المنتج وحفظه كمخفي");
+      setTimeout(() => setNotice(""), 2600);
+    } catch (error) {
+      console.error("Duplicate product failed:", error);
+      setNotice("تعذر نسخ المنتج");
+      setTimeout(() => setNotice(""), 3000);
+    }
+  };
+
+  const reorderProducts = async (sourceId, targetId) => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+
+    const current = [...filteredAdminProducts];
+    const fromIndex = current.findIndex(product => product.id === sourceId);
+    const toIndex = current.findIndex(product => product.id === targetId);
+
+    if (fromIndex < 0 || toIndex < 0) return;
+
+    const [moved] = current.splice(fromIndex, 1);
+    current.splice(toIndex, 0, moved);
+
+    try {
+      await Promise.all(current.map((product, index) =>
+        setDoc(doc(db, "products", product.id), { order: index + 1, updatedAt: serverTimestamp() }, { merge: true })
+      ));
+      setProductSort("custom");
+      setNotice("تم ترتيب المنتجات");
+      setTimeout(() => setNotice(""), 1800);
+    } catch (error) {
+      console.error("Reorder products failed:", error);
+      setNotice("تعذر حفظ ترتيب المنتجات");
+      setTimeout(() => setNotice(""), 3000);
     }
   };
 
@@ -2437,6 +2503,11 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   });
 
   const topProduct = Object.values(productSalesMap).sort((a, b) => b.qty - a.qty)[0];
+
+  const adminBestSellers = Object.values(productSalesMap)
+    .sort((a, b) => b.qty - a.qty)
+    .slice(0, 5);
+
 
   const livePageStats = liveVisitorRows.reduce((acc, visitor) => {
     const key = visitor.path || "/";
@@ -2962,6 +3033,28 @@ return (
                 </div>
               </div>
 
+              <div className="products-best-sellers">
+                <div>
+                  <span>Best Sellers</span>
+                  <h3>الأكثر مبيعًا</h3>
+                </div>
+
+                <div className="best-seller-mini-list">
+                  {adminBestSellers.length ? adminBestSellers.map((item, index) => (
+                    <div className="best-seller-mini" key={item.name}>
+                      <b>#{index + 1}</b>
+                      {item.image ? <img src={item.image} alt={item.name} /> : <span className="best-seller-placeholder">🌿</span>}
+                      <div>
+                        <strong>{item.name}</strong>
+                        <small>{item.qty} مبيع • {formatPrice(item.value)} ر.س</small>
+                      </div>
+                    </div>
+                  )) : (
+                    <p>لا توجد مبيعات بعد</p>
+                  )}
+                </div>
+              </div>
+
               <div className="products-toolbar">
                 <div className="products-search-box">
                   <Search size={17}/>
@@ -2981,6 +3074,7 @@ return (
                 </select>
 
                 <select value={productSort} onChange={e => setProductSort(e.target.value)}>
+                  <option value="custom">الترتيب اليدوي</option>
                   <option value="newest">الأحدث</option>
                   <option value="price_high">السعر الأعلى</option>
                   <option value="price_low">السعر الأقل</option>
@@ -3012,7 +3106,15 @@ return (
 
               <div className="admin-product-cards">
                 {filteredAdminProducts.map(p => (
-                  <div className={`admin-product-card ${selectedProducts.includes(p.id) ? "selected" : ""}`} key={p.id}>
+                  <div
+                    className={`admin-product-card ${selectedProducts.includes(p.id) ? "selected" : ""} ${draggedProductId === p.id ? "dragging" : ""}`}
+                    key={p.id}
+                    draggable
+                    onDragStart={() => setDraggedProductId(p.id)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => { reorderProducts(draggedProductId, p.id); setDraggedProductId(null); }}
+                    onDragEnd={() => setDraggedProductId(null)}
+                  >
                     <label className="product-select-check">
                       <input
                         type="checkbox"
@@ -3020,6 +3122,7 @@ return (
                         onChange={() => toggleProductSelection(p.id)}
                       />
                     </label>
+                    <button type="button" className="product-drag-handle" title="اسحب لترتيب المنتج">↕</button>
                     <div className="admin-product-thumb">
                       <img src={p.image} />
                       <span className={p.status === "hidden" ? "status hidden" : "status active"}>
@@ -3040,8 +3143,40 @@ return (
                         {p.sku && <span>SKU: {p.sku}</span>}
                       </div>
 
+                      <div className="quick-product-edit">
+                        <label>
+                          <span>السعر</span>
+                          <input
+                            type="number"
+                            defaultValue={p.price || 0}
+                            onBlur={e => quickUpdateProduct(p.id, { price: Number(e.target.value || 0), updatedAt: serverTimestamp() })}
+                          />
+                        </label>
+
+                        <label>
+                          <span>المخزون</span>
+                          <input
+                            type="number"
+                            defaultValue={p.stock || 0}
+                            onBlur={e => quickUpdateProduct(p.id, { stock: Number(e.target.value || 0), updatedAt: serverTimestamp() })}
+                          />
+                        </label>
+
+                        <label>
+                          <span>الحالة</span>
+                          <select
+                            defaultValue={p.status || "active"}
+                            onChange={e => quickUpdateProduct(p.id, { status: e.target.value, updatedAt: serverTimestamp() })}
+                          >
+                            <option value="active">ظاهر</option>
+                            <option value="hidden">مخفي</option>
+                          </select>
+                        </label>
+                      </div>
+
                       <div className="admin-product-actions">
-                        <button onClick={()=>setEditing(p)}><Pencil size={16}/> تعديل</button>
+                        <button onClick={()=>setEditing(p)}><Pencil size={16}/> تعديل كامل</button>
+                        <button type="button" onClick={()=>duplicateProduct(p)}><Plus size={16}/> نسخ</button>
                         <button className="danger" onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={16}/> حذف</button>
                       </div>
                     </div>
