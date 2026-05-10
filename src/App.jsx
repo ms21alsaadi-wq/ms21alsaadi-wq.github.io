@@ -375,6 +375,25 @@ async function trackFunnelStep(step, extra = {}) {
 }
 
 
+
+function normalizeVideoUrl(url = "") {
+  const value = String(url || "").trim();
+  if (!value) return "";
+
+  const driveMatch = value.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (driveMatch?.[1]) {
+    return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+  }
+
+  const openMatch = value.match(/[?&]id=([^&]+)/);
+  if (value.includes("drive.google.com") && openMatch?.[1]) {
+    return `https://drive.google.com/uc?export=download&id=${openMatch[1]}`;
+  }
+
+  return value;
+}
+
+
 function firebaseError(err) {
   const code = err?.code || "";
   if (code.includes("invalid-credential")) return "بيانات الدخول غير صحيحة";
@@ -1199,20 +1218,22 @@ function HeroSection({ settings, products }) {
   const layout = settings.homeHeroLayout || "split";
   const title = settings.homeHeroTitle || "";
   const desc = settings.homeHeroDesc || "";
-  const buttonText = settings.homeHeroButton || "تسوق الآن";
+  const buttonText = settings.homeHeroButton ?? "تسوق الآن";
   const buttonLink = settings.homeHeroButtonLink || "#products";
   const image = settings.homeHeroImage || "";
   const bgImage = settings.homeHeroBgImage || "";
   const imagePosition = settings.homeHeroImagePosition || "left";
-  const video = settings.homeHeroVideo || "";
+  const video = normalizeVideoUrl(settings.homeHeroVideo || "");
 
   const content = (
     <div className="hero-copy hero-dynamic-copy">
       <h1>{title}</h1>
       <p>{desc}</p>
-      <div className="hero-actions">
-        <a href={buttonLink} className="primary">{buttonText}</a>
-      </div>
+      {buttonText?.trim() && (
+        <div className="hero-actions">
+          <a href={buttonLink} className="primary">{buttonText}</a>
+        </div>
+      )}
     </div>
   );
 
@@ -2969,8 +2990,9 @@ return (
                                 <input
                                   value={draftSettings.homeHeroVideo || ""}
                                   onChange={e => updateDraft("homeHeroVideo", e.target.value)}
-                                  placeholder="https://...mp4"
+                                  placeholder="رابط MP4 أو رابط Google Drive"
                                 />
+                                <small className="hero-upload-note">يدعم روابط Google Drive المشاركة، ويتم تحويلها تلقائيًا للرابط المباشر.</small>
                               </Control>
 
                               <Control label="أو ارفع فيديو">
