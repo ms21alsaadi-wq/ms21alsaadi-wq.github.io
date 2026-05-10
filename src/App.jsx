@@ -418,6 +418,8 @@ function firebaseError(err) {
 export default function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [authUser, setAuthUser] = useState(null);
+  const [adminAllowed, setAdminAllowed] = useState(false);
+  const [adminChecking, setAdminChecking] = useState(true);
   const [customer, setCustomer] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [settings, setSettings] = useState(defaultSettings);
@@ -527,24 +529,23 @@ export default function App() {
 }
 
 function AdminLogin({ go, settings }) {
-  const [mode, setMode] = useState("login");
   const [message, setMessage] = useState("");
 
   async function submit(e) {
     e.preventDefault();
     setMessage("");
+
     const email = e.target.email.value.trim();
     const password = e.target.password.value;
+
     try {
-      if (mode === "login") {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "admins", cred.user.uid), {
-          email,
-          role: "Owner",
-          createdAt: serverTimestamp()
-        }, { merge: true });
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const adminSnap = await getDoc(doc(db, "admins", cred.user.uid));
+
+      if (!adminSnap.exists()) {
+        await signOut(auth);
+        setMessage("هذا الحساب غير مصرح له بدخول لوحة التحكم.");
+        return;
       }
     } catch (err) {
       setMessage(firebaseError(err));
@@ -552,15 +553,16 @@ function AdminLogin({ go, settings }) {
   }
 
   return (
-    <AuthShell settings={settings} title={mode === "login" ? "دخول لوحة التحكم" : "إنشاء أول أدمن"} subtitle="لوحة التحكم مخصصة لإدارة المنتجات والعملاء والطلبات.">
+    <AuthShell
+      settings={settings}
+      title="دخول لوحة التحكم"
+      subtitle="لوحة التحكم مخصصة لحسابات الأدمن المصرح لها فقط."
+    >
       <form onSubmit={submit} className="login-form">
         <label><span><Mail size={16}/> الإيميل</span><input name="email" type="email" required /></label>
         <label><span><Lock size={16}/> كلمة المرور</span><input name="password" type="password" required minLength="6" /></label>
         {message && <div className="error">{message}</div>}
-        <button className="admin-primary">{mode === "login" ? "دخول" : "إنشاء أدمن"}</button>
-        <button type="button" className="admin-secondary" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-          {mode === "login" ? "أول مرة؟ أنشئ أدمن" : "عندي حساب"}
-        </button>
+        <button className="admin-primary">دخول</button>
         <button type="button" className="admin-secondary" onClick={() => go("/")}>رجوع للمتجر</button>
       </form>
     </AuthShell>
