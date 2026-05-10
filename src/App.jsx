@@ -288,6 +288,40 @@ function normalizePageHref(page, index = 0) {
   return `/page/${makePageSlug(href || page?.label, `page-${index + 1}`)}`;
 }
 
+
+function getTrafficSource() {
+  try {
+    const params = new URLSearchParams(window.location.search || "");
+    const utm = params.get("utm_source");
+    if (utm) return utm;
+
+    const ref = document.referrer || "";
+    if (!ref) return "مباشر";
+
+    const host = new URL(ref).hostname.toLowerCase();
+    if (host.includes("google")) return "Google";
+    if (host.includes("instagram")) return "Instagram";
+    if (host.includes("tiktok")) return "TikTok";
+    if (host.includes("snapchat")) return "Snapchat";
+    if (host.includes("twitter") || host.includes("x.com")) return "X";
+    if (host.includes("facebook")) return "Facebook";
+
+    return host.replace("www.", "");
+  } catch {
+    return "مباشر";
+  }
+}
+
+function formatDuration(ms) {
+  const seconds = Math.max(0, Math.floor(Number(ms || 0) / 1000));
+  if (seconds < 60) return `${seconds}ث`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}د`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}س ${minutes % 60}د`;
+}
+
+
 function firebaseError(err) {
   const code = err?.code || "";
   if (code.includes("invalid-credential")) return "بيانات الدخول غير صحيحة";
@@ -549,10 +583,21 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     const touchVisitor = async () => {
       try {
         const cartCount = cart.reduce((sum, item) => sum + Number(item.qty || 1), 0);
+        const now = Date.now();
+
+        let sessionStart = Number(localStorage.getItem("gdSessionStart") || 0);
+        if (!sessionStart) {
+          sessionStart = now;
+          localStorage.setItem("gdSessionStart", String(sessionStart));
+        }
 
         await setDoc(visitorRef, {
-          lastSeen: Date.now(),
+          firstSeen: sessionStart,
+          lastSeen: now,
+          sessionDuration: now - sessionStart,
+          source: localStorage.getItem("gdTrafficSource") || getTrafficSource(),
           path: window.location.pathname || "/",
+          pageTitle: document.title || "",
           cartCount,
           cartItems: cart.slice(0, 5).map(item => ({
             name: item.name || "منتج",
@@ -564,6 +609,10 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           lastAction: cartCount > 0 ? "لديه منتجات في السلة" : "يتصفح المتجر",
           updatedAt: serverTimestamp()
         }, { merge: true });
+
+        if (!localStorage.getItem("gdTrafficSource")) {
+          localStorage.setItem("gdTrafficSource", getTrafficSource());
+        }
       } catch (error) {
         console.warn("Live visitor heartbeat failed:", error);
       }
@@ -688,11 +737,22 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     try {
       const visitorId = localStorage.getItem("gdVisitorId");
       if (visitorId) {
+        const eventTime = Date.now();
+
         setDoc(doc(db, "liveVisitors", visitorId), {
           lastAction: `أضاف للسلة: ${product.name || "منتج"}`,
           lastAddedProduct: product.name || "",
-          lastCartAt: Date.now(),
+          lastCartAt: eventTime,
           updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        setDoc(doc(db, "liveEvents", `${visitorId}-${eventTime}`), {
+          type: "cart",
+          title: `أضاف للسلة: ${product.name || "منتج"}`,
+          path: window.location.pathname || "/",
+          visitorId,
+          createdAtMs: eventTime,
+          createdAt: serverTimestamp()
         }, { merge: true });
       }
     } catch {}
@@ -712,6 +772,21 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       return;
     }
     if (!cart.length) return;
+
+    try {
+      const visitorId = localStorage.getItem("gdVisitorId");
+      if (visitorId) {
+        const eventTime = Date.now();
+        await setDoc(doc(db, "liveEvents", `${visitorId}-${eventTime}`), {
+          type: "checkout",
+          title: "وصل إلى إتمام الطلب",
+          path: window.location.pathname || "/checkout",
+          visitorId,
+          createdAtMs: eventTime,
+          createdAt: serverTimestamp()
+        }, { merge: true });
+      }
+    } catch {}
 
     const order = {
       customerId: authUser.uid,
@@ -1779,6 +1854,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [liveVisitors, setLiveVisitors] = useState(0);
   const [liveVisitorRows, setLiveVisitorRows] = useState([]);
   const [showLiveVisitors, setShowLiveVisitors] = useState(false);
+  const [liveEvents, setLiveEvents] = useState([]);
 
   useEffect(() => {
     setDraftSettings(settings);
@@ -1795,6 +1871,23 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
       setLiveVisitorRows(rows);
       setLiveVisitors(rows.length);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "liveEvents"), (snapshot) => {
+      const since = Date.now() - 1000 * 60 * 60 * 6;
+      const rows = snapshot.docs
+        .map((eventDoc) => ({ id: eventDoc.id, ...(eventDoc.data() || {}) }))
+        .filter((event) => Number(event.createdAtMs || 0) > since)
+        .sort((a, b) => Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0))
+        .slice(0, 12);
+
+      setLiveEvents(rows);
     });
 
     return () => unsubscribe();
@@ -2094,6 +2187,32 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
   const topProduct = Object.values(productSalesMap).sort((a, b) => b.qty - a.qty)[0];
 
+  const livePageStats = liveVisitorRows.reduce((acc, visitor) => {
+    const key = visitor.path || "/";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  const topLivePages = Object.entries(livePageStats)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const sourceStats = liveVisitorRows.reduce((acc, visitor) => {
+    const key = visitor.source || "مباشر";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  const topSources = Object.entries(sourceStats)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const averageSessionDuration = liveVisitorRows.length
+    ? Math.round(liveVisitorRows.reduce((sum, visitor) => sum + Number(visitor.sessionDuration || 0), 0) / liveVisitorRows.length)
+    : 0;
+
+
+
 return (
     <div className="admin" dir="rtl">
       <aside className="admin-sidebar">
@@ -2173,6 +2292,53 @@ return (
                 <span>إجمالي المبيعات</span>
                 <b>{formatPrice(totalSales)} ر.س</b>
                 <small>من كل الطلبات المسجلة</small>
+              </div>
+            </div>
+
+            <div className="admin-card live-analytics-panel">
+              <div className="panel-head">
+                <div>
+                  <span>Live Analytics</span>
+                  <h2>تحليلات مباشرة</h2>
+                </div>
+              </div>
+
+              <div className="live-analytics-grid">
+                <div className="live-analytics-box">
+                  <h3>أكثر الصفحات عليها زوار</h3>
+                  {topLivePages.length ? topLivePages.map(([page, count]) => (
+                    <div className="live-mini-row" key={page}>
+                      <span>{page}</span>
+                      <b>{count}</b>
+                    </div>
+                  )) : <p>لا توجد بيانات حالياً</p>}
+                </div>
+
+                <div className="live-analytics-box">
+                  <h3>مصدر الدخول</h3>
+                  {topSources.length ? topSources.map(([source, count]) => (
+                    <div className="live-mini-row" key={source}>
+                      <span>{source}</span>
+                      <b>{count}</b>
+                    </div>
+                  )) : <p>لا توجد بيانات حالياً</p>}
+                </div>
+
+                <div className="live-analytics-box">
+                  <h3>مدة الجلسة</h3>
+                  <div className="live-duration-big">{formatDuration(averageSessionDuration)}</div>
+                  <p>متوسط مدة بقاء الزوار النشطين الآن.</p>
+                </div>
+
+                <div className="live-analytics-box live-events-box">
+                  <h3>إشعارات مباشرة</h3>
+                  {liveEvents.length ? liveEvents.slice(0, 5).map(event => (
+                    <div className={`live-event-row ${event.type || ""}`} key={event.id}>
+                      <span>{event.title || "نشاط مباشر"}</span>
+                      <small>{event.path || "/"}</small>
+                    </div>
+                  )) : <p>لا توجد أحداث مباشرة حالياً</p>}
+                </div>
               </div>
             </div>
 
@@ -2923,8 +3089,8 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
               <span>زائر #{index + 1}</span>
               <span>{visitor.path || "/"}</span>
               <span>{Number(visitor.cartCount || 0)} منتج</span>
-              <span>{visitor.lastAction || "يتصفح المتجر"}</span>
-              <span>{formatLiveTime(visitor.lastSeen)}</span>
+              <span>{visitor.lastAction || "يتصفح المتجر"} • {visitor.source || "مباشر"}</span>
+              <span>{formatLiveTime(visitor.lastSeen)} • {formatDuration(visitor.sessionDuration)}</span>
             </div>
           )) : (
             <div className="live-empty">لا يوجد زوار نشطون الآن</div>
