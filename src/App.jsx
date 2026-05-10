@@ -1966,6 +1966,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [draftSettings, setDraftSettings] = useState(settings);
   const [imagePreview, setImagePreview] = useState(editing?.image || "");
   const [pendingImport, setPendingImport] = useState([]);
+  const [productSearch, setProductSearch] = useState("");
+  const [productStatusFilter, setProductStatusFilter] = useState("all");
+  const [productSort, setProductSort] = useState("newest");
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [liveVisitors, setLiveVisitors] = useState(0);
   const [liveVisitorRows, setLiveVisitorRows] = useState([]);
   const [showLiveVisitors, setShowLiveVisitors] = useState(false);
@@ -2054,6 +2058,78 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setTimeout(() => setNotice(""), 1800);
   };
 
+  const filteredAdminProducts = products
+    .filter(product => {
+      const q = productSearch.trim().toLowerCase();
+      const searchable = `${product.name || ""} ${product.category || ""} ${product.brand || ""} ${product.sku || ""}`.toLowerCase();
+      const matchesSearch = !q || searchable.includes(q);
+
+      const matchesStatus =
+        productStatusFilter === "all" ||
+        (productStatusFilter === "active" && product.status !== "hidden") ||
+        (productStatusFilter === "hidden" && product.status === "hidden") ||
+        (productStatusFilter === "featured" && product.featured) ||
+        (productStatusFilter === "out" && Number(product.stock || 0) <= 0);
+
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (productSort === "price_high") return Number(b.price || 0) - Number(a.price || 0);
+      if (productSort === "price_low") return Number(a.price || 0) - Number(b.price || 0);
+      if (productSort === "stock_low") return Number(a.stock || 0) - Number(b.stock || 0);
+      if (productSort === "name") return String(a.name || "").localeCompare(String(b.name || ""), "ar");
+      return String(b.id || "").localeCompare(String(a.id || ""));
+    });
+
+  const toggleProductSelection = (id) => {
+    setSelectedProducts(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+  };
+
+  const toggleAllVisibleProducts = () => {
+    const visibleIds = filteredAdminProducts.map(product => product.id);
+    const allSelected = visibleIds.length && visibleIds.every(id => selectedProducts.includes(id));
+
+    setSelectedProducts(prev => {
+      if (allSelected) return prev.filter(id => !visibleIds.includes(id));
+      return [...new Set([...prev, ...visibleIds])];
+    });
+  };
+
+  const clearProductSelection = () => setSelectedProducts([]);
+
+  const bulkUpdateProducts = async (patch, successMessage) => {
+    if (!selectedProducts.length) return;
+
+    try {
+      await Promise.all(selectedProducts.map(id => setDoc(doc(db, "products", id), patch, { merge: true })));
+      setNotice(successMessage);
+      setTimeout(() => setNotice(""), 2600);
+      clearProductSelection();
+    } catch (error) {
+      console.error("Bulk update products failed:", error);
+      setNotice("تعذر تنفيذ العملية على المنتجات المحددة");
+      setTimeout(() => setNotice(""), 3500);
+    }
+  };
+
+  const deleteSelectedProducts = async () => {
+    if (!selectedProducts.length) return;
+
+    const ok = window.confirm(`هل أنت متأكد من حذف ${selectedProducts.length} منتج محدد؟`);
+    if (!ok) return;
+
+    try {
+      await Promise.all(selectedProducts.map(id => deleteDoc(doc(db, "products", id))));
+      setNotice("تم حذف المنتجات المحددة");
+      setTimeout(() => setNotice(""), 2600);
+      clearProductSelection();
+    } catch (error) {
+      console.error("Delete selected products failed:", error);
+      setNotice("تعذر حذف المنتجات المحددة");
+      setTimeout(() => setNotice(""), 3500);
+    }
+  };
+
   const deleteAllProducts = async () => {
     if (!products.length) {
       setNotice("لا توجد منتجات لحذفها");
@@ -2068,6 +2144,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       await Promise.all(products.map(product => deleteDoc(doc(db, "products", product.id))));
       setEditing(null);
       setImagePreview("");
+      clearProductSelection();
       setNotice("تم حذف كل المنتجات بنجاح");
       setTimeout(() => setNotice(""), 3000);
     } catch (error) {
@@ -2868,17 +2945,81 @@ return (
             </div>
 
             <div className="admin-card products-manager pro-products-manager full-products-manager">
-              <div className="pro-card-head">
+              <div className="pro-card-head products-manager-head">
                 <div>
                   <span>Catalogue</span>
                   <h2>المنتجات المضافة</h2>
+                  <small>{filteredAdminProducts.length} ظاهر من أصل {products.length} منتج</small>
                 </div>
-                <b className="products-count">{products.length} منتج</b>
+
+                <div className="products-head-actions">
+                  <b className="products-count">{products.length} منتج</b>
+                  {products.length > 0 && (
+                    <button type="button" className="admin-danger-soft" onClick={deleteAllProducts}>
+                      <Trash2 size={16}/> حذف كل المنتجات
+                    </button>
+                  )}
+                </div>
               </div>
 
+              <div className="products-toolbar">
+                <div className="products-search-box">
+                  <Search size={17}/>
+                  <input
+                    value={productSearch}
+                    onChange={e => setProductSearch(e.target.value)}
+                    placeholder="ابحث باسم المنتج، القسم، المورد أو SKU"
+                  />
+                </div>
+
+                <select value={productStatusFilter} onChange={e => setProductStatusFilter(e.target.value)}>
+                  <option value="all">كل المنتجات</option>
+                  <option value="active">الظاهرة</option>
+                  <option value="hidden">المخفية</option>
+                  <option value="featured">المميزة</option>
+                  <option value="out">نفد المخزون</option>
+                </select>
+
+                <select value={productSort} onChange={e => setProductSort(e.target.value)}>
+                  <option value="newest">الأحدث</option>
+                  <option value="price_high">السعر الأعلى</option>
+                  <option value="price_low">السعر الأقل</option>
+                  <option value="stock_low">المخزون الأقل</option>
+                  <option value="name">الاسم</option>
+                </select>
+              </div>
+
+              {products.length > 0 && (
+                <div className="products-bulk-bar">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={filteredAdminProducts.length > 0 && filteredAdminProducts.every(product => selectedProducts.includes(product.id))}
+                      onChange={toggleAllVisibleProducts}
+                    />
+                    تحديد الظاهر
+                  </label>
+
+                  <span>{selectedProducts.length} محدد</span>
+
+                  <div>
+                    <button type="button" className="admin-secondary" disabled={!selectedProducts.length} onClick={() => bulkUpdateProducts({ status: "active" }, "تم إظهار المنتجات المحددة")}>إظهار</button>
+                    <button type="button" className="admin-secondary" disabled={!selectedProducts.length} onClick={() => bulkUpdateProducts({ status: "hidden" }, "تم إخفاء المنتجات المحددة")}>إخفاء</button>
+                    <button type="button" className="admin-danger-soft" disabled={!selectedProducts.length} onClick={deleteSelectedProducts}><Trash2 size={15}/> حذف المحدد</button>
+                  </div>
+                </div>
+              )}
+
               <div className="admin-product-cards">
-                {products.map(p => (
-                  <div className="admin-product-card" key={p.id}>
+                {filteredAdminProducts.map(p => (
+                  <div className={`admin-product-card ${selectedProducts.includes(p.id) ? "selected" : ""}`} key={p.id}>
+                    <label className="product-select-check">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(p.id)}
+                        onChange={() => toggleProductSelection(p.id)}
+                      />
+                    </label>
                     <div className="admin-product-thumb">
                       <img src={p.image} />
                       <span className={p.status === "hidden" ? "status hidden" : "status active"}>
@@ -2906,6 +3047,13 @@ return (
                     </div>
                   </div>
                 ))}
+
+                {!filteredAdminProducts.length && (
+                  <div className="products-empty-state">
+                    <b>لا توجد منتجات مطابقة</b>
+                    <span>جرّب تغيير البحث أو الفلتر.</span>
+                  </div>
+                )}
               </div>
             </div>
           </section>
