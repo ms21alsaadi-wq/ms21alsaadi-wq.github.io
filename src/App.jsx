@@ -376,21 +376,33 @@ async function trackFunnelStep(step, extra = {}) {
 
 
 
+function getGoogleDriveFileId(url = "") {
+  const value = String(url || "").trim();
+  if (!value.includes("drive.google.com")) return "";
+
+  const fileMatch = value.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (fileMatch?.[1]) return fileMatch[1];
+
+  const idMatch = value.match(/[?&]id=([^&]+)/);
+  if (idMatch?.[1]) return idMatch[1];
+
+  return "";
+}
+
 function normalizeVideoUrl(url = "") {
   const value = String(url || "").trim();
   if (!value) return "";
 
-  const driveMatch = value.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if (driveMatch?.[1]) {
-    return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
-  }
-
-  const openMatch = value.match(/[?&]id=([^&]+)/);
-  if (value.includes("drive.google.com") && openMatch?.[1]) {
-    return `https://drive.google.com/uc?export=download&id=${openMatch[1]}`;
+  const driveId = getGoogleDriveFileId(value);
+  if (driveId) {
+    return `https://drive.google.com/file/d/${driveId}/preview`;
   }
 
   return value;
+}
+
+function isGoogleDriveVideo(url = "") {
+  return Boolean(getGoogleDriveFileId(url));
 }
 
 
@@ -1223,7 +1235,9 @@ function HeroSection({ settings, products }) {
   const image = settings.homeHeroImage || "";
   const bgImage = settings.homeHeroBgImage || "";
   const imagePosition = settings.homeHeroImagePosition || "left";
-  const video = normalizeVideoUrl(settings.homeHeroVideo || "");
+  const rawVideo = settings.homeHeroVideo || "";
+  const video = normalizeVideoUrl(rawVideo);
+  const driveVideo = isGoogleDriveVideo(rawVideo);
 
   const content = (
     <div className="hero-copy hero-dynamic-copy">
@@ -1241,7 +1255,17 @@ function HeroSection({ settings, products }) {
     return (
       <section className="hero-full-media hero-video-mode">
         {video ? (
-          <video className="hero-full-video" src={video} autoPlay muted loop playsInline />
+          driveVideo ? (
+            <iframe
+              className="hero-full-video hero-drive-video"
+              src={video}
+              title={title || "Hero Video"}
+              allow="autoplay; fullscreen"
+              allowFullScreen
+            />
+          ) : (
+            <video className="hero-full-video" src={video} autoPlay muted loop playsInline />
+          )
         ) : image ? (
           <img className="hero-full-video" src={image} alt={title} />
         ) : (
@@ -2992,7 +3016,7 @@ return (
                                   onChange={e => updateDraft("homeHeroVideo", e.target.value)}
                                   placeholder="رابط MP4 أو رابط Google Drive"
                                 />
-                                <small className="hero-upload-note">يدعم روابط Google Drive المشاركة، ويتم تحويلها تلقائيًا للرابط المباشر.</small>
+                                <small className="hero-upload-note">يدعم Google Drive كرابط معاينة. للتشغيل الصامت التلقائي الأفضل استخدم رابط MP4 مباشر مثل Cloudinary.</small>
                               </Control>
 
                               <Control label="أو ارفع فيديو">

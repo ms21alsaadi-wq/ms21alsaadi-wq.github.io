@@ -6445,3 +6445,17 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ===== GOOGLE DRIVE HERO VIDEO SUPPORT ===== */
+.hero-drive-video {
+  border: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: inherit !important;
+  background: #0F3D2E !important;
+}
+
+.hero-video-mode .hero-drive-video {
+  position: absolute;
+  inset: 0;
+}
