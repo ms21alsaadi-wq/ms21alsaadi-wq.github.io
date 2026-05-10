@@ -536,6 +536,47 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
+
+  useEffect(() => {
+    let visitorId = localStorage.getItem("gdVisitorId");
+    if (!visitorId) {
+      visitorId = `visitor-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem("gdVisitorId", visitorId);
+    }
+
+    const visitorRef = doc(db, "liveVisitors", visitorId);
+
+    const touchVisitor = async () => {
+      try {
+        await setDoc(visitorRef, {
+          lastSeen: Date.now(),
+          path: window.location.pathname || "/",
+          userAgent: navigator.userAgent || "",
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.warn("Live visitor heartbeat failed:", error);
+      }
+    };
+
+    touchVisitor();
+    const interval = setInterval(touchVisitor, 15000);
+
+    const onFocus = () => touchVisitor();
+    const onVisibility = () => {
+      if (!document.hidden) touchVisitor();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [path]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [siteLang, setSiteLang] = useState(() => {
     try {
@@ -1712,10 +1753,27 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [draftSettings, setDraftSettings] = useState(settings);
   const [imagePreview, setImagePreview] = useState(editing?.image || "");
   const [pendingImport, setPendingImport] = useState([]);
+  const [liveVisitors, setLiveVisitors] = useState(0);
 
   useEffect(() => {
     setDraftSettings(settings);
   }, [settings]);
+
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "liveVisitors"), (snapshot) => {
+      const now = Date.now();
+      const activeVisitors = snapshot.docs.filter((visitorDoc) => {
+        const data = visitorDoc.data() || {};
+        return Number(data.lastSeen || 0) > now - 60000;
+      }).length;
+
+      setLiveVisitors(activeVisitors);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
 
   useEffect(() => {
     setImagePreview(editing?.image || "");
@@ -2061,6 +2119,12 @@ return (
             </div>
 
             <div className="dashboard-stats-grid">
+              <div className="dash-stat-card live-visitors-card">
+                <span>الزوار الآن</span>
+                <b>{liveVisitors}</b>
+                <small><i></i> مباشر الآن</small>
+              </div>
+
               <div className="dash-stat-card">
                 <span>طلبات اليوم</span>
                 <b>{todayOrders.length}</b>
