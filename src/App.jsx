@@ -1965,6 +1965,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
   const [imagePreview, setImagePreview] = useState(editing?.image || "");
+  const [galleryImages, setGalleryImages] = useState([]);
   const [pendingImport, setPendingImport] = useState([]);
   const [productSearch, setProductSearch] = useState("");
   const [productStatusFilter, setProductStatusFilter] = useState("all");
@@ -2042,7 +2043,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
   useEffect(() => {
     setImagePreview(editing?.image || "");
-    setGalleryImages(editing?.gallery || []);
+    setGalleryImages(Array.isArray(editing?.gallery) ? editing.gallery : []);
   }, [editing]);
 
   const updateDraft = (key, value) => {
@@ -2263,6 +2264,33 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     updateDraft(key, data);
   };
 
+  const uploadGalleryImages = async (fileList) => {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const data = await fileToDataUrl(file, { maxWidth: 1200, maxHeight: 1000, quality: 0.82 });
+        uploaded.push(data);
+      }
+
+      setGalleryImages(prev => [...prev, ...uploaded]);
+    } catch (error) {
+      console.error("Upload gallery failed:", error);
+      setNotice("تعذر رفع صور المعرض");
+      setTimeout(() => setNotice(""), 3000);
+    }
+  };
+
+  const removeGalleryImage = (index) => {
+    setGalleryImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const makeGalleryImagePrimary = (image) => {
+    setImagePreview(image);
+  };
+
   const saveProduct = async (e) => {
     e.preventDefault();
     const f = e.target;
@@ -2325,6 +2353,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       status: String(pick("status", "الحالة") || "active").trim(),
       featured: String(pick("featured", "مميز") || "").toLowerCase() === "true" || String(pick("featured", "مميز") || "") === "نعم",
       image,
+      gallery: galleryImages,
+      colors: f.colors?.value?.split(",").map(v => v.trim()).filter(Boolean) || [],
+      seoTitle: f.seoTitle?.value?.trim() || "",
+      seoDescription: f.seoDescription?.value?.trim() || "",
       updatedAt: serverTimestamp()
     };
   };
@@ -2826,23 +2858,13 @@ return (
                     <input name="expiresAt" type="date" />
                   </Control>
 
-                <div className="control">
-                    <span>عنوان SEO</span>
-                    <input
-                      name="seoTitle"
-                      defaultValue={editing?.seoTitle || ""}
-                      placeholder="عنوان يظهر في Google"
-                    />
-                  </div>
+                  <Control label="عنوان SEO">
+                    <input name="seoTitle" defaultValue={editing?.seoTitle || ""} placeholder="عنوان يظهر في Google" />
+                  </Control>
 
-                  <div className="control">
-                    <span>وصف SEO</span>
-                    <textarea
-                      name="seoDescription"
-                      defaultValue={editing?.seoDescription || ""}
-                      placeholder="وصف مختصر لمحركات البحث"
-                    />
-                  </div>
+                  <Control label="وصف SEO">
+                    <textarea name="seoDescription" defaultValue={editing?.seoDescription || ""} placeholder="وصف مختصر لمحركات البحث" />
+                  </Control>
 
                   <label className="feature-toggle">
                     <input name="active" type="checkbox" defaultChecked />
@@ -3017,34 +3039,17 @@ return (
                   <h3>الخيارات والصورة</h3>
                   <div className="two">
                     <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
-                    <Control label="المقاسات">
-                      <input
-                        name="sizes"
-                        defaultValue={Array.isArray(editing?.sizes) ? editing?.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")}
-                        placeholder="صغير, متوسط, كبير"
-                      />
-                    </Control>
+                    <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={Array.isArray(editing?.sizes) ? editing.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")} /></Control>
                     <Control label="الألوان">
                       <input
                         name="colors"
-                        defaultValue={Array.isArray(editing?.colors) ? editing?.colors.join(",") : (editing?.colors || "")}
+                        defaultValue={Array.isArray(editing?.colors) ? editing.colors.join(",") : (editing?.colors || "")}
                         placeholder="أخضر, أبيض, أسود"
                       />
                     </Control>
                   </div>
                   <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
-                  <Control label="أو ارفع صورة">
-                    <input
-                      name="imageFile"
-                      type="file"
-                      accept="image/*"
-                      onChange={async e=>{
-                        const file=e.target.files[0];
-                        if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 }));
-                      }}
-                    />
-                  </Control>
-
+                  <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
                   <Control label="رفع صور متعددة للمعرض">
                     <input
                       type="file"
@@ -3053,12 +3058,7 @@ return (
                       onChange={e => uploadGalleryImages(e.target.files)}
                     />
                   </Control>
-                  {imagePreview && (
-                    <div className="product-image-preview pro-preview">
-                      <span>الصورة الأساسية</span>
-                      <img src={imagePreview} alt="معاينة المنتج" />
-                    </div>
-                  )}
+                  {imagePreview && <div className="product-image-preview pro-preview"><span>الصورة الأساسية</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
 
                   {galleryImages.length > 0 && (
                     <div className="gallery-manager">
@@ -3069,11 +3069,10 @@ return (
 
                       <div className="gallery-grid">
                         {galleryImages.map((img, index) => (
-                          <div className={`gallery-item ${imagePreview === img ? "primary" : ""}`} key={index}>
+                          <div className={`gallery-item ${imagePreview === img ? "primary" : ""}`} key={`${img}-${index}`}>
                             <img src={img} alt={`gallery-${index}`} />
-
                             <div className="gallery-actions">
-                              <button type="button" onClick={() => setPrimaryGalleryImage(img)}>أساسية</button>
+                              <button type="button" onClick={() => makeGalleryImagePrimary(img)}>أساسية</button>
                               <button type="button" className="danger" onClick={() => removeGalleryImage(index)}>حذف</button>
                             </div>
                           </div>
