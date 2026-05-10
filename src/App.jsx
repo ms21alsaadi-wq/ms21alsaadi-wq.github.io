@@ -2826,25 +2826,23 @@ return (
                     <input name="expiresAt" type="date" />
                   </Control>
 
-                <div className="pro-form-section">
-                  <h3>SEO المنتج</h3>
-
-                  <Control label="عنوان SEO">
+                <div className="control">
+                    <span>عنوان SEO</span>
                     <input
                       name="seoTitle"
                       defaultValue={editing?.seoTitle || ""}
                       placeholder="عنوان يظهر في Google"
                     />
-                  </Control>
+                  </div>
 
-                  <Control label="وصف SEO">
+                  <div className="control">
+                    <span>وصف SEO</span>
                     <textarea
                       name="seoDescription"
                       defaultValue={editing?.seoDescription || ""}
                       placeholder="وصف مختصر لمحركات البحث"
                     />
-                  </Control>
-                </div>
+                  </div>
 
                   <label className="feature-toggle">
                     <input name="active" type="checkbox" defaultChecked />
