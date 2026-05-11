@@ -14,11 +14,9 @@ import {
 } from "firebase/auth";
 import {
   collection, doc, getDoc, setDoc, onSnapshot, deleteDoc, serverTimestamp,
-  addDoc, query, orderBy
+  addDoc, query, orderBy, where
 } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
-import * as XLSX from "xlsx";
-import emailjs from "@emailjs/browser";
 
 const STORE_WHATSAPP = "966508983003";
 
@@ -191,7 +189,8 @@ async function sendOrderStatusEmail(order, status) {
   };
 
   try {
-    await emailjs.send(
+    const emailjs = await import("@emailjs/browser");
+    await emailjs.default.send(
       EMAILJS_SERVICE_ID,
       EMAILJS_TEMPLATE_ID,
       params,
@@ -473,28 +472,67 @@ export default function App() {
       if (snap.exists()) setSettings({ ...defaultSettings, ...snap.data() });
       else await setDoc(doc(db, "store", "settings"), defaultSettings);
     });
+
     const unsubProducts = onSnapshot(collection(db, "products"), async (snap) => {
       if (snap.empty) {
-        for (const p of defaultProducts) await setDoc(doc(db, "products", p.id), p);
+        await Promise.all(defaultProducts.map(p => setDoc(doc(db, "products", p.id), p)));
       } else {
         setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
     });
+
+    return () => {
+      unsubSettings();
+      unsubProducts();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setCustomers([]);
+      return;
+    }
+
     const unsubCustomers = onSnapshot(collection(db, "customers"), (snap) => {
       setCustomers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    const unsubOrders = onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+
+    return unsubCustomers;
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin && !authUser) {
+      setOrders([]);
+      return;
+    }
+
+    const ordersQuery = isAdmin
+      ? query(collection(db, "orders"), orderBy("createdAt", "desc"))
+      : query(collection(db, "orders"), where("customerId", "==", authUser.uid));
+
+    const unsubOrders = onSnapshot(ordersQuery, (snap) => {
       setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, () => {
-      onSnapshot(collection(db, "orders"), (snap) => setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+      if (isAdmin) {
+        onSnapshot(collection(db, "orders"), (snap) => setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+      }
     });
+
+    return unsubOrders;
+  }, [authUser, isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin && path !== "/account") {
+      setCoupons([]);
+      return;
+    }
+
     const unsubCoupons = onSnapshot(collection(db, "coupons"), (snap) => {
       setCoupons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return () => {
-      unsubSettings(); unsubProducts(); unsubCustomers(); unsubOrders(); unsubCoupons();
-    };
-  }, []);
+
+    return unsubCoupons;
+  }, [isAdmin, path]);
 
   if (loading) return <div className="loading">جاري التحميل...</div>;
 
@@ -623,7 +661,7 @@ function AuthShell({ title, subtitle, children, settings }) {
     <div className="login-page" dir="rtl">
       <div className="login-card">
         <div className="login-brand-mark">
-          {settings?.logo ? <img src={settings.logo} alt="logo" /> : <span>{settings?.storeName || "GREEN DIXAM"}</span>}
+          {settings?.logo ? <img src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <span>{settings?.storeName || "GREEN DIXAM"}</span>}
         </div>
         <h1>{title}</h1>
         <p>{subtitle}</p>
@@ -764,11 +802,11 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const shippingFee = subtotal ? 35 : 0;
   const discount = appliedCoupon ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100)) : 0;
   const total = Math.max(0, subtotal - discount) + shippingFee;
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = useMemo(() => products.filter((p) => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
     return `${p.name || ""} ${p.category || ""} ${p.description || ""}`.toLowerCase().includes(q);
-  });
+  }), [products, searchQuery]);
 
   const visibleHomePages = (settings.homePages || [
     { label: "النباتات", href: "/page/products", visible: true },
@@ -780,14 +818,15 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     ? visibleHomePages.find((page, index) => normalizePageHref(page, index) === path)
     : null;
 
-  function applyCoupon() {
+  async function applyCoupon() {
     const code = couponCode.trim().toUpperCase();
     if (!code) {
       setCouponMessage("اكتب كود الخصم أولاً");
       return;
     }
 
-    const coupon = coupons.find(c => String(c.code || c.id || "").toUpperCase() === code);
+    const couponSnap = await getDoc(doc(db, "coupons", code));
+    const coupon = couponSnap.exists() ? { id: couponSnap.id, ...couponSnap.data() } : null;
     if (!coupon) {
       setAppliedCoupon(null);
       setCouponMessage("الكوبون غير موجود");
@@ -973,7 +1012,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           <div className="luxe-nav-right">
             <button className="luxe-logo" onClick={() => go("/")}>
               {settings.homeHeaderImage ? (
-                <img src={settings.homeHeaderImage} alt="logo" />
+                <img src={settings.homeHeaderImage} alt="logo" loading="eager" decoding="async" />
               ) : (
                 <b>{settings.homeHeaderTitle || settings.storeName}</b>
               )}
@@ -1104,21 +1143,21 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
         {settings.homePlantSectionsImage && (
           <div className="home-admin-section-image">
-            <img src={settings.homePlantSectionsImage} alt="أقسام النباتات" />
+            <img src={settings.homePlantSectionsImage} alt="أقسام النباتات" loading="lazy" decoding="async" />
           </div>
         )}
 
         <div className="plant-category-grid">
           <a href="#products" className="plant-category-card">
-            <img src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80" alt="نباتات داخلية" />
+            <img src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80" alt="نباتات داخلية" loading="lazy" decoding="async" />
             <div><b>نباتات داخلية</b><span>نباتات راقية للمنازل والمكاتب</span></div>
           </a>
           <a href="#products" className="plant-category-card">
-            <img src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80" alt="نباتات سهلة العناية" />
+            <img src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80" alt="نباتات سهلة العناية" loading="lazy" decoding="async" />
             <div><b>سهلة العناية</b><span>اختيارات هادئة وسهلة العناية</span></div>
           </a>
           <a href="#products" className="plant-category-card">
-            <img src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80" alt="أصص وإكسسوارات" />
+            <img src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80" alt="أصص وإكسسوارات" loading="lazy" decoding="async" />
             <div><b>أصص وإكسسوارات</b><span>أصص وإكسسوارات بطابع فاخر</span></div>
           </a>
         </div>
@@ -1158,7 +1197,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
             return (
               <article className="product" key={p.id}>
                 <div className="product-img">
-                  <img src={p.image} alt={p.name} />
+                  <img src={p.image} alt={p.name} loading="lazy" decoding="async" />
                   <span>{p.tag}</span>
                   <button onClick={() => setFavorites(prev => prev.includes(p.id) ? prev.filter(x=>x!==p.id) : [...prev,p.id])}><Heart className={favorites.includes(p.id) ? "heart-on" : ""}/></button>
                 </div>
@@ -1188,7 +1227,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
               {cart.length === 0 ? <div className="empty">السلة فارغة</div> :
                 cart.map((item, i) => (
                   <div className="cart-item" key={`${item.id}-${i}`}>
-                    <img src={item.image} />
+                    <img src={item.image} loading="lazy" decoding="async" />
                     <div>
                       <b>{item.name}</b><span>الحجم: {item.size}</span><span>{formatPrice(item.price)} ر.س</span>
                       <div className="qty"><button onClick={() => setCart(c => c.map((x,idx)=>idx===i?{...x, qty: Math.max(1,x.qty-1)}:x))}><Minus size={14}/></button><b>{item.qty}</b><button onClick={() => setCart(c => c.map((x,idx)=>idx===i?{...x, qty:x.qty+1}:x))}><Plus size={14}/></button><button onClick={() => setCart(c => c.filter((_,idx)=>idx!==i))}><Trash2 size={14}/></button></div>
@@ -1269,7 +1308,7 @@ function HeroSection({ settings, products }) {
             <video className="hero-full-video" src={video} autoPlay muted loop playsInline />
           )
         ) : image ? (
-          <img className="hero-full-video" src={image} alt={title} />
+          <img className="hero-full-video" src={image} alt={title} loading="eager" decoding="async" />
         ) : (
           <div className="hero-full-placeholder">ارفع فيديو الهيرو من لوحة التحكم</div>
         )}
@@ -1283,7 +1322,7 @@ function HeroSection({ settings, products }) {
     return (
       <section className="hero-full-media hero-banner-mode">
         {image ? (
-          <img className="hero-full-video" src={image} alt={title} />
+          <img className="hero-full-video" src={image} alt={title} loading="eager" decoding="async" />
         ) : (
           <div className="hero-full-placeholder">ارفع بنر الهيرو من لوحة التحكم</div>
         )}
@@ -1305,7 +1344,7 @@ function HeroSection({ settings, products }) {
 
         <div className="hero-layered-image-card">
           {image ? (
-            <img src={image} alt={title} />
+            <img src={image} alt={title} loading="eager" decoding="async" />
           ) : (
             <div className="hero-full-placeholder">ارفع الصورة الأمامية للهيرو</div>
           )}
@@ -1653,7 +1692,7 @@ function StoreCustomPage({ page, products, go }) {
           {pageProducts.map(product => (
             <article className="product" key={product.id}>
               <div className="product-img">
-                <img src={product.image} alt={product.name} />
+                <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
                 <span>{product.tag}</span>
               </div>
               <div className="product-body">
@@ -1751,7 +1790,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
       <header className="store-header header-sticky-pro">
         <div className="container luxe-nav account-nav">
           <button className="luxe-logo" onClick={() => go("/")}>
-            {settings?.logo ? <img src={settings.logo} alt="logo" /> : <b>حسابي</b>}
+            {settings?.logo ? <img src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>حسابي</b>}
             <span>Customer Profile</span>
           </button>
           <nav className="luxe-nav-center">
@@ -1829,7 +1868,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                       <div className="customer-order-items">
                         {order.items.slice(0, 3).map((item, index) => (
                           <div key={index}>
-                            {item.image && <img src={item.image} alt={item.name || "product"} />}
+                            {item.image && <img src={item.image} alt={item.name || "product"} loading="lazy" decoding="async" />}
                             <span>{item.name || "منتج"}</span>
                             <b>{item.qty || 1}x</b>
                           </div>
@@ -1943,7 +1982,7 @@ function Footer({ settings }) {
     <footer className="footer">
       <div className="container footer-grid">
         <div className="footer-brand">
-          {settings.logo ? <img src={settings.logo} alt="logo" /> : <b>{settings.storeName}</b>}
+          {settings.logo ? <img src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>{settings.storeName}</b>}
           <p>{settings.tagline}</p>
         </div>
         <div><b>النباتات</b><p>نباتات داخلية<br/>أصص<br/>هدايا خضراء</p></div>
@@ -2361,7 +2400,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     };
   };
 
-  const downloadProductsTemplate = () => {
+  const downloadProductsTemplate = async () => {
     const rows = [
       {
         "اسم المنتج": "مونستيرا فاخرة",
@@ -2406,6 +2445,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       ["السعر والمخزون والتقييم أرقام فقط."]
     ];
 
+    const XLSX = await import("xlsx");
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
     const help = XLSX.utils.aoa_to_sheet(helpRows);
@@ -2419,6 +2459,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     if (!file) return;
 
     try {
+      const XLSX = await import("xlsx");
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: "array" });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -2573,7 +2614,7 @@ return (
     <div className="admin" dir="rtl">
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          {settings.logo ? <img className="admin-brand-logo" src={settings.logo} alt="logo" /> : <b>{settings.storeName}</b>}
+          {settings.logo ? <img className="admin-brand-logo" src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>{settings.storeName}</b>}
           <span>Admin Panel</span>
         </div>
         <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
@@ -2761,7 +2802,7 @@ return (
 
                 {topProduct ? (
                   <div className="top-product-card">
-                    {topProduct.image ? <img src={topProduct.image} /> : <div className="top-product-placeholder">🌿</div>}
+                    {topProduct.image ? <img src={topProduct.image} loading="lazy" decoding="async" /> : <div className="top-product-placeholder">🌿</div>}
                     <div>
                       <h3>{topProduct.name}</h3>
                       <p>تم بيع {topProduct.qty} قطعة</p>
@@ -2940,7 +2981,7 @@ return (
               <h2>الشعار</h2>
               <Control label="رابط الشعار"><input value={draftSettings.logo} onChange={e=>updateDraft("logo",e.target.value)} /></Control>
               <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control><p className="admin-help-text">يفضل رفع شعار PNG أو JPG بحجم صغير. سيتم ضغطه تلقائيًا قبل الحفظ.</p>
-              {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} />}
+              {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} loading="lazy" decoding="async" />}
             </div>
           </section>
         )}
@@ -2979,7 +3020,7 @@ return (
                   <div className="pending-table">
                     {pendingImport.slice(0, 8).map((p, i) => (
                       <div className="pending-row" key={i}>
-                        <img src={p.image || "https://via.placeholder.com/120"} />
+                        <img src={p.image || "https://via.placeholder.com/120"} loading="lazy" decoding="async" />
                         <div>
                           <b>{p.name}</b>
                           <span>{p.category} • {p.price} ر.س • المخزون {p.stock}</span>
@@ -3058,7 +3099,7 @@ return (
                       onChange={e => uploadGalleryImages(e.target.files)}
                     />
                   </Control>
-                  {imagePreview && <div className="product-image-preview pro-preview"><span>الصورة الأساسية</span><img src={imagePreview} alt="معاينة المنتج" /></div>}
+                  {imagePreview && <div className="product-image-preview pro-preview"><span>الصورة الأساسية</span><img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" /></div>}
 
                   {galleryImages.length > 0 && (
                     <div className="gallery-manager">
@@ -3070,7 +3111,7 @@ return (
                       <div className="gallery-grid">
                         {galleryImages.map((img, index) => (
                           <div className={`gallery-item ${imagePreview === img ? "primary" : ""}`} key={`${img}-${index}`}>
-                            <img src={img} alt={`gallery-${index}`} />
+                            <img src={img} alt={`gallery-${index}`} loading="lazy" decoding="async" />
                             <div className="gallery-actions">
                               <button type="button" onClick={() => makeGalleryImagePrimary(img)}>أساسية</button>
                               <button type="button" className="danger" onClick={() => removeGalleryImage(index)}>حذف</button>
@@ -3121,7 +3162,7 @@ return (
                   {adminBestSellers.length ? adminBestSellers.map((item, index) => (
                     <div className="best-seller-mini" key={item.name}>
                       <b>#{index + 1}</b>
-                      {item.image ? <img src={item.image} alt={item.name} /> : <span className="best-seller-placeholder">🌿</span>}
+                      {item.image ? <img src={item.image} alt={item.name} loading="lazy" decoding="async" /> : <span className="best-seller-placeholder">🌿</span>}
                       <div>
                         <strong>{item.name}</strong>
                         <small>{item.qty} مبيع • {formatPrice(item.value)} ر.س</small>
@@ -3202,7 +3243,7 @@ return (
                     </label>
                     <button type="button" className="product-drag-handle" title="اسحب لترتيب المنتج">↕</button>
                     <div className="admin-product-thumb">
-                      <img src={p.image} />
+                      <img src={p.image} loading="lazy" decoding="async" />
                       <span className={p.status === "hidden" ? "status hidden" : "status active"}>
                         {p.status === "hidden" ? "مخفي" : "ظاهر"}
                       </span>
@@ -3274,13 +3315,6 @@ return (
 
         {tab === "homepage" && (
           <section className="homepage-admin-page">
-            <div className="admin-card homepage-admin-intro">
-              <div>
-                <span>Homepage CMS</span>
-                <h2>إدارة الصفحة الرئيسية</h2>
-                <p>كل تعديل هنا لن يظهر في المتجر إلا بعد الضغط على حفظ التغييرات.</p>
-              </div>
-            </div>
 
             <div className="homepage-sections-list">
               {[
@@ -3988,7 +4022,7 @@ function OrdersPanel({ orders }) {
             <div className="order-items-pro">
               {order.items.slice(0, 4).map((item, index) => (
                 <div key={index}>
-                  {item.image && <img src={item.image} />}
+                  {item.image && <img src={item.image} loading="lazy" decoding="async" />}
                   <span>{item.name}</span>
                   <b>{item.qty || 1}x</b>
                 </div>
@@ -4099,7 +4133,7 @@ function OrdersPanel({ orders }) {
               {(selectedOrder.items || []).length ? (
                 (selectedOrder.items || []).map((item, i) => (
                   <div className="order-modal-item" key={i}>
-                    {item.image ? <img src={item.image} alt={item.name || "product"} /> : <div className="order-modal-no-img">🌿</div>}
+                    {item.image ? <img src={item.image} alt={item.name || "product"} loading="lazy" decoding="async" /> : <div className="order-modal-no-img">🌿</div>}
                     <div>
                       <b>{item.name || "منتج"}</b>
                       <span>{item.selectedSize || item.size || item.category || ""}</span>

@@ -6881,41 +6881,7 @@
   color: #991b1b;
 }
 
-
-.gallery-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-gap:12px;
-margin:14px 0;
-}
-
-.gallery-item{
-background:#fffaf0;
-border:1px solid rgba(15,61,46,.1);
-border-radius:18px;
-padding:8px;
-display:grid;
-gap:8px;
-}
-
-.gallery-item img{
-width:100%;
-aspect-ratio:1/1;
-object-fit:cover;
-border-radius:12px;
-}
-
-.gallery-item button{
-border:0;
-border-radius:10px;
-min-height:34px;
-font-weight:800;
-cursor:pointer;
-background:rgba(15,61,46,.08);
-color:#0F3D2E;
-}
-
-.gallery-item .danger{
-background:rgba(220,38,38,.12);
-color:#991b1b;
+/* ===== REMOVE HOMEPAGE INTRO BOX ===== */
+.homepage-admin-intro {
+  display: none !important;
 }
