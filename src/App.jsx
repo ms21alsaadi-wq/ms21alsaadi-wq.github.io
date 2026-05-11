@@ -3,7 +3,7 @@ import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
   Save, Eye, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList
+  ClipboardList, Download, Bell, Activity, TrendingUp, AlertTriangle, CheckCircle2
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -2597,6 +2597,17 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 5);
 
+  const pendingOrdersCount = dashboardOrders.filter(o => ["new", "processing"].includes(o.status || "new")).length;
+  const lowStockProducts = products.filter(p => Number(p.stock || 0) <= 3 && p.status !== "hidden");
+  const activeProductsCount = products.filter(p => p.status !== "hidden").length;
+  const averageOrderValue = dashboardOrders.length ? Math.round(totalSales / dashboardOrders.length) : 0;
+  const adminHealthCards = [
+    { label: "طلبات تحتاج متابعة", value: pendingOrdersCount, tone: pendingOrdersCount ? "warning" : "good", icon: <Bell size={18}/> },
+    { label: "منتجات منخفضة المخزون", value: lowStockProducts.length, tone: lowStockProducts.length ? "warning" : "good", icon: <AlertTriangle size={18}/> },
+    { label: "منتجات ظاهرة", value: activeProductsCount, tone: "neutral", icon: <CheckCircle2 size={18}/> },
+    { label: "متوسط الطلب", value: `${formatPrice(averageOrderValue)} ر.س`, tone: "neutral", icon: <TrendingUp size={18}/> }
+  ];
+
 
   const livePageStats = liveVisitorRows.reduce((acc, visitor) => {
     const key = visitor.path || "/";
@@ -2638,13 +2649,23 @@ return (
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
         <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> الطلبات</button>
         <button className={tab==="coupons"?"on":""} onClick={()=>setTab("coupons")}><Palette/> الكوبونات</button>
+
+        <div className="admin-sidebar-card">
+          <span>نبض المتجر</span>
+          <b>{liveVisitors}</b>
+          <small>زائر نشط الآن</small>
+        </div>
+
         <div className="side-bottom"><button onClick={()=>signOut(auth)}><LogOut/> خروج</button></div>
       </aside>
 
       <main className="admin-main">
         <header className="admin-top">
           <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
-          <div className="admin-actions"><button onClick={()=>go("/")}><Eye size={16}/> معاينة</button></div>
+          <div className="admin-actions">
+            <div className="admin-top-pill"><Activity size={15}/> {pendingOrdersCount} طلب مفتوح</div>
+            <button onClick={()=>go("/")}><Eye size={16}/> معاينة</button>
+          </div>
         </header>
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "homepage") && (
@@ -2659,6 +2680,16 @@ return (
             </div>
           </div>
         )}
+
+        <div className="admin-health-grid">
+          {adminHealthCards.map(card => (
+            <div className={`admin-health-card ${card.tone}`} key={card.label}>
+              <div>{card.icon}</div>
+              <span>{card.label}</span>
+              <b>{card.value}</b>
+            </div>
+          ))}
+        </div>
 
         {tab === "dashboard" && (
           <section className="dashboard-pro-page">
@@ -3637,7 +3668,7 @@ return (
         )}
 
         {tab === "customers" && <CustomersPanel customers={customers} orders={orders} />}
-        {tab === "orders" && <OrdersPanel orders={orders} />}
+        {tab === "orders" && <OrdersPanel orders={orders} onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }} />}
       </main>
     </div>
   );
@@ -3865,7 +3896,7 @@ function CustomersPanel({ customers, orders }) {
   );
 }
 
-function OrdersPanel({ orders }) {
+function OrdersPanel({ orders, onNotice }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -3948,8 +3979,7 @@ function OrdersPanel({ orders }) {
     const order = orders.find(o => o.id === orderId);
     if (order) {
       const sent = await sendOrderStatusEmail({ ...order, id: orderId }, status);
-      setNotice(sent ? "تم تحديث حالة الطلب وإرسال إيميل للعميل" : "تم تحديث حالة الطلب، لكن لم يتم إرسال الإيميل");
-      setTimeout(() => setNotice(""), 3500);
+      onNotice?.(sent ? "تم تحديث حالة الطلب وإرسال إيميل للعميل" : "تم تحديث حالة الطلب، لكن لم يتم إرسال الإيميل", 3500);
     }
   };
 
@@ -3957,6 +3987,34 @@ function OrdersPanel({ orders }) {
     if (confirm("هل تريد حذف هذا الطلب؟")) {
       await deleteDoc(doc(db, "orders", orderId));
     }
+  };
+
+  const exportOrdersCsv = () => {
+    const headers = ["order_id", "customer", "email", "phone", "city", "status", "total", "coupon", "created_at", "shipping_company", "tracking_number"];
+    const escapeCsv = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const rows = filteredOrders.map(order => [
+      order.id,
+      order.name || order.customerName || "",
+      order.email || order.customerEmail || "",
+      order.phone || "",
+      order.city || "",
+      statusLabels[order.status] || order.status,
+      order.total,
+      order.couponCode || "",
+      formatOrderDate(order.createdAt),
+      order.shippingCompany === "other" ? order.customShipping : order.shippingCompany,
+      order.trackingNumber || ""
+    ]);
+
+    const csv = [headers, ...rows].map(row => row.map(escapeCsv).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `green-dixam-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    onNotice?.("تم تصدير الطلبات الحالية", 2200);
   };
 
   return (
@@ -3981,6 +4039,10 @@ function OrdersPanel({ orders }) {
           onChange={e => setSearch(e.target.value)}
           placeholder="ابحث باسم العميل، الإيميل، الجوال، المدينة..."
         />
+
+        <button type="button" className="admin-secondary export-orders-btn" onClick={exportOrdersCsv}>
+          <Download size={16}/> تصدير النتائج
+        </button>
 
         <div className="orders-date-filters">
           <button className={dateFilter === "all" ? "active" : ""} onClick={() => setDateFilter("all")}>الكل</button>

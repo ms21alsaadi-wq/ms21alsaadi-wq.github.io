@@ -6885,3 +6885,99 @@
 .homepage-admin-intro {
   display: none !important;
 }
+
+/* ===== PROFESSIONAL ADMIN UPGRADE ===== */
+.admin-sidebar-card {
+  margin: 18px 10px 8px;
+  padding: 16px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(194,169,104,.18), rgba(255,255,255,.08));
+  border: 1px solid rgba(194,169,104,.25);
+  color: #fff;
+}
+.admin-sidebar-card span,
+.admin-sidebar-card small {
+  display: block;
+  color: rgba(255,255,255,.72);
+  font-size: 12px;
+  font-weight: 800;
+}
+.admin-sidebar-card b {
+  display: block;
+  font-size: 34px;
+  line-height: 1.1;
+  margin: 8px 0 4px;
+}
+.admin-actions {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.admin-top-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(15,61,46,.08);
+  border: 1px solid rgba(15,61,46,.10);
+  color: #0F3D2E;
+  font-size: 13px;
+  font-weight: 900;
+}
+.admin-health-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 18px;
+}
+.admin-health-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 18px;
+  border-radius: 26px;
+  background: rgba(255,255,255,.84);
+  border: 1px solid rgba(15,61,46,.08);
+  box-shadow: 0 16px 36px rgba(15,61,46,.06);
+}
+.admin-health-card div {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: rgba(15,61,46,.10);
+  color: #0F3D2E;
+  grid-row: span 2;
+}
+.admin-health-card.warning div {
+  background: rgba(245,158,11,.16);
+  color: #92400e;
+}
+.admin-health-card.good div {
+  background: rgba(34,197,94,.14);
+  color: #166534;
+}
+.admin-health-card span {
+  color: #786f60;
+  font-size: 12px;
+  font-weight: 900;
+}
+.admin-health-card b {
+  color: #13251d;
+  font-size: 22px;
+  font-weight: 1000;
+}
+.export-orders-btn {
+  min-height: 48px;
+  white-space: nowrap;
+}
+@media (max-width: 1100px) {
+  .admin-health-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .admin-health-grid { grid-template-columns: 1fr; }
+  .admin-top-pill { width: 100%; justify-content: center; }
+}
