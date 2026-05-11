@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ShoppingBag, Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
+  Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
-  Save, Eye, Users, Lock, Mail, Settings, RotateCw, User, MapPin, Phone, Home,
+  Save, Eye, Users, Lock, Mail, User, MapPin, Phone, Home,
   ClipboardList
 } from "lucide-react";
 import {
@@ -20,9 +20,9 @@ import { auth, db } from "./firebase.js";
 
 const STORE_WHATSAPP = "966508983003";
 
-const EMAILJS_SERVICE_ID = "service_t04scol";
-const EMAILJS_TEMPLATE_ID = "template_v9wzhwf";
-const EMAILJS_PUBLIC_KEY = "c8wX_e15GQ-c3xseZ";
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_t04scol";
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_v9wzhwf";
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "c8wX_e15GQ-c3xseZ";
 
 const defaultSettings = {
   storeName: "GREEN DIXAM",
@@ -417,8 +417,6 @@ function firebaseError(err) {
 export default function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [authUser, setAuthUser] = useState(null);
-  const [adminAllowed, setAdminAllowed] = useState(false);
-  const [adminChecking, setAdminChecking] = useState(true);
   const [customer, setCustomer] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [settings, setSettings] = useState(defaultSettings);
@@ -510,15 +508,24 @@ export default function App() {
       ? query(collection(db, "orders"), orderBy("createdAt", "desc"))
       : query(collection(db, "orders"), where("customerId", "==", authUser.uid));
 
+    let fallbackUnsub = null;
     const unsubOrders = onSnapshot(ordersQuery, (snap) => {
       setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, () => {
-      if (isAdmin) {
-        onSnapshot(collection(db, "orders"), (snap) => setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+      if (isAdmin && !fallbackUnsub) {
+        fallbackUnsub = onSnapshot(collection(db, "orders"), (snap) => {
+          const rows = snap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
+          setOrders(rows);
+        });
       }
     });
 
-    return unsubOrders;
+    return () => {
+      unsubOrders();
+      if (fallbackUnsub) fallbackUnsub();
+    };
   }, [authUser, isAdmin]);
 
   useEffect(() => {
@@ -672,9 +679,6 @@ function AuthShell({ title, subtitle, children, settings }) {
 }
 
 function Store({ settings, products, authUser, customer, setCustomer, orders = [], coupons = [], go, path }) {
-  if (path.startsWith("/login")) return <CustomerAuth go={go} settings={settings} />;
-  if (path.startsWith("/account")) return authUser ? <Account customer={customer} setCustomer={setCustomer} orders={orders} coupons={coupons} go={go} settings={settings} /> : <CustomerAuth go={go} settings={settings} />;
-
   const [queryText, setQueryText] = useState("");
   const [brand, setBrand] = useState("All");
   const [category, setCategory] = useState("All");
@@ -792,21 +796,24 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const categories = ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
   const filtered = useMemo(() => products.filter(p => (p.status || "active") !== "hidden").filter(p => {
     const q = queryText.toLowerCase().trim();
-    return (!q || p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)) &&
+    const searchable = `${p.name || ""} ${p.brand || ""} ${p.category || ""}`.toLowerCase();
+    return (!q || searchable.includes(q)) &&
       (brand === "All" || p.brand === brand) &&
       (category === "All" || p.category === category);
   }), [products, queryText, brand, category]);
 
-  const cartCount = cart.reduce((n, i) => n + i.qty, 0);
-  const subtotal = cart.reduce((n, i) => n + i.qty * Number(i.price || 0), 0);
+  const cartCount = cart.reduce((n, i) => n + Number(i.qty || 0), 0);
+  const subtotal = cart.reduce((n, i) => n + Number(i.qty || 0) * Number(i.price || 0), 0);
   const shippingFee = subtotal ? 35 : 0;
   const discount = appliedCoupon ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100)) : 0;
   const total = Math.max(0, subtotal - discount) + shippingFee;
-  const filteredProducts = useMemo(() => products.filter((p) => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return true;
-    return `${p.name || ""} ${p.category || ""} ${p.description || ""}`.toLowerCase().includes(q);
-  }), [products, searchQuery]);
+  const filteredProducts = useMemo(() => products
+    .filter((p) => (p.status || "active") !== "hidden")
+    .filter((p) => {
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return true;
+      return `${p.name || ""} ${p.category || ""} ${p.description || ""}`.toLowerCase().includes(q);
+    }), [products, searchQuery]);
 
   const visibleHomePages = (settings.homePages || [
     { label: "النباتات", href: "/page/products", visible: true },
@@ -817,6 +824,13 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const currentStorePage = path.startsWith("/page/")
     ? visibleHomePages.find((page, index) => normalizePageHref(page, index) === path)
     : null;
+
+  if (path.startsWith("/login")) return <CustomerAuth go={go} settings={settings} />;
+  if (path.startsWith("/account")) {
+    return authUser
+      ? <Account customer={customer} setCustomer={setCustomer} orders={orders} coupons={coupons} go={go} settings={settings} />
+      : <CustomerAuth go={go} settings={settings} />;
+  }
 
   async function applyCoupon() {
     const code = couponCode.trim().toUpperCase();
@@ -866,7 +880,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     const size = selectedSize[product.id] || sizesArray(product.sizes)[0] || "Free";
     setCart(prev => {
       const found = prev.find(i => i.id === product.id && i.size === size);
-      if (found) return prev.map(i => i.id === product.id && i.size === size ? { ...i, qty: i.qty + 1 } : i);
+      if (found) return prev.map(i => i.id === product.id && i.size === size ? { ...i, qty: Number(i.qty || 0) + 1 } : i);
       return [...prev, { ...product, size, qty: 1 }];
     });
 
@@ -900,12 +914,12 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
   async function checkoutWhatsApp() {
     if (!authUser) {
-      alert("سجل دخولك كعميل أولاً لإتمام الطلب");
+      setCouponMessage("سجل دخولك كعميل أولاً لإتمام الطلب");
       go("/login");
       return;
     }
     if (!customer?.name || !customer?.phone || !customer?.city || !customer?.address) {
-      alert("أكمل بيانات حسابك أولاً: الاسم، الجوال، المدينة، العنوان");
+      setCouponMessage("أكمل بيانات حسابك أولاً: الاسم، الجوال، المدينة، العنوان");
       go("/account");
       return;
     }
@@ -1227,7 +1241,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
               {cart.length === 0 ? <div className="empty">السلة فارغة</div> :
                 cart.map((item, i) => (
                   <div className="cart-item" key={`${item.id}-${i}`}>
-                    <img src={item.image} loading="lazy" decoding="async" />
+                    <img src={item.image} alt={item.name || "منتج"} loading="lazy" decoding="async" />
                     <div>
                       <b>{item.name}</b><span>الحجم: {item.size}</span><span>{formatPrice(item.price)} ر.س</span>
                       <div className="qty"><button onClick={() => setCart(c => c.map((x,idx)=>idx===i?{...x, qty: Math.max(1,x.qty-1)}:x))}><Minus size={14}/></button><b>{item.qty}</b><button onClick={() => setCart(c => c.map((x,idx)=>idx===i?{...x, qty:x.qty+1}:x))}><Plus size={14}/></button><button onClick={() => setCart(c => c.filter((_,idx)=>idx!==i))}><Trash2 size={14}/></button></div>
@@ -2802,7 +2816,7 @@ return (
 
                 {topProduct ? (
                   <div className="top-product-card">
-                    {topProduct.image ? <img src={topProduct.image} loading="lazy" decoding="async" /> : <div className="top-product-placeholder">🌿</div>}
+                    {topProduct.image ? <img src={topProduct.image} alt={topProduct.name || "منتج"} loading="lazy" decoding="async" /> : <div className="top-product-placeholder">🌿</div>}
                     <div>
                       <h3>{topProduct.name}</h3>
                       <p>تم بيع {topProduct.qty} قطعة</p>
@@ -2981,7 +2995,7 @@ return (
               <h2>الشعار</h2>
               <Control label="رابط الشعار"><input value={draftSettings.logo} onChange={e=>updateDraft("logo",e.target.value)} /></Control>
               <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control><p className="admin-help-text">يفضل رفع شعار PNG أو JPG بحجم صغير. سيتم ضغطه تلقائيًا قبل الحفظ.</p>
-              {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} loading="lazy" decoding="async" />}
+              {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} alt="معاينة الشعار" loading="lazy" decoding="async" />}
             </div>
           </section>
         )}
@@ -3020,7 +3034,7 @@ return (
                   <div className="pending-table">
                     {pendingImport.slice(0, 8).map((p, i) => (
                       <div className="pending-row" key={i}>
-                        <img src={p.image || "https://via.placeholder.com/120"} loading="lazy" decoding="async" />
+                        <img src={p.image || "https://via.placeholder.com/120"} alt={p.name || "منتج"} loading="lazy" decoding="async" />
                         <div>
                           <b>{p.name}</b>
                           <span>{p.category} • {p.price} ر.س • المخزون {p.stock}</span>
@@ -3243,7 +3257,7 @@ return (
                     </label>
                     <button type="button" className="product-drag-handle" title="اسحب لترتيب المنتج">↕</button>
                     <div className="admin-product-thumb">
-                      <img src={p.image} loading="lazy" decoding="async" />
+                      <img src={p.image} alt={p.name || "منتج"} loading="lazy" decoding="async" />
                       <span className={p.status === "hidden" ? "status hidden" : "status active"}>
                         {p.status === "hidden" ? "مخفي" : "ظاهر"}
                       </span>
@@ -4022,7 +4036,7 @@ function OrdersPanel({ orders }) {
             <div className="order-items-pro">
               {order.items.slice(0, 4).map((item, index) => (
                 <div key={index}>
-                  {item.image && <img src={item.image} loading="lazy" decoding="async" />}
+                  {item.image && <img src={item.image} alt={item.name || "منتج"} loading="lazy" decoding="async" />}
                   <span>{item.name}</span>
                   <b>{item.qty || 1}x</b>
                 </div>
