@@ -6881,41 +6881,344 @@
   color: #991b1b;
 }
 
-
-.gallery-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-gap:12px;
-margin:14px 0;
+/* ===== ADMIN LUXURY THEME OVERRIDE ===== */
+:root {
+  --admin-bg: #F7F8F5;
+  --admin-card: rgba(255, 255, 255, .88);
+  --admin-line: rgba(15, 61, 46, .09);
+  --admin-line-gold: rgba(194, 169, 104, .20);
+  --admin-shadow: 0 18px 45px rgba(15, 61, 46, .055);
+  --admin-shadow-soft: 0 10px 28px rgba(15, 61, 46, .045);
+  --admin-green: #063D2D;
+  --admin-text: #0B3D2E;
+  --admin-muted: #6E756D;
+  --admin-gold: #B99A52;
 }
 
-.gallery-item{
-background:#fffaf0;
-border:1px solid rgba(15,61,46,.1);
-border-radius:18px;
-padding:8px;
-display:grid;
-gap:8px;
+.admin-layout,
+.admin-shell,
+.admin-page,
+.admin-main,
+.admin-content,
+.admin-dashboard,
+.admin-products-stacked,
+.homepage-admin-page {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(15, 86, 63, .06), transparent 30%),
+    radial-gradient(circle at 70% 0%, rgba(194, 169, 104, .07), transparent 28%),
+    var(--admin-bg) !important;
+  color: var(--admin-text) !important;
 }
 
-.gallery-item img{
-width:100%;
-aspect-ratio:1/1;
-object-fit:cover;
-border-radius:12px;
+.admin-main,
+.admin-content,
+.admin-dashboard,
+.admin-products-stacked,
+.homepage-admin-page {
+  padding: 28px !important;
 }
 
-.gallery-item button{
-border:0;
-border-radius:10px;
-min-height:34px;
-font-weight:800;
-cursor:pointer;
-background:rgba(15,61,46,.08);
-color:#0F3D2E;
+.admin-sidebar,
+.dashboard-sidebar,
+.side-nav,
+.admin-aside {
+  background:
+    radial-gradient(circle at top left, rgba(108, 190, 118, .16), transparent 28%),
+    linear-gradient(180deg, #063D2D 0%, #063322 100%) !important;
+  border-left: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: -18px 0 50px rgba(6, 61, 45, .18) !important;
 }
 
-.gallery-item .danger{
-background:rgba(220,38,38,.12);
-color:#991b1b;
+.admin-sidebar *,
+.dashboard-sidebar *,
+.side-nav *,
+.admin-aside * {
+  color: rgba(255,255,255,.86) !important;
+}
+
+.admin-sidebar button,
+.dashboard-sidebar button,
+.side-nav button,
+.admin-aside button,
+.admin-nav button,
+.sidebar-nav button {
+  border-radius: 16px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: rgba(255,255,255,.78) !important;
+  transition: background .2s ease, transform .2s ease, border-color .2s ease !important;
+}
+
+.admin-sidebar button:hover,
+.dashboard-sidebar button:hover,
+.side-nav button:hover,
+.admin-aside button:hover,
+.admin-nav button:hover,
+.sidebar-nav button:hover {
+  background: rgba(255,255,255,.08) !important;
+  border-color: rgba(255,255,255,.08) !important;
+  transform: translateX(-2px) !important;
+}
+
+.admin-sidebar button.active,
+.dashboard-sidebar button.active,
+.side-nav button.active,
+.admin-aside button.active,
+.admin-nav button.active,
+.sidebar-nav button.active,
+.admin-sidebar .active,
+.dashboard-sidebar .active,
+.side-nav .active {
+  background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.07)) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  color: #fff !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 12px 30px rgba(0,0,0,.16) !important;
+}
+
+.admin-hero,
+.admin-topbar,
+.admin-page-title,
+.homepage-admin-intro,
+.excel-wide-card,
+.admin-card,
+.product-form-card,
+.products-manager,
+.pro-form-card,
+.full-product-form-card,
+.full-products-manager,
+.homepage-section-row {
+  background: var(--admin-card) !important;
+  border: 1px solid var(--admin-line-gold) !important;
+  border-radius: 26px !important;
+  box-shadow: var(--admin-shadow) !important;
+  backdrop-filter: blur(14px) !important;
+}
+
+.admin-card h1,
+.admin-card h2,
+.admin-card h3,
+.pro-card-head h2,
+.homepage-admin-intro h2,
+.excel-wide-content h2,
+.panel-head h2,
+.section-header span {
+  color: var(--admin-text) !important;
+  letter-spacing: -.4px !important;
+}
+
+.admin-card span,
+.pro-card-head span,
+.homepage-admin-intro span,
+.excel-wide-content span,
+.panel-head span {
+  color: var(--admin-gold) !important;
+  font-weight: 900 !important;
+  letter-spacing: .7px !important;
+  text-transform: uppercase !important;
+  font-size: 12px !important;
+}
+
+.admin-primary,
+.save-btn,
+button.admin-primary,
+.excel-upload-btn {
+  background: linear-gradient(135deg, #075137, #063D2D) !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 16px 34px rgba(6, 61, 45, .20) !important;
+  font-weight: 900 !important;
+  transition: transform .2s ease, box-shadow .2s ease !important;
+}
+
+.admin-primary:hover,
+.save-btn:hover,
+button.admin-primary:hover,
+.excel-upload-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 22px 44px rgba(6, 61, 45, .25) !important;
+}
+
+.admin-secondary,
+button.admin-secondary,
+.preview-btn {
+  background: rgba(255,255,255,.88) !important;
+  color: var(--admin-text) !important;
+  border: 1px solid var(--admin-line-gold) !important;
+  border-radius: 16px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 8px 22px rgba(15,61,46,.045) !important;
+}
+
+.control,
+.pro-form-section,
+.section-form .control,
+.hero-admin-compact-form > .control,
+.hero-admin-options-grid .control,
+.hero-admin-bg-tools .control,
+.hero-admin-image-tools .control {
+  background: rgba(255,255,255,.88) !important;
+  border: 1px solid rgba(15, 61, 46, .08) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 12px 32px rgba(15,61,46,.035) !important;
+}
+
+.control > span,
+.control label,
+.pro-form-section h3,
+.hero-admin-compact-form .control > span {
+  color: var(--admin-text) !important;
+  font-weight: 1000 !important;
+}
+
+input,
+select,
+textarea {
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid rgba(15, 61, 46, .12) !important;
+  color: #1C2E26 !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: rgba(7, 81, 55, .45) !important;
+  box-shadow: 0 0 0 4px rgba(7, 81, 55, .08) !important;
+}
+
+.homepage-section-row .hero-admin-compact-form {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  padding: 18px !important;
+}
+
+.homepage-section-row .hero-admin-compact-form > .control:nth-child(1),
+.homepage-section-row .hero-admin-compact-form > .control:nth-child(2) {
+  grid-column: span 6 !important;
+  min-height: 170px !important;
+}
+
+.homepage-section-row .hero-admin-compact-form > .control {
+  grid-column: span 6 !important;
+}
+
+.homepage-section-row .hero-admin-options-grid {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+.homepage-section-row .hero-admin-bg-tools,
+.homepage-section-row .hero-admin-image-tools {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+.hero-admin-top-note {
+  display: none !important;
+}
+
+.admin-product-card {
+  background: rgba(255,255,255,.90) !important;
+  border: 1px solid rgba(194,169,104,.20) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 16px 38px rgba(15,61,46,.055) !important;
+  overflow: hidden !important;
+}
+
+.admin-product-thumb img {
+  border-radius: 18px !important;
+}
+
+.products-toolbar,
+.products-bulk-bar,
+.products-best-sellers,
+.pending-import-box,
+.quick-product-edit {
+  background: rgba(255,255,255,.78) !important;
+  border: 1px solid rgba(194,169,104,.20) !important;
+  box-shadow: 0 10px 28px rgba(15,61,46,.035) !important;
+  border-radius: 20px !important;
+}
+
+.dash-stat-card,
+.live-analytics-box,
+.funnel-step,
+.live-visitors-card,
+.quick-number-card {
+  background: rgba(255,255,255,.88) !important;
+  border: 1px solid rgba(194,169,104,.18) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 14px 34px rgba(15,61,46,.055) !important;
+}
+
+.section-header {
+  background: rgba(255,255,255,.78) !important;
+  border: 1px solid rgba(194,169,104,.18) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 25px rgba(15,61,46,.035) !important;
+}
+
+.section-header b {
+  color: var(--admin-gold) !important;
+}
+
+.hero-upload-note,
+small,
+.admin-card p,
+.homepage-admin-intro p,
+.excel-wide-content p {
+  color: var(--admin-muted) !important;
+}
+
+.admin-danger-soft,
+button.danger,
+.danger {
+  background: rgba(254, 242, 242, .95) !important;
+  color: #991B1B !important;
+  border: 1px solid rgba(185, 28, 28, .14) !important;
+  border-radius: 14px !important;
+}
+
+input[type="file"] {
+  background: rgba(255,255,255,.92) !important;
+  padding: 10px !important;
+}
+
+@media (max-width: 1100px) {
+  .homepage-section-row .hero-admin-options-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 780px) {
+  .admin-main,
+  .admin-content,
+  .admin-dashboard,
+  .admin-products-stacked,
+  .homepage-admin-page {
+    padding: 14px !important;
+  }
+
+  .homepage-section-row .hero-admin-compact-form {
+    grid-template-columns: 1fr !important;
+  }
+
+  .homepage-section-row .hero-admin-compact-form > .control,
+  .homepage-section-row .hero-admin-options-grid,
+  .homepage-section-row .hero-admin-bg-tools,
+  .homepage-section-row .hero-admin-image-tools {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: 1fr !important;
+  }
 }
