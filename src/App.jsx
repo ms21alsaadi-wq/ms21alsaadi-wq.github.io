@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
-  Save, Eye, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList, Download, Bell, Activity, TrendingUp, AlertTriangle, CheckCircle2
+  Save, Users, Lock, Mail, User, MapPin, Phone, Home,
+  ClipboardList, Download, Bell, TrendingUp, AlertTriangle, CheckCircle2
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -2662,10 +2662,6 @@ return (
       <main className="admin-main">
         <header className="admin-top">
           <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
-          <div className="admin-actions">
-            <div className="admin-top-pill"><Activity size={15}/> {pendingOrdersCount} طلب مفتوح</div>
-            <button onClick={()=>go("/")}><Eye size={16}/> معاينة</button>
-          </div>
         </header>
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "homepage") && (
