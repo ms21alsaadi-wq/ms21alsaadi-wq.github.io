@@ -2643,7 +2643,8 @@ return (
           <span>Admin Panel</span>
         </div>
         <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
-        <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> الهوية</button>
+        <button className={tab==="reports"?"on":""} onClick={()=>setTab("reports")}><TrendingUp/> التقارير</button>
+        <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> هوية المتجر</button>
         <button className={tab==="homepage"?"on":""} onClick={()=>setTab("homepage")}><Home/> الصفحة الرئيسية</button>
         <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> المنتجات</button>
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
@@ -2668,7 +2669,7 @@ return (
           <div className="admin-save-bar">
             <div>
               <b>التغييرات غير محفوظة حتى تضغط حفظ</b>
-              <span>أي تعديل في الهوية أو البنرات أو الصفحة الرئيسية لن يظهر في المتجر إلا بعد الحفظ.</span>
+              <span>أي تعديل في هوية المتجر أو البنرات أو الصفحة الرئيسية لن يظهر في المتجر إلا بعد الحفظ.</span>
             </div>
             <div className="save-bar-actions">
               <button className="admin-secondary" onClick={resetDraftSettings}>إلغاء التغييرات</button>
@@ -2904,6 +2905,133 @@ return (
         )}
 
 
+        {tab === "reports" && (
+          <section className="dashboard-pro-page reports-page">
+            <div className="admin-card dashboard-hero">
+              <div>
+                <span>Reports Center</span>
+                <h2>التقارير</h2>
+                <p>ملخص واضح لأداء المبيعات والطلبات والمنتجات داخل المتجر.</p>
+              </div>
+              <div className="dashboard-hero-badge">
+                <b>{formatOrderDate(new Date())}</b>
+                <small>آخر تحديث</small>
+              </div>
+            </div>
+
+            <div className="dashboard-stats-grid">
+              <div className="dash-stat-card">
+                <span>إجمالي الطلبات</span>
+                <b>{dashboardOrders.length}</b>
+                <small>كل الطلبات المسجلة</small>
+              </div>
+
+              <div className="dash-stat-card gold">
+                <span>إجمالي المبيعات</span>
+                <b>{formatPrice(totalSales)} ر.س</b>
+                <small>قيمة كل الطلبات</small>
+              </div>
+
+              <div className="dash-stat-card">
+                <span>متوسط الطلب</span>
+                <b>{formatPrice(averageOrderValue)} ر.س</b>
+                <small>متوسط قيمة الطلب الواحد</small>
+              </div>
+
+              <div className="dash-stat-card">
+                <span>طلبات تحتاج متابعة</span>
+                <b>{pendingOrdersCount}</b>
+                <small>جديد أو قيد المعالجة</small>
+              </div>
+            </div>
+
+            <div className="admin-card funnel-panel">
+              <div className="panel-head">
+                <div>
+                  <span>Sales Funnel</span>
+                  <h2>مسار التحويل</h2>
+                </div>
+              </div>
+
+              <div className="funnel-grid">
+                <div className="funnel-step"><b>{funnelStats.visit_store}</b><span>زار المتجر</span></div>
+                <div className="funnel-arrow">→</div>
+                <div className="funnel-step"><b>{funnelStats.view_product}</b><span>فتح منتج</span></div>
+                <div className="funnel-arrow">→</div>
+                <div className="funnel-step"><b>{funnelStats.add_to_cart}</b><span>أضاف للسلة</span></div>
+                <div className="funnel-arrow">→</div>
+                <div className="funnel-step"><b>{funnelStats.checkout}</b><span>وصل الدفع</span></div>
+                <div className="funnel-arrow">→</div>
+                <div className="funnel-step success"><b>{funnelStats.purchase}</b><span>تم الطلب</span></div>
+              </div>
+            </div>
+
+            <div className="dashboard-main-grid">
+              <div className="admin-card dashboard-panel">
+                <div className="panel-head">
+                  <div>
+                    <span>Best Sellers</span>
+                    <h2>الأكثر مبيعاً</h2>
+                  </div>
+                </div>
+                <div className="recent-orders-list">
+                  {adminBestSellers.length ? adminBestSellers.map(product => (
+                    <div className="recent-order-row" key={product.name}>
+                      <div>
+                        <b>{product.name}</b>
+                        <span>تم بيع {product.qty} قطعة</span>
+                      </div>
+                      <em>{formatPrice(product.value)} ر.س</em>
+                    </div>
+                  )) : <div className="dashboard-empty">لا توجد مبيعات بعد</div>}
+                </div>
+              </div>
+
+              <div className="admin-card dashboard-panel">
+                <div className="panel-head">
+                  <div>
+                    <span>Recent Orders</span>
+                    <h2>آخر الطلبات</h2>
+                  </div>
+                </div>
+                <div className="recent-orders-list">
+                  {dashboardOrders.slice().sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt)).slice(0, 5).map(o => (
+                    <div className="recent-order-row" key={o.id}>
+                      <div>
+                        <b>{o.name || o.customerName || "طلب عميل"}</b>
+                        <span>{formatOrderDate(o.createdAt)}</span>
+                      </div>
+                      <em>{formatPrice(o.total)} ر.س</em>
+                    </div>
+                  ))}
+                  {dashboardOrders.length === 0 && <div className="dashboard-empty">لا توجد طلبات حتى الآن</div>}
+                </div>
+              </div>
+
+              <div className="admin-card dashboard-panel">
+                <div className="panel-head">
+                  <div>
+                    <span>Inventory</span>
+                    <h2>تنبيه المخزون</h2>
+                  </div>
+                </div>
+                <div className="recent-orders-list">
+                  {lowStockProducts.length ? lowStockProducts.slice(0, 5).map(product => (
+                    <div className="recent-order-row" key={product.id}>
+                      <div>
+                        <b>{product.name}</b>
+                        <span>مخزون منخفض</span>
+                      </div>
+                      <em>{Number(product.stock || 0)}</em>
+                    </div>
+                  )) : <div className="dashboard-empty">لا توجد منتجات منخفضة المخزون</div>}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+
         {tab === "coupons" && (
           <section className="coupons-admin-page">
             <div className="admin-card coupons-admin-hero">
@@ -3010,7 +3138,7 @@ return (
               </div>
             </div>
             <div className="admin-card">
-              <h2>تعديل الهوية</h2>
+              <h2>تعديل هوية المتجر</h2>
               <Control label="اسم المتجر"><input value={draftSettings.storeName} onChange={e=>updateDraft("storeName",e.target.value)} /></Control>
               <Control label="الوصف القصير"><input value={draftSettings.tagline} onChange={e=>updateDraft("tagline",e.target.value)} /></Control>
               <Control label="الخط"><select value={draftSettings.fontFamily} onChange={e=>updateDraft("fontFamily",e.target.value)}><option>Cairo</option><option>Tajawal</option></select></Control>
@@ -4239,7 +4367,8 @@ function Stat({label, value}) {
 function titleFor(tab) {
   return {
     dashboard:"الرئيسية",
-    identity:"الهوية والألوان",
+    reports:"التقارير",
+    identity:"هوية المتجر",
     products:"إدارة المنتجات",
     customers:"العملاء",
     orders:"الطلبات",
