@@ -2014,6 +2014,7 @@ function Feature({icon, title, text}) {
 function Admin({ settings, setSettings, products, customers, orders, coupons = [], go }) {
   const [tab, setTab] = useState("dashboard");
   const [openSection, setOpenSection] = useState(null);
+  const [themeMenuOpen, setThemeMenuOpen] = useState(true);
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
@@ -2633,7 +2634,22 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     ? Math.round(liveVisitorRows.reduce((sum, visitor) => sum + Number(visitor.sessionDuration || 0), 0) / liveVisitorRows.length)
     : 0;
 
+  const themeSections = [
+    { id: "header", label: "الهيدر", titleKey: "homeHeaderTitle", descKey: "homeHeaderSubtitle", imageKey: "homeHeaderImage", headerExtra: true },
+    { id: "hero", label: "الهيرو", titleKey: "homeHeroTitle", descKey: "homeHeroDesc", imageKey: "homeHeroImage", buttonKey: "homeHeroButton", heroExtra: true },
+    { id: "pages", label: "الصفحات", titleKey: "homePagesTitle", descKey: "", imageKey: "", pagesExtra: true },
+    { id: "plants", label: "أقسام النباتات", titleKey: "homePlantSectionsTitle", descKey: "homePlantSectionsDesc", imageKey: "homePlantSectionsImage" },
+    { id: "care", label: "شريط العناية", titleKey: "homeCareTitle", descKey: "homeCareDesc", imageKey: "homeCareImage" },
+    { id: "offer", label: "بنر العروض", titleKey: "homeOfferTitle", descKey: "homeOfferDesc", imageKey: "homeOfferImage" },
+    { id: "products", label: "المنتجات", titleKey: "homeProductsTitle", descKey: "homeProductsDesc", imageKey: "" }
+  ];
 
+  const selectedThemeSection = themeSections.find(section => section.id === openSection);
+  const goToThemeSection = (sectionId) => {
+    setTab("homepage");
+    setOpenSection(sectionId);
+    setThemeMenuOpen(true);
+  };
 
 return (
     <div className="admin" dir="rtl">
@@ -2644,8 +2660,31 @@ return (
         </div>
         <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
         <button className={tab==="reports"?"on":""} onClick={()=>setTab("reports")}><TrendingUp/> التقارير</button>
+        <div className="admin-menu-group">
+          <button
+            className={tab==="homepage"?"on":""}
+            onClick={() => {
+              setTab("homepage");
+              setThemeMenuOpen(!themeMenuOpen);
+            }}
+          >
+            <Home/> ثيم المتجر <span className="admin-menu-chevron">{themeMenuOpen ? "−" : "+"}</span>
+          </button>
+          {themeMenuOpen && (
+            <div className="admin-submenu">
+              {themeSections.map(section => (
+                <button
+                  key={section.id}
+                  className={tab==="homepage" && openSection===section.id ? "on" : ""}
+                  onClick={() => goToThemeSection(section.id)}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> هوية المتجر</button>
-        <button className={tab==="homepage"?"on":""} onClick={()=>setTab("homepage")}><Home/> الصفحة الرئيسية</button>
         <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> المنتجات</button>
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
         <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> الطلبات</button>
@@ -2669,7 +2708,7 @@ return (
           <div className="admin-save-bar">
             <div>
               <b>التغييرات غير محفوظة حتى تضغط حفظ</b>
-              <span>أي تعديل في هوية المتجر أو البنرات أو الصفحة الرئيسية لن يظهر في المتجر إلا بعد الحفظ.</span>
+              <span>أي تعديل في هوية المتجر أو ثيم المتجر لن يظهر في المتجر إلا بعد الحفظ.</span>
             </div>
             <div className="save-bar-actions">
               <button className="admin-secondary" onClick={resetDraftSettings}>إلغاء التغييرات</button>
@@ -3486,15 +3525,7 @@ return (
           <section className="homepage-admin-page">
 
             <div className="homepage-sections-list">
-              {[
-                { id: "header", label: "الهيدر", titleKey: "homeHeaderTitle", descKey: "homeHeaderSubtitle", imageKey: "homeHeaderImage", headerExtra: true },
-                { id: "pages", label: "الصفحات", titleKey: "homePagesTitle", descKey: "", imageKey: "", pagesExtra: true },
-                { id: "hero", label: "الهيرو", titleKey: "homeHeroTitle", descKey: "homeHeroDesc", imageKey: "homeHeroImage", buttonKey: "homeHeroButton", heroExtra: true },
-                { id: "plants", label: "أقسام النباتات", titleKey: "homePlantSectionsTitle", descKey: "homePlantSectionsDesc", imageKey: "homePlantSectionsImage" },
-                { id: "care", label: "شريط العناية", titleKey: "homeCareTitle", descKey: "homeCareDesc", imageKey: "homeCareImage" },
-                { id: "offer", label: "بنر العروض", titleKey: "homeOfferTitle", descKey: "homeOfferDesc", imageKey: "homeOfferImage" },
-                { id: "products", label: "المنتجات", titleKey: "homeProductsTitle", descKey: "homeProductsDesc", imageKey: "" }
-              ].map((section) => (
+              {(selectedThemeSection ? [selectedThemeSection] : themeSections).map((section) => (
                 <div key={section.id} className="homepage-section-row">
                   <div
                     className="section-header"
@@ -3507,7 +3538,7 @@ return (
                     <b>{openSection === section.id ? "−" : "+"}</b>
                   </div>
 
-                  {openSection === section.id && (
+                  {(openSection === section.id || selectedThemeSection?.id === section.id) && (
                     <div className={`section-form section-form-pro ${section.headerExtra ? "header-admin-clean-form" : ""} ${section.heroExtra ? "hero-admin-compact-form" : ""}`}>
                       <Control label="العنوان">
                         <input
@@ -4373,6 +4404,6 @@ function titleFor(tab) {
     customers:"العملاء",
     orders:"الطلبات",
     coupons:"الكوبونات",
-    homepage:"الصفحة الرئيسية"
+    homepage:"ثيم المتجر"
   }[tab];
 }

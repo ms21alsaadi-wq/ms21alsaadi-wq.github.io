@@ -6981,3 +6981,36 @@
   .admin-health-grid { grid-template-columns: 1fr; }
   .admin-top-pill { width: 100%; justify-content: center; }
 }
+
+/* Admin theme submenu */
+.admin-menu-group {
+  display: grid;
+  gap: 6px;
+}
+.admin-menu-group > button {
+  width: 100%;
+}
+.admin-menu-chevron {
+  margin-inline-start: auto;
+  font-size: 18px;
+  line-height: 1;
+  opacity: .85;
+}
+.admin-submenu {
+  display: grid;
+  gap: 6px;
+  padding-inline-start: 12px;
+  margin-top: -2px;
+}
+.admin-submenu button {
+  min-height: 38px !important;
+  padding: 10px 14px !important;
+  border-radius: 14px !important;
+  font-size: 13px;
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.06) !important;
+}
+.admin-submenu button.on,
+.admin-submenu button:hover {
+  background: rgba(194,169,104,.24) !important;
+}
