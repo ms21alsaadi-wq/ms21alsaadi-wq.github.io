@@ -2703,9 +2703,11 @@ return (
       </aside>
 
       <main className="admin-main">
-        <header className="admin-top">
-          <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
-        </header>
+        {tab !== "dashboard" && (
+          <header className="admin-top">
+            <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
+          </header>
+        )}
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "homepage") && (
           <div className="admin-save-bar">
@@ -2721,29 +2723,30 @@ return (
         )}
 
         {tab === "dashboard" && (
-          <div className="admin-health-grid">
-            {adminHealthCards.map(card => (
-              <div className={`admin-health-card ${card.tone}`} key={card.label}>
-                <div>{card.icon}</div>
-                <span>{card.label}</span>
-                <b>{card.value}</b>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab === "dashboard" && (
           <section className="dashboard-pro-page">
             <div className="admin-card dashboard-hero">
               <div>
                 <span>Store Overview</span>
-                <h2>Dashboard</h2>
-                <p>نظرة سريعة على أداء متجر GREEN DIXAM والطلبات والمبيعات.</p>
+                <h2>الرئيسية الاحترافية</h2>
+                <p>مركز قيادة شامل لمتابعة المبيعات والطلبات والزوار والمخزون من مكان واحد.</p>
               </div>
-              <div className="dashboard-hero-badge">
-                <b>{formatOrderDate(new Date())}</b>
-                <small>آخر تحديث</small>
+              <div className="dashboard-hero-actions">
+                <button type="button" className="dashboard-preview-btn" onClick={() => go("/")}>معاينة المتجر</button>
+                <div className="dashboard-hero-badge">
+                  <b>{formatOrderDate(new Date())}</b>
+                  <small>آخر تحديث</small>
+                </div>
               </div>
+            </div>
+
+            <div className="admin-health-grid dashboard-health-under-hero">
+              {adminHealthCards.map(card => (
+                <div className={`admin-health-card ${card.tone}`} key={card.label}>
+                  <div>{card.icon}</div>
+                  <span>{card.label}</span>
+                  <b>{card.value}</b>
+                </div>
+              ))}
             </div>
 
             <div className="dashboard-stats-grid">
