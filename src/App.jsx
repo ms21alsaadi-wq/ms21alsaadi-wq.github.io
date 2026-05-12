@@ -2723,18 +2723,6 @@ return (
         )}
 
         {tab === "dashboard" && (
-          <div className="admin-health-grid">
-            {adminHealthCards.map(card => (
-              <div className={`admin-health-card ${card.tone}`} key={card.label}>
-                <div>{card.icon}</div>
-                <span>{card.label}</span>
-                <b>{card.value}</b>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab === "dashboard" && (
           <section className="dashboard-pro-page">
             <div className="admin-card dashboard-hero">
               <div>
@@ -2742,10 +2730,23 @@ return (
                 <h2>الرئيسية الاحترافية</h2>
                 <p>مركز قيادة شامل لمتابعة المبيعات والطلبات والزوار والمخزون من مكان واحد.</p>
               </div>
-              <div className="dashboard-hero-badge">
-                <b>{formatOrderDate(new Date())}</b>
-                <small>آخر تحديث</small>
+              <div className="dashboard-hero-actions">
+                <button type="button" className="dashboard-preview-btn" onClick={() => go("/")}>معاينة المتجر</button>
+                <div className="dashboard-hero-badge">
+                  <b>{formatOrderDate(new Date())}</b>
+                  <small>آخر تحديث</small>
+                </div>
               </div>
+            </div>
+
+            <div className="admin-health-grid dashboard-health-under-hero">
+              {adminHealthCards.map(card => (
+                <div className={`admin-health-card ${card.tone}`} key={card.label}>
+                  <div>{card.icon}</div>
+                  <span>{card.label}</span>
+                  <b>{card.value}</b>
+                </div>
+              ))}
             </div>
 
             <div className="dashboard-stats-grid">
