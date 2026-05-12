@@ -3,7 +3,7 @@ import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
   Save, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList, Download, Bell, TrendingUp, AlertTriangle, CheckCircle2
+  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -3827,6 +3827,42 @@ return (
           </section>
         )}
 
+        {tab === "users" && (
+          <section className="admin-card admin-placeholder-page">
+            <div className="pro-card-head">
+              <div>
+                <span>Admin Users</span>
+                <h2>المستخدمين</h2>
+                <p>إدارة مستخدمي لوحة التحكم والصلاحيات ستضاف هنا.</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {tab === "settings" && (
+          <section className="admin-card admin-placeholder-page">
+            <div className="pro-card-head">
+              <div>
+                <span>Store Settings</span>
+                <h2>الإعدادات</h2>
+                <p>إعدادات المتجر العامة وطرق التشغيل ستضاف هنا.</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {tab === "notifications" && (
+          <section className="admin-card admin-placeholder-page">
+            <div className="pro-card-head">
+              <div>
+                <span>Notifications Center</span>
+                <h2>الإشعارات</h2>
+                <p>إدارة تنبيهات الطلبات والعملاء والتحديثات ستضاف هنا.</p>
+              </div>
+            </div>
+          </section>
+        )}
+
         {tab === "customers" && <CustomersPanel customers={customers} orders={orders} />}
         {tab === "orders" && <OrdersPanel orders={orders} onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }} />}
       </main>
@@ -4409,6 +4445,9 @@ function titleFor(tab) {
     customers:"العملاء",
     orders:"الطلبات",
     coupons:"الكوبونات",
+    users:"المستخدمين",
+    settings:"الإعدادات",
+    notifications:"الإشعارات",
     homepage:"ثيم المتجر"
   }[tab];
 }
