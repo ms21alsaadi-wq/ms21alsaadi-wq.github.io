@@ -1457,7 +1457,7 @@ function HeroStyle() {
 
 
       .hero-admin-compact-form {
-        max-width: 1180px !important;
+        max-width: 100px !important;
         margin-inline: auto !important;
         display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
