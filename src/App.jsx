@@ -2958,31 +2958,7 @@ return (
               </div>
             </div>
 
-            <div className="dashboard-stats-grid">
-              <div className="dash-stat-card">
-                <span>إجمالي الطلبات</span>
-                <b>{dashboardOrders.length}</b>
-                <small>كل الطلبات المسجلة</small>
-              </div>
-
-              <div className="dash-stat-card gold">
-                <span>إجمالي المبيعات</span>
-                <b>{formatPrice(totalSales)} ر.س</b>
-                <small>قيمة كل الطلبات</small>
-              </div>
-
-              <div className="dash-stat-card">
-                <span>متوسط الطلب</span>
-                <b>{formatPrice(averageOrderValue)} ر.س</b>
-                <small>متوسط قيمة الطلب الواحد</small>
-              </div>
-
-              <div className="dash-stat-card">
-                <span>طلبات تحتاج متابعة</span>
-                <b>{pendingOrdersCount}</b>
-                <small>جديد أو قيد المعالجة</small>
-              </div>
-            </div>
+            
 
             <div className="admin-card funnel-panel">
               <div className="panel-head">
