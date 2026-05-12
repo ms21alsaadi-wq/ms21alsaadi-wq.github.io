@@ -1457,7 +1457,7 @@ function HeroStyle() {
 
 
       .hero-admin-compact-form {
-        max-width: 100px !important;
+        max-width: 1180px !important;
         margin-inline: auto !important;
         display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -2703,11 +2703,9 @@ return (
       </aside>
 
       <main className="admin-main">
-        {tab !== "dashboard" && (
-          <header className="admin-top">
-            <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
-          </header>
-        )}
+        <header className="admin-top">
+          <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
+        </header>
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "homepage") && (
           <div className="admin-save-bar">
@@ -2727,19 +2725,19 @@ return (
             <div className="admin-card dashboard-hero">
               <div>
                 <span>Store Overview</span>
-                <h2>الرئيسية الاحترافية</h2>
-                <p>مركز قيادة شامل لمتابعة المبيعات والطلبات والزوار والمخزون من مكان واحد.</p>
+                <h2>Dashboard</h2>
+                <p>نظرة سريعة على أداء متجر GREEN DIXAM والطلبات والمبيعات.</p>
               </div>
               <div className="dashboard-hero-actions">
-                <button type="button" className="dashboard-preview-btn" onClick={() => go("/")}>معاينة المتجر</button>
                 <div className="dashboard-hero-badge">
                   <b>{formatOrderDate(new Date())}</b>
                   <small>آخر تحديث</small>
                 </div>
+                <button type="button" className="preview-store-btn" onClick={() => go("/")}>معاينة المتجر</button>
               </div>
             </div>
 
-            <div className="admin-health-grid dashboard-health-under-hero">
+            <div className="admin-health-grid">
               {adminHealthCards.map(card => (
                 <div className={`admin-health-card ${card.tone}`} key={card.label}>
                   <div>{card.icon}</div>
