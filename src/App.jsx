@@ -2658,7 +2658,7 @@ return (
           {settings.logo ? <img className="admin-brand-logo" src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>{settings.storeName}</b>}
           <span>Admin Panel</span>
         </div>
-        <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرتيسية</button>
+        <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
         <button className={tab==="reports"?"on":""} onClick={()=>setTab("reports")}><TrendingUp/> التقارير</button>
         <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> هوية المتجر</button>
         <div className="admin-menu-group">
@@ -4438,7 +4438,7 @@ function Stat({label, value}) {
 }
 function titleFor(tab) {
   return {
-    dashboard:"الرئيسية",
+    dashboard:"الرتيسية",
     reports:"التقارير",
     identity:"هوية المتجر",
     products:"إدارة المنتجات",
