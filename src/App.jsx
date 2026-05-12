@@ -2737,8 +2737,8 @@ return (
             <div className="admin-card dashboard-hero">
               <div>
                 <span>Store Overview</span>
-                <h2>Dashboard</h2>
-                <p>نظرة سريعة على أداء متجر GREEN DIXAM والطلبات والمبيعات.</p>
+                <h2>الرئيسية الاحترافية</h2>
+                <p>مركز قيادة شامل لمتابعة المبيعات والطلبات والزوار والمخزون من مكان واحد.</p>
               </div>
               <div className="dashboard-hero-badge">
                 <b>{formatOrderDate(new Date())}</b>
@@ -2944,6 +2944,21 @@ return (
                   <div><span>المخزون</span><b>{products.reduce((sum,p)=>sum + Number(p.stock || 0), 0)}</b></div>
                 </div>
               </div>
+              <div className="admin-card dashboard-panel dashboard-actions-panel">
+                <div className="panel-head">
+                  <div>
+                    <span>Quick Actions</span>
+                    <h2>اختصارات سريعة</h2>
+                  </div>
+                </div>
+                <div className="dashboard-actions-grid">
+                  <button type="button" onClick={() => setTab("orders")}><ClipboardList size={18}/> إدارة الطلبات</button>
+                  <button type="button" onClick={() => setTab("products")}><PackagePlus size={18}/> إدارة المنتجات</button>
+                  <button type="button" onClick={() => setTab("customers")}><Users size={18}/> العملاء</button>
+                  <button type="button" onClick={() => setTab("reports")}><TrendingUp size={18}/> التقارير</button>
+                </div>
+              </div>
+
             </div>
           </section>
         )}
