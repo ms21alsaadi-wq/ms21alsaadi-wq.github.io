@@ -4438,7 +4438,7 @@ function Stat({label, value}) {
 }
 function titleFor(tab) {
   return {
-    dashboard:"الرتيسية",
+    dashboard:"الرئيسية",
     reports:"التقارير",
     identity:"هوية المتجر",
     products:"إدارة المنتجات",
