@@ -2689,6 +2689,9 @@ return (
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
         <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> المنتجات</button>
         <button className={tab==="coupons"?"on":""} onClick={()=>setTab("coupons")}><Palette/> الكوبونات</button>
+        <button className={tab==="users"?"on":""} onClick={()=>setTab("users")}><Users/> المستخدمين</button>
+        <button className={tab==="settings"?"on":""} onClick={()=>setTab("settings")}><Settings/> الإعدادات</button>
+        <button className={tab==="notifications"?"on":""} onClick={()=>setTab("notifications")}><Bell/> الإشعارات</button>
 
         <div className="admin-sidebar-card">
           <span>نبض المتجر</span>
