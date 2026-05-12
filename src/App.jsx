@@ -2703,9 +2703,11 @@ return (
       </aside>
 
       <main className="admin-main">
-        <header className="admin-top">
-          <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
-        </header>
+        {tab !== "dashboard" && (
+          <header className="admin-top">
+            <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
+          </header>
+        )}
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "homepage") && (
           <div className="admin-save-bar">
@@ -2944,21 +2946,6 @@ return (
                   <div><span>المخزون</span><b>{products.reduce((sum,p)=>sum + Number(p.stock || 0), 0)}</b></div>
                 </div>
               </div>
-              <div className="admin-card dashboard-panel dashboard-actions-panel">
-                <div className="panel-head">
-                  <div>
-                    <span>Quick Actions</span>
-                    <h2>اختصارات سريعة</h2>
-                  </div>
-                </div>
-                <div className="dashboard-actions-grid">
-                  <button type="button" onClick={() => setTab("orders")}><ClipboardList size={18}/> إدارة الطلبات</button>
-                  <button type="button" onClick={() => setTab("products")}><PackagePlus size={18}/> إدارة المنتجات</button>
-                  <button type="button" onClick={() => setTab("customers")}><Users size={18}/> العملاء</button>
-                  <button type="button" onClick={() => setTab("reports")}><TrendingUp size={18}/> التقارير</button>
-                </div>
-              </div>
-
             </div>
           </section>
         )}
