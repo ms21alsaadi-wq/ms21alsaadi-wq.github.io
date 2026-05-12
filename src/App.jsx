@@ -2603,7 +2603,6 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const activeProductsCount = products.filter(p => p.status !== "hidden").length;
   const averageOrderValue = dashboardOrders.length ? Math.round(totalSales / dashboardOrders.length) : 0;
   const adminHealthCards = [
-    { label: "طلبات تحتاج متابعة", value: pendingOrdersCount, tone: pendingOrdersCount ? "warning" : "good", icon: <Bell size={18}/> },
     { label: "منتجات منخفضة المخزون", value: lowStockProducts.length, tone: lowStockProducts.length ? "warning" : "good", icon: <AlertTriangle size={18}/> },
     { label: "منتجات ظاهرة", value: activeProductsCount, tone: "neutral", icon: <CheckCircle2 size={18}/> },
     { label: "متوسط الطلب", value: `${formatPrice(averageOrderValue)} ر.س`, tone: "neutral", icon: <TrendingUp size={18}/> }
