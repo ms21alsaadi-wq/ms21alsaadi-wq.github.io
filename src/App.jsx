@@ -2660,6 +2660,7 @@ return (
         </div>
         <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
         <button className={tab==="reports"?"on":""} onClick={()=>setTab("reports")}><TrendingUp/> التقارير</button>
+        <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> هوية المتجر</button>
         <div className="admin-menu-group">
           <button
             className={tab==="homepage"?"on":""}
@@ -2684,7 +2685,6 @@ return (
             </div>
           )}
         </div>
-        <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> هوية المتجر</button>
         <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> المنتجات</button>
         <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
         <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> الطلبات</button>
