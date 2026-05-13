@@ -7146,3 +7146,32 @@ a[href="./"]:hover {
   .preview-store-btn,
   .dashboard-hero-badge { width: 100%; }
 }
+
+/* ===== ADMIN FINAL SCREEN SCALE FIX =====
+   Makes the admin content visually smaller on normal desktop zoom without changing order or features. */
+:root {
+  --gd-admin-screen-scale: .88;
+}
+
+@supports (zoom: 1) {
+  .admin-main {
+    zoom: var(--gd-admin-screen-scale) !important;
+    max-width: 1740px !important;
+  }
+}
+
+@supports not (zoom: 1) {
+  .admin-main > * {
+    transform: scale(var(--gd-admin-screen-scale));
+    transform-origin: top right;
+    width: calc(100% / var(--gd-admin-screen-scale));
+  }
+}
+
+@media (max-width: 1200px) {
+  :root { --gd-admin-screen-scale: .95; }
+}
+
+@media (max-width: 780px) {
+  :root { --gd-admin-screen-scale: 1; }
+}
