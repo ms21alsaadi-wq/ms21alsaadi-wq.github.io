@@ -7266,3 +7266,109 @@ a[href="./"]:hover {
     padding: 18px !important;
   }
 }
+
+/* ===== ADMIN FULL WIDTH LAYOUT FIX ===== */
+@media (min-width: 1051px) {
+  .admin {
+    grid-template-columns: 190px minmax(0, 1fr) !important;
+    width: 100vw !important;
+    max-width: none !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-sidebar {
+    width: 190px !important;
+    min-width: 190px !important;
+    padding: 12px 10px !important;
+    gap: 6px !important;
+  }
+
+  .admin-brand {
+    padding: 10px 8px 14px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .admin-brand-logo {
+    max-width: 92px !important;
+    max-height: 64px !important;
+    object-fit: contain !important;
+  }
+
+  .admin-brand b {
+    font-size: 18px !important;
+    line-height: 1.1 !important;
+  }
+
+  .admin-brand span {
+    font-size: 9px !important;
+    letter-spacing: .08em !important;
+  }
+
+  .admin-sidebar button {
+    min-height: 36px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    gap: 6px !important;
+  }
+
+  .admin-sidebar button svg {
+    width: 14px !important;
+    height: 14px !important;
+    flex: 0 0 14px !important;
+  }
+
+  .admin-submenu {
+    gap: 5px !important;
+    padding-inline: 6px !important;
+  }
+
+  .admin-submenu button {
+    min-height: 32px !important;
+    font-size: 11px !important;
+    padding: 7px 9px !important;
+  }
+
+  .admin-sidebar-card {
+    padding: 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .admin-sidebar-card b {
+    font-size: 26px !important;
+  }
+
+  .side-bottom {
+    padding-top: 8px !important;
+  }
+
+  .admin-main {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 18px 20px !important;
+    box-sizing: border-box !important;
+  }
+
+  .dashboard-pro-page,
+  .admin-main > section,
+  .admin-main > .admin-card,
+  .admin-main > form,
+  .admin-main > div:not(.notice) {
+    max-width: none !important;
+  }
+
+  .dashboard-hero,
+  .admin-health-grid,
+  .dashboard-stats-grid,
+  .funnel-panel,
+  .live-analytics-panel {
+    width: 100% !important;
+  }
+
+  .admin-top,
+  .dashboard-hero,
+  .admin-card {
+    border-radius: 20px !important;
+  }
+}
