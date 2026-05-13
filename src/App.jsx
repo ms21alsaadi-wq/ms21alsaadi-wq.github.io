@@ -2031,6 +2031,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [showLiveVisitors, setShowLiveVisitors] = useState(false);
   const [liveEvents, setLiveEvents] = useState([]);
   const [funnelStats, setFunnelStats] = useState({ visit_store:0, view_product:0, add_to_cart:0, checkout:0, purchase:0 });
+  const [reportRange, setReportRange] = useState("30");
 
   useEffect(() => {
     setDraftSettings(settings);
@@ -2610,6 +2611,56 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   ];
 
 
+  const reportNow = Date.now();
+  const reportDays = reportRange === "7" ? 7 : reportRange === "90" ? 90 : 30;
+  const reportStart = reportNow - reportDays * 24 * 60 * 60 * 1000;
+  const reportOrders = dashboardOrders.filter(o => orderTimestamp(o.createdAt) >= reportStart);
+  const reportSales = reportOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const reportAverageOrder = reportOrders.length ? Math.round(reportSales / reportOrders.length) : 0;
+  const previousStart = reportStart - reportDays * 24 * 60 * 60 * 1000;
+  const previousOrders = dashboardOrders.filter(o => {
+    const ts = orderTimestamp(o.createdAt);
+    return ts >= previousStart && ts < reportStart;
+  });
+  const previousSales = previousOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const salesChange = previousSales ? Math.round(((reportSales - previousSales) / previousSales) * 100) : (reportSales ? 100 : 0);
+  const ordersChange = previousOrders.length ? Math.round(((reportOrders.length - previousOrders.length) / previousOrders.length) * 100) : (reportOrders.length ? 100 : 0);
+  const reportPendingOrders = reportOrders.filter(o => ["new", "processing"].includes(o.status || "new")).length;
+  const reportCompletedOrders = reportOrders.filter(o => ["done", "completed", "delivered"].includes(o.status || "")).length;
+  const reportConversion = funnelStats.visit_store ? Math.round((funnelStats.purchase / funnelStats.visit_store) * 100) : 0;
+
+  const reportProductSalesMap = {};
+  reportOrders.forEach(order => {
+    (order.items || []).forEach(item => {
+      const key = item.name || "منتج غير معروف";
+      if (!reportProductSalesMap[key]) reportProductSalesMap[key] = { name: key, qty: 0, value: 0 };
+      reportProductSalesMap[key].qty += Number(item.qty || 1);
+      reportProductSalesMap[key].value += Number(item.price || 0) * Number(item.qty || 1);
+    });
+  });
+  const reportBestSellers = Object.values(reportProductSalesMap).sort((a, b) => b.value - a.value).slice(0, 6);
+
+  const reportStatusRows = [
+    { label: "جديد", value: reportOrders.filter(o => (o.status || "new") === "new").length },
+    { label: "قيد المعالجة", value: reportOrders.filter(o => (o.status || "") === "processing").length },
+    { label: "مكتمل", value: reportCompletedOrders },
+    { label: "ملغي", value: reportOrders.filter(o => ["cancelled", "canceled"].includes(o.status || "")).length }
+  ];
+  const cityStats = reportOrders.reduce((acc, o) => {
+    const city = o.city || o.customerCity || o.shippingCity || "غير محدد";
+    acc[city] = (acc[city] || 0) + 1;
+    return acc;
+  }, {});
+  const topCities = Object.entries(cityStats).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const activeCoupons = coupons.filter(c => c.active !== false).length;
+  const expiredCoupons = coupons.filter(c => c.expiresAt && new Date(c.expiresAt).getTime() < reportNow).length;
+  const reportAlerts = [
+    { title: "طلبات تحتاج متابعة", value: reportPendingOrders, text: "طلبات جديدة أو قيد المعالجة" },
+    { title: "مخزون منخفض", value: lowStockProducts.length, text: "منتجات تحتاج إعادة توفير" },
+    { title: "كوبونات منتهية", value: expiredCoupons, text: "راجع صلاحية العروض" }
+  ];
+
+
   const livePageStats = liveVisitorRows.reduce((acc, visitor) => {
     const key = visitor.path || "/";
     acc[key] = (acc[key] || 0) + 1;
@@ -2951,125 +3002,145 @@ return (
 
 
         {tab === "reports" && (
-          <section className="dashboard-pro-page reports-page">
-            <div className="admin-card dashboard-hero">
+          <section className="reports-pro-page">
+            <div className="admin-card reports-hero-pro">
               <div>
                 <span>Reports Center</span>
-                <h2>التقارير</h2>
-                <p>ملخص واضح لأداء المبيعات والطلبات والمنتجات داخل المتجر.</p>
+                <h2>تقارير المتجر</h2>
+                <p>لوحة تحليلية تجمع المبيعات والطلبات والمنتجات والمخزون في مكان واحد لاتخاذ قرارات أسرع.</p>
               </div>
-              <div className="dashboard-hero-badge">
-                <b>{formatOrderDate(new Date())}</b>
-                <small>آخر تحديث</small>
+              <div className="reports-toolbar">
+                <div className="report-range-tabs">
+                  <button className={reportRange === "7" ? "active" : ""} onClick={() => setReportRange("7")}>7 أيام</button>
+                  <button className={reportRange === "30" ? "active" : ""} onClick={() => setReportRange("30")}>30 يوم</button>
+                  <button className={reportRange === "90" ? "active" : ""} onClick={() => setReportRange("90")}>90 يوم</button>
+                </div>
+                <button className="report-export-btn" onClick={exportOrdersCsv}><Download size={16}/> تصدير الطلبات</button>
               </div>
             </div>
 
-            <div className="dashboard-stats-grid">
-              <div className="dash-stat-card">
-                <span>إجمالي الطلبات</span>
-                <b>{dashboardOrders.length}</b>
-                <small>كل الطلبات المسجلة</small>
+            <div className="reports-kpi-grid">
+              <div className="report-kpi-card primary">
+                <span>مبيعات الفترة</span>
+                <b>{formatPrice(reportSales)} ر.س</b>
+                <small className={salesChange >= 0 ? "positive" : "negative"}>{salesChange >= 0 ? "+" : ""}{salesChange}% مقارنة بالفترة السابقة</small>
               </div>
-
-              <div className="dash-stat-card gold">
-                <span>إجمالي المبيعات</span>
-                <b>{formatPrice(totalSales)} ر.س</b>
-                <small>قيمة كل الطلبات</small>
+              <div className="report-kpi-card">
+                <span>طلبات الفترة</span>
+                <b>{reportOrders.length}</b>
+                <small className={ordersChange >= 0 ? "positive" : "negative"}>{ordersChange >= 0 ? "+" : ""}{ordersChange}% مقارنة بالفترة السابقة</small>
               </div>
-
-              <div className="dash-stat-card">
-                <span>متوسط الطلب</span>
-                <b>{formatPrice(averageOrderValue)} ر.س</b>
-                <small>متوسط قيمة الطلب الواحد</small>
+              <div className="report-kpi-card">
+                <span>متوسط قيمة الطلب</span>
+                <b>{formatPrice(reportAverageOrder)} ر.س</b>
+                <small>متوسط إنفاق العميل في الطلب الواحد</small>
               </div>
-
-              <div className="dash-stat-card">
+              <div className="report-kpi-card warning">
                 <span>طلبات تحتاج متابعة</span>
-                <b>{pendingOrdersCount}</b>
-                <small>جديد أو قيد المعالجة</small>
+                <b>{reportPendingOrders}</b>
+                <small>جديدة أو قيد المعالجة</small>
+              </div>
+              <div className="report-kpi-card">
+                <span>معدل التحويل</span>
+                <b>{reportConversion}%</b>
+                <small>من الزيارة إلى الطلب حسب التتبع</small>
+              </div>
+              <div className="report-kpi-card">
+                <span>كوبونات فعالة</span>
+                <b>{activeCoupons}</b>
+                <small>{expiredCoupons} كوبون منتهي يحتاج مراجعة</small>
               </div>
             </div>
 
-            <div className="admin-card funnel-panel">
-              <div className="panel-head">
-                <div>
-                  <span>Sales Funnel</span>
-                  <h2>مسار التحويل</h2>
-                </div>
-              </div>
-
-              <div className="funnel-grid">
-                <div className="funnel-step"><b>{funnelStats.visit_store}</b><span>زار المتجر</span></div>
-                <div className="funnel-arrow">→</div>
-                <div className="funnel-step"><b>{funnelStats.view_product}</b><span>فتح منتج</span></div>
-                <div className="funnel-arrow">→</div>
-                <div className="funnel-step"><b>{funnelStats.add_to_cart}</b><span>أضاف للسلة</span></div>
-                <div className="funnel-arrow">→</div>
-                <div className="funnel-step"><b>{funnelStats.checkout}</b><span>وصل الدفع</span></div>
-                <div className="funnel-arrow">→</div>
-                <div className="funnel-step success"><b>{funnelStats.purchase}</b><span>تم الطلب</span></div>
-              </div>
-            </div>
-
-            <div className="dashboard-main-grid">
-              <div className="admin-card dashboard-panel">
-                <div className="panel-head">
+            <div className="reports-grid-main">
+              <div className="admin-card report-panel report-wide">
+                <div className="panel-head report-panel-head">
                   <div>
-                    <span>Best Sellers</span>
-                    <h2>الأكثر مبيعاً</h2>
+                    <span>Sales Funnel</span>
+                    <h2>مسار التحويل</h2>
                   </div>
+                  <small>يساعدك تعرف أين يتوقف العميل قبل إتمام الطلب</small>
                 </div>
-                <div className="recent-orders-list">
-                  {adminBestSellers.length ? adminBestSellers.map(product => (
-                    <div className="recent-order-row" key={product.name}>
-                      <div>
-                        <b>{product.name}</b>
-                        <span>تم بيع {product.qty} قطعة</span>
-                      </div>
-                      <em>{formatPrice(product.value)} ر.س</em>
-                    </div>
-                  )) : <div className="dashboard-empty">لا توجد مبيعات بعد</div>}
+                <div className="report-funnel-line">
+                  <div><b>{funnelStats.visit_store}</b><span>زيارة</span></div>
+                  <div><b>{funnelStats.view_product}</b><span>عرض منتج</span></div>
+                  <div><b>{funnelStats.add_to_cart}</b><span>إضافة للسلة</span></div>
+                  <div><b>{funnelStats.checkout}</b><span>الدفع</span></div>
+                  <div className="success"><b>{funnelStats.purchase}</b><span>طلب مكتمل</span></div>
                 </div>
               </div>
 
-              <div className="admin-card dashboard-panel">
-                <div className="panel-head">
-                  <div>
-                    <span>Recent Orders</span>
-                    <h2>آخر الطلبات</h2>
-                  </div>
+              <div className="admin-card report-panel">
+                <div className="panel-head report-panel-head">
+                  <div><span>Order Status</span><h2>حالة الطلبات</h2></div>
                 </div>
-                <div className="recent-orders-list">
-                  {dashboardOrders.slice().sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt)).slice(0, 5).map(o => (
-                    <div className="recent-order-row" key={o.id}>
-                      <div>
-                        <b>{o.name || o.customerName || "طلب عميل"}</b>
-                        <span>{formatOrderDate(o.createdAt)}</span>
-                      </div>
-                      <em>{formatPrice(o.total)} ر.س</em>
+                <div className="report-status-list">
+                  {reportStatusRows.map(row => (
+                    <div className="report-status-row" key={row.label}>
+                      <span>{row.label}</span>
+                      <b>{row.value}</b>
                     </div>
                   ))}
-                  {dashboardOrders.length === 0 && <div className="dashboard-empty">لا توجد طلبات حتى الآن</div>}
                 </div>
               </div>
 
-              <div className="admin-card dashboard-panel">
-                <div className="panel-head">
-                  <div>
-                    <span>Inventory</span>
-                    <h2>تنبيه المخزون</h2>
-                  </div>
+              <div className="admin-card report-panel">
+                <div className="panel-head report-panel-head">
+                  <div><span>Top Products</span><h2>الأكثر مبيعًا</h2></div>
                 </div>
-                <div className="recent-orders-list">
-                  {lowStockProducts.length ? lowStockProducts.slice(0, 5).map(product => (
-                    <div className="recent-order-row" key={product.id}>
-                      <div>
-                        <b>{product.name}</b>
-                        <span>مخزون منخفض</span>
-                      </div>
-                      <em>{Number(product.stock || 0)}</em>
+                <div className="report-list">
+                  {reportBestSellers.length ? reportBestSellers.map(item => (
+                    <div className="report-list-row" key={item.name}>
+                      <div><b>{item.name}</b><span>{item.qty} قطعة مباعة</span></div>
+                      <em>{formatPrice(item.value)} ر.س</em>
                     </div>
-                  )) : <div className="dashboard-empty">لا توجد منتجات منخفضة المخزون</div>}
+                  )) : <div className="dashboard-empty">لا توجد مبيعات في الفترة المحددة</div>}
+                </div>
+              </div>
+
+              <div className="admin-card report-panel">
+                <div className="panel-head report-panel-head">
+                  <div><span>Top Cities</span><h2>المدن الأعلى طلبًا</h2></div>
+                </div>
+                <div className="report-list compact">
+                  {topCities.length ? topCities.map(([city, count]) => (
+                    <div className="report-list-row" key={city}>
+                      <div><b>{city}</b><span>عدد الطلبات</span></div>
+                      <em>{count}</em>
+                    </div>
+                  )) : <div className="dashboard-empty">لا توجد بيانات مدن حتى الآن</div>}
+                </div>
+              </div>
+
+              <div className="admin-card report-panel">
+                <div className="panel-head report-panel-head">
+                  <div><span>Inventory Alerts</span><h2>تنبيهات مهمة</h2></div>
+                </div>
+                <div className="report-alerts">
+                  {reportAlerts.map(alert => (
+                    <div className={alert.value ? "report-alert active" : "report-alert"} key={alert.title}>
+                      <b>{alert.value}</b>
+                      <div><span>{alert.title}</span><small>{alert.text}</small></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="admin-card report-panel report-wide">
+                <div className="panel-head report-panel-head">
+                  <div><span>Recent Orders</span><h2>آخر الطلبات في الفترة</h2></div>
+                </div>
+                <div className="report-orders-table">
+                  <div className="report-orders-head"><span>العميل</span><span>التاريخ</span><span>الحالة</span><span>الإجمالي</span></div>
+                  {reportOrders.slice().sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt)).slice(0, 8).map(order => (
+                    <div className="report-orders-row" key={order.id}>
+                      <span>{order.name || order.customerName || "طلب عميل"}</span>
+                      <span>{formatOrderDate(order.createdAt)}</span>
+                      <span>{order.status || "new"}</span>
+                      <b>{formatPrice(order.total)} ر.س</b>
+                    </div>
+                  ))}
+                  {!reportOrders.length && <div className="dashboard-empty">لا توجد طلبات في الفترة المحددة</div>}
                 </div>
               </div>
             </div>
