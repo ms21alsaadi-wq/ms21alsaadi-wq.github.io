@@ -3461,9 +3461,6 @@ return (
                   </label>
                 </div>
 
-                
-              </div>
-
               <div className="products-safe-extra-cards balanced-products-grid">
                 <div className="pro-form-section products-safe-extra-card">
                   <h3><span className="product-section-icon">⭐</span> منتجات مميزة</h3>
