@@ -3628,9 +3628,9 @@ return (
                       </div>
 
                       <div className="admin-product-actions">
-                        <button className="product-action-icon edit" title="تعديل المنتج" onClick={()=>setEditing(p)}><Pencil size={15}/><span>تعديل</span></button>
-                        <button className="product-action-icon copy" title="نسخ المنتج" type="button" onClick={()=>duplicateProduct(p)}><Plus size={15}/><span>نسخ</span></button>
-                        <button className="product-action-icon danger" title="حذف المنتج" onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={15}/><span>حذف</span></button>
+                        <button onClick={()=>setEditing(p)}><Pencil size={16}/> تعديل كامل</button>
+                        <button type="button" onClick={()=>duplicateProduct(p)}><Plus size={16}/> نسخ</button>
+                        <button className="danger" onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={16}/> حذف</button>
                       </div>
                     </div>
                   </div>
