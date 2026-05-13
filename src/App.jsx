@@ -3461,7 +3461,67 @@ return (
                   </label>
                 </div>
 
-                <div className="form-actions pro-actions">
+                <div className="products-extra-cards-grid">
+                <div className="pro-form-section products-extra-card">
+                  <h3><span className="product-section-icon">⭐</span> منتجات مميزة</h3>
+                  <p>تحكم في إبراز المنتج داخل واجهة المتجر وصفحات العروض.</p>
+                  <label className="feature-toggle compact-feature-toggle">
+                    <input
+                      type="checkbox"
+                      checked={form.featured}
+                      onChange={(e)=>setForm({...form, featured:e.target.checked})}
+                    />
+                    <span>تفعيل المنتج كمنتج مميز</span>
+                  </label>
+                </div>
+
+                <div className="pro-form-section products-extra-card">
+                  <h3><span className="product-section-icon">%</span> المنتجات بخصم</h3>
+                  <p>أضف خصم واضح للمنتج ليظهر ضمن عروض وخصومات المتجر.</p>
+                  <div className="two">
+                    <div className="control">
+                      <label>سعر الخصم</label>
+                      <input
+                        type="number"
+                        placeholder="مثال: 79"
+                        value={form.salePrice}
+                        onChange={(e)=>setForm({...form, salePrice:e.target.value})}
+                      />
+                    </div>
+                    <div className="control">
+                      <label>وسم العرض</label>
+                      <input
+                        placeholder="مثال: خصم خاص"
+                        value={form.badge}
+                        onChange={(e)=>setForm({...form, badge:e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pro-form-section products-extra-card">
+                  <h3><span className="product-section-icon">🔎</span> SEO</h3>
+                  <p>حسّن ظهور المنتج في محركات البحث ونتائج المشاركة.</p>
+                  <div className="control">
+                    <label>عنوان SEO</label>
+                    <input
+                      placeholder="عنوان مناسب لمحركات البحث"
+                      value={form.seoTitle || form.name}
+                      onChange={(e)=>setForm({...form, seoTitle:e.target.value})}
+                    />
+                  </div>
+                  <div className="control">
+                    <label>وصف SEO</label>
+                    <textarea
+                      placeholder="وصف مختصر للمنتج"
+                      value={form.seoDescription || form.description}
+                      onChange={(e)=>setForm({...form, seoDescription:e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-actions pro-actions">
                   <button className="admin-primary"><Save size={16}/> {editing ? "حفظ التعديل" : "إضافة المنتج"}</button>
                   {editing && <button type="button" className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>إلغاء التعديل</button>}
                 </div>
