@@ -1382,7 +1382,7 @@ function HeroStyle() {
       }
 
       .hero-full-video {
-        position: absolute;
+        position: fixed;
         inset: 0;
         width: 100%;
         height: 100%;
@@ -1391,7 +1391,7 @@ function HeroStyle() {
       }
 
       .hero-media-overlay {
-        position: absolute;
+        position: fixed;
         inset: 0;
         background: linear-gradient(90deg, rgba(0,0,0,.64), rgba(0,0,0,.18), rgba(0,0,0,.48));
         z-index: 1;
