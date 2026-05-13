@@ -3378,110 +3378,113 @@ return (
                 {editing && <button className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>منتج جديد</button>}
               </div>
 
-              <form onSubmit={saveProduct} className="product-form pro-product-form pro-product-form-horizontal">
-                <div className="pro-form-section compact-product-info-section">
-                  <h3><span className="product-section-icon">📝</span> معلومات المنتج</h3>
-                  <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} required placeholder="مثال: مونستيرا فاخرة" /></Control>
-                  <Control label="الوصف"><textarea name="description" defaultValue={editing?.description || ""} placeholder="اكتب وصف مختصر وجميل للمنتج" /></Control>
-                  <div className="two">
-                    <Control label="النوع/المورد"><input name="brand" defaultValue={editing?.brand || ""} required placeholder="Monstera" /></Control>
-                    <Control label="القسم"><input name="category" defaultValue={editing?.category || "نباتات داخلية"} required /></Control>
-                  </div>
-                </div>
-
-                <div className="pro-form-section compact-product-pricing-section">
-                  <h3><span className="product-section-icon">🏷️</span> السعر والمخزون</h3>
-                  <div className="two">
-                    <Control label="السعر"><input name="price" type="number" min="0" step="1" defaultValue={editing?.price || ""} required /></Control>
-                    <Control label="السعر قبل الخصم"><input name="oldPrice" type="number" min="0" step="1" defaultValue={editing?.oldPrice || ""} /></Control>
-                  </div>
-                  <div className="two">
-                    <Control label="المخزون"><input name="stock" type="number" min="0" step="1" defaultValue={editing?.stock || 0} /></Control>
-                    <Control label="SKU"><input name="sku" defaultValue={editing?.sku || ""} placeholder="GD-PLANT-001" /></Control>
-                  </div>
-                  <div className="two">
-                    <Control label="حالة المنتج">
-                      <select name="status" defaultValue={editing?.status || "active"}>
-                        <option value="active">ظاهر في المتجر</option>
-                        <option value="hidden">مخفي</option>
-                      </select>
-                    </Control>
-                    <Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" min="0" defaultValue={editing?.rating || 4.8} /></Control>
-                  </div>
-                </div>
-
-                <div className="pro-form-section compact-product-media-section">
-                  <h3><span className="product-section-icon">🖼️</span> الخيارات والصورة</h3>
-                  <div className="two">
-                    <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
-                    <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={Array.isArray(editing?.sizes) ? editing.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")} /></Control>
-                    <Control label="الألوان">
-                      <input
-                        name="colors"
-                        defaultValue={Array.isArray(editing?.colors) ? editing.colors.join(",") : (editing?.colors || "")}
-                        placeholder="أخضر, أبيض, أسود"
-                      />
-                    </Control>
-                  </div>
-                  <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
-                  <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
-                  <Control label="رفع صور متعددة للمعرض">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={e => uploadGalleryImages(e.target.files)}
-                    />
-                  </Control>
-                  {imagePreview && <div className="product-image-preview pro-preview"><span>الصورة الأساسية</span><img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" /></div>}
-
-                  {galleryImages.length > 0 && (
-                    <div className="gallery-manager">
-                      <div className="gallery-manager-head">
-                        <b>معرض الصور</b>
-                        <small>{galleryImages.length} صورة</small>
-                      </div>
-
-                      <div className="gallery-grid">
-                        {galleryImages.map((img, index) => (
-                          <div className={`gallery-item ${imagePreview === img ? "primary" : ""}`} key={`${img}-${index}`}>
-                            <img src={img} alt={`gallery-${index}`} loading="lazy" decoding="async" />
-                            <div className="gallery-actions">
-                              <button type="button" onClick={() => makeGalleryImagePrimary(img)}>أساسية</button>
-                              <button type="button" className="danger" onClick={() => removeGalleryImage(index)}>حذف</button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+              <form onSubmit={saveProduct} className="product-form products-six-card-form">
+                <div className="products-six-card-grid">
+                  <div className="pro-form-section product-six-card">
+                    <h3><span className="product-section-icon">📝</span> معلومات المنتج</h3>
+                    <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} required placeholder="مثال: مونستيرا فاخرة" /></Control>
+                    <Control label="الوصف"><textarea name="description" defaultValue={editing?.description || ""} placeholder="اكتب وصف مختصر وجميل للمنتج" /></Control>
+                    <div className="two">
+                      <Control label="النوع/المورد"><input name="brand" defaultValue={editing?.brand || ""} required placeholder="Monstera" /></Control>
+                      <Control label="القسم"><input name="category" defaultValue={editing?.category || "نباتات داخلية"} required /></Control>
                     </div>
-                  )}
-                  <label className="feature-toggle">
-                    <input name="featured" type="checkbox" defaultChecked={editing?.featured || false} />
-                    <span>منتج مميز في الواجهة</span>
-                  </label>
+                  </div>
+
+                  <div className="pro-form-section product-six-card">
+                    <h3><span className="product-section-icon">🏷️</span> السعر والمخزون</h3>
+                    <div className="two">
+                      <Control label="السعر"><input name="price" type="number" min="0" step="1" defaultValue={editing?.price || ""} required /></Control>
+                      <Control label="السعر قبل الخصم"><input name="oldPrice" type="number" min="0" step="1" defaultValue={editing?.oldPrice || ""} /></Control>
+                    </div>
+                    <div className="two">
+                      <Control label="المخزون"><input name="stock" type="number" min="0" step="1" defaultValue={editing?.stock || 0} /></Control>
+                      <Control label="SKU"><input name="sku" defaultValue={editing?.sku || ""} placeholder="GD-PLANT-001" /></Control>
+                    </div>
+                    <div className="two">
+                      <Control label="حالة المنتج">
+                        <select name="status" defaultValue={editing?.status || "active"}>
+                          <option value="active">ظاهر في المتجر</option>
+                          <option value="hidden">مخفي</option>
+                        </select>
+                      </Control>
+                      <Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" min="0" defaultValue={editing?.rating || 4.8} /></Control>
+                    </div>
+                  </div>
+
+                  <div className="pro-form-section product-six-card">
+                    <h3><span className="product-section-icon">🖼️</span> الخيارات والصورة</h3>
+                    <div className="three">
+                      <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
+                      <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={Array.isArray(editing?.sizes) ? editing.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")} /></Control>
+                      <Control label="الألوان"><input name="colors" defaultValue={Array.isArray(editing?.colors) ? editing.colors.join(",") : (editing?.colors || "")} placeholder="أخضر, أبيض, أسود" /></Control>
+                    </div>
+                    <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
+                    <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
+                    {imagePreview && <div className="product-image-preview pro-preview compact-preview"><span>الصورة الأساسية</span><img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" /></div>}
+                  </div>
+
+                  <div className="pro-form-section product-six-card">
+                    <h3><span className="product-section-icon">⭐</span> منتجات مميزة</h3>
+                    <p className="product-card-help">فعّل ظهور المنتج ضمن المنتجات البارزة في واجهة المتجر.</p>
+                    <label className="feature-toggle compact-feature-toggle">
+                      <input name="featured" type="checkbox" defaultChecked={editing?.featured || false} />
+                      <span>منتج مميز في الواجهة</span>
+                    </label>
+                    <div className="product-card-note">يعتمد على نفس خيار المنتج المميز الحالي.</div>
+                  </div>
+
+                  <div className="pro-form-section product-six-card">
+                    <h3><span className="product-section-icon">%</span> المنتجات بخصم</h3>
+                    <p className="product-card-help">أي منتج له سعر قبل الخصم سيظهر كمنتج عليه عرض.</p>
+                    <div className="two">
+                      <Control label="السعر الحالي"><input name="priceDisplayOnly" type="text" value={editing?.price || ""} readOnly placeholder="من حقل السعر" /></Control>
+                      <Control label="سعر قبل الخصم"><input name="oldPriceDisplayOnly" type="text" value={editing?.oldPrice || ""} readOnly placeholder="من حقل السعر قبل الخصم" /></Control>
+                    </div>
+                    <div className="product-card-note">عدّل الخصم من كرت السعر والمخزون.</div>
+                  </div>
+
+                  <div className="pro-form-section product-six-card">
+                    <h3><span className="product-section-icon">🔎</span> SEO</h3>
+                    <p className="product-card-help">تحسين تلقائي يعتمد على اسم المنتج والوصف والصورة.</p>
+                    <div className="seo-preview-box">
+                      <b>{editing?.name || "اسم المنتج"}</b>
+                      <span>{editing?.description || "وصف المنتج يظهر هنا بعد الحفظ"}</span>
+                    </div>
+                    <div className="product-card-note">لا يغيّر بنية البيانات الحالية.</div>
+                  </div>
                 </div>
 
-              <div className="products-safe-extra-cards balanced-products-grid">
-                <div className="pro-form-section products-safe-extra-card">
-                  <h3><span className="product-section-icon">⭐</span> منتجات مميزة</h3>
-                  <p>عرض المنتجات المهمة داخل واجهة المتجر والصفحات الرئيسية.</p>
-                  <div className="products-safe-card-note">يعتمد على خيار المنتج المميز الحالي.</div>
-                </div>
+                <Control label="رفع صور متعددة للمعرض">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={e => uploadGalleryImages(e.target.files)}
+                  />
+                </Control>
 
-                <div className="pro-form-section products-safe-extra-card">
-                  <h3><span className="product-section-icon">%</span> المنتجات بخصم</h3>
-                  <p>أي منتج يحتوي على خصم سيظهر ضمن منتجات العروض والتخفيضات.</p>
-                  <div className="products-safe-card-note">يعتمد على حقل الخصم الحالي.</div>
-                </div>
+                {galleryImages.length > 0 && (
+                  <div className="gallery-manager compact-gallery-manager">
+                    <div className="gallery-manager-head">
+                      <b>معرض الصور</b>
+                      <small>{galleryImages.length} صورة</small>
+                    </div>
 
-                <div className="pro-form-section products-safe-extra-card">
-                  <h3><span className="product-section-icon">🔎</span> SEO</h3>
-                  <p>تحسين ظهور المنتج في محركات البحث والمشاركة وروابط المتجر.</p>
-                  <div className="products-safe-card-note">تحسين تلقائي اعتمادًا على البيانات الحالية.</div>
-                </div>
-              </div>
+                    <div className="gallery-grid">
+                      {galleryImages.map((img, index) => (
+                        <div className={`gallery-item ${imagePreview === img ? "primary" : ""}`} key={`${img}-${index}`}>
+                          <img src={img} alt={`gallery-${index}`} loading="lazy" decoding="async" />
+                          <div className="gallery-actions">
+                            <button type="button" onClick={() => makeGalleryImagePrimary(img)}>أساسية</button>
+                            <button type="button" className="danger" onClick={() => removeGalleryImage(index)}>حذف</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              <div className="form-actions pro-actions">
+                <div className="form-actions pro-actions">
                   <button className="admin-primary"><Save size={16}/> {editing ? "حفظ التعديل" : "إضافة المنتج"}</button>
                   {editing && <button type="button" className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>إلغاء التعديل</button>}
                 </div>
