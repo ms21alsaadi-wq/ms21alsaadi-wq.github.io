@@ -2031,7 +2031,6 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [showLiveVisitors, setShowLiveVisitors] = useState(false);
   const [liveEvents, setLiveEvents] = useState([]);
   const [funnelStats, setFunnelStats] = useState({ visit_store:0, view_product:0, add_to_cart:0, checkout:0, purchase:0 });
-  const [reportRange, setReportRange] = useState("30");
 
   useEffect(() => {
     setDraftSettings(settings);
@@ -2603,61 +2602,89 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const lowStockProducts = products.filter(p => Number(p.stock || 0) <= 3 && p.status !== "hidden");
   const activeProductsCount = products.filter(p => p.status !== "hidden").length;
   const averageOrderValue = dashboardOrders.length ? Math.round(totalSales / dashboardOrders.length) : 0;
+
+  const reportStatusLabels = {
+    new: "جديد",
+    processing: "قيد المعالجة",
+    shipped: "تم الشحن",
+    completed: "مكتمل",
+    cancelled: "ملغي",
+    canceled: "ملغي"
+  };
+
+  const reportStatusRows = Object.entries(
+    dashboardOrders.reduce((acc, order) => {
+      const key = order.status || "new";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([status, count]) => ({
+    status,
+    label: reportStatusLabels[status] || status,
+    count,
+    percent: dashboardOrders.length ? Math.round((count / dashboardOrders.length) * 100) : 0
+  }));
+
+  const reportCityRows = Object.entries(
+    dashboardOrders.reduce((acc, order) => {
+      const city = order.city || order.shippingCity || order.address?.city || "غير محدد";
+      acc[city] = (acc[city] || 0) + 1;
+      return acc;
+    }, {})
+  ).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  const reportSalesRows = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date();
+    day.setDate(day.getDate() - (6 - index));
+    day.setHours(0, 0, 0, 0);
+    const nextDay = new Date(day);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const value = dashboardOrders
+      .filter(order => {
+        const time = orderTimestamp(order.createdAt);
+        return time >= day.getTime() && time < nextDay.getTime();
+      })
+      .reduce((sum, order) => sum + Number(order.total || 0), 0);
+    return {
+      label: day.toLocaleDateString("ar-SA", { weekday: "short" }),
+      value
+    };
+  });
+
+  const maxReportSales = Math.max(...reportSalesRows.map(row => row.value), 1);
+  const newCustomersCount = customers.filter(customer => orderTimestamp(customer.createdAt) >= weekStart.getTime()).length;
+  const usedCouponsCount = coupons.reduce((sum, coupon) => sum + Object.keys(coupon.usedBy || {}).length, 0);
+
+  const exportReportsCsv = () => {
+    const headers = ["metric", "value"];
+    const rows = [
+      ["total_sales", totalSales],
+      ["today_sales", todaySales],
+      ["total_orders", dashboardOrders.length],
+      ["week_orders", weekOrders.length],
+      ["average_order", averageOrderValue],
+      ["pending_orders", pendingOrdersCount],
+      ["low_stock_products", lowStockProducts.length],
+      ["new_customers_week", newCustomersCount],
+      ["coupon_uses", usedCouponsCount]
+    ];
+    const escapeCsv = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const csv = [headers, ...rows].map(row => row.map(escapeCsv).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `green-dixam-reports-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setNotice("تم تصدير تقرير الأداء");
+    setTimeout(() => setNotice(""), 2200);
+  };
   const adminHealthCards = [
     { label: "طلبات تحتاج متابعة", value: pendingOrdersCount, tone: pendingOrdersCount ? "warning" : "good", icon: <Bell size={18}/> },
     { label: "منتجات منخفضة المخزون", value: lowStockProducts.length, tone: lowStockProducts.length ? "warning" : "good", icon: <AlertTriangle size={18}/> },
     { label: "منتجات ظاهرة", value: activeProductsCount, tone: "neutral", icon: <CheckCircle2 size={18}/> },
     { label: "متوسط الطلب", value: `${formatPrice(averageOrderValue)} ر.س`, tone: "neutral", icon: <TrendingUp size={18}/> }
-  ];
-
-
-  const reportNow = Date.now();
-  const reportDays = reportRange === "7" ? 7 : reportRange === "90" ? 90 : 30;
-  const reportStart = reportNow - reportDays * 24 * 60 * 60 * 1000;
-  const reportOrders = dashboardOrders.filter(o => orderTimestamp(o.createdAt) >= reportStart);
-  const reportSales = reportOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-  const reportAverageOrder = reportOrders.length ? Math.round(reportSales / reportOrders.length) : 0;
-  const previousStart = reportStart - reportDays * 24 * 60 * 60 * 1000;
-  const previousOrders = dashboardOrders.filter(o => {
-    const ts = orderTimestamp(o.createdAt);
-    return ts >= previousStart && ts < reportStart;
-  });
-  const previousSales = previousOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-  const salesChange = previousSales ? Math.round(((reportSales - previousSales) / previousSales) * 100) : (reportSales ? 100 : 0);
-  const ordersChange = previousOrders.length ? Math.round(((reportOrders.length - previousOrders.length) / previousOrders.length) * 100) : (reportOrders.length ? 100 : 0);
-  const reportPendingOrders = reportOrders.filter(o => ["new", "processing"].includes(o.status || "new")).length;
-  const reportCompletedOrders = reportOrders.filter(o => ["done", "completed", "delivered"].includes(o.status || "")).length;
-  const reportConversion = funnelStats.visit_store ? Math.round((funnelStats.purchase / funnelStats.visit_store) * 100) : 0;
-
-  const reportProductSalesMap = {};
-  reportOrders.forEach(order => {
-    (order.items || []).forEach(item => {
-      const key = item.name || "منتج غير معروف";
-      if (!reportProductSalesMap[key]) reportProductSalesMap[key] = { name: key, qty: 0, value: 0 };
-      reportProductSalesMap[key].qty += Number(item.qty || 1);
-      reportProductSalesMap[key].value += Number(item.price || 0) * Number(item.qty || 1);
-    });
-  });
-  const reportBestSellers = Object.values(reportProductSalesMap).sort((a, b) => b.value - a.value).slice(0, 6);
-
-  const reportStatusRows = [
-    { label: "جديد", value: reportOrders.filter(o => (o.status || "new") === "new").length },
-    { label: "قيد المعالجة", value: reportOrders.filter(o => (o.status || "") === "processing").length },
-    { label: "مكتمل", value: reportCompletedOrders },
-    { label: "ملغي", value: reportOrders.filter(o => ["cancelled", "canceled"].includes(o.status || "")).length }
-  ];
-  const cityStats = reportOrders.reduce((acc, o) => {
-    const city = o.city || o.customerCity || o.shippingCity || "غير محدد";
-    acc[city] = (acc[city] || 0) + 1;
-    return acc;
-  }, {});
-  const topCities = Object.entries(cityStats).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const activeCoupons = coupons.filter(c => c.active !== false).length;
-  const expiredCoupons = coupons.filter(c => c.expiresAt && new Date(c.expiresAt).getTime() < reportNow).length;
-  const reportAlerts = [
-    { title: "طلبات تحتاج متابعة", value: reportPendingOrders, text: "طلبات جديدة أو قيد المعالجة" },
-    { title: "مخزون منخفض", value: lowStockProducts.length, text: "منتجات تحتاج إعادة توفير" },
-    { title: "كوبونات منتهية", value: expiredCoupons, text: "راجع صلاحية العروض" }
   ];
 
 
@@ -3003,150 +3030,172 @@ return (
 
         {tab === "reports" && (
           <section className="reports-pro-page">
-            <div className="admin-card reports-hero-pro">
+            <div className="reports-hero-card admin-card">
               <div>
                 <span>Reports Center</span>
-                <h2>تقارير المتجر</h2>
-                <p>لوحة تحليلية تجمع المبيعات والطلبات والمنتجات والمخزون في مكان واحد لاتخاذ قرارات أسرع.</p>
+                <h2>مركز التقارير</h2>
+                <p>قراءة سريعة لأداء المتجر، المبيعات، الطلبات، المنتجات، والتنبيهات المهمة.</p>
               </div>
-              <div className="reports-toolbar">
-                <div className="report-range-tabs">
-                  <button className={reportRange === "7" ? "active" : ""} onClick={() => setReportRange("7")}>7 أيام</button>
-                  <button className={reportRange === "30" ? "active" : ""} onClick={() => setReportRange("30")}>30 يوم</button>
-                  <button className={reportRange === "90" ? "active" : ""} onClick={() => setReportRange("90")}>90 يوم</button>
+              <div className="reports-hero-actions">
+                <button className="admin-secondary" type="button" onClick={exportReportsCsv}>تصدير التقرير CSV</button>
+                <div className="reports-update-pill">
+                  <b>{formatOrderDate(new Date())}</b>
+                  <small>آخر تحديث</small>
                 </div>
-                <button className="report-export-btn" onClick={exportOrdersCsv}><Download size={16}/> تصدير الطلبات</button>
               </div>
+            </div>
+
+            <div className="reports-filter-strip admin-card">
+              <button className="active" type="button">آخر 7 أيام</button>
+              <button type="button">هذا الشهر</button>
+              <button type="button">كل الفترة</button>
+              <span>سيتم ربط الفلاتر المتقدمة لاحقاً بدون التأثير على البيانات الحالية.</span>
             </div>
 
             <div className="reports-kpi-grid">
-              <div className="report-kpi-card primary">
-                <span>مبيعات الفترة</span>
-                <b>{formatPrice(reportSales)} ر.س</b>
-                <small className={salesChange >= 0 ? "positive" : "negative"}>{salesChange >= 0 ? "+" : ""}{salesChange}% مقارنة بالفترة السابقة</small>
+              <div className="reports-kpi-card admin-card">
+                <span>إجمالي المبيعات</span>
+                <b>{formatPrice(totalSales)} ر.س</b>
+                <small>كل الطلبات المسجلة</small>
               </div>
-              <div className="report-kpi-card">
-                <span>طلبات الفترة</span>
-                <b>{reportOrders.length}</b>
-                <small className={ordersChange >= 0 ? "positive" : "negative"}>{ordersChange >= 0 ? "+" : ""}{ordersChange}% مقارنة بالفترة السابقة</small>
+              <div className="reports-kpi-card admin-card">
+                <span>مبيعات اليوم</span>
+                <b>{formatPrice(todaySales)} ر.س</b>
+                <small>{todayOrders.length} طلب اليوم</small>
               </div>
-              <div className="report-kpi-card">
-                <span>متوسط قيمة الطلب</span>
-                <b>{formatPrice(reportAverageOrder)} ر.س</b>
-                <small>متوسط إنفاق العميل في الطلب الواحد</small>
+              <div className="reports-kpi-card admin-card">
+                <span>طلبات الأسبوع</span>
+                <b>{weekOrders.length}</b>
+                <small>آخر 7 أيام</small>
               </div>
-              <div className="report-kpi-card warning">
-                <span>طلبات تحتاج متابعة</span>
-                <b>{reportPendingOrders}</b>
-                <small>جديدة أو قيد المعالجة</small>
+              <div className="reports-kpi-card admin-card warning">
+                <span>تحتاج متابعة</span>
+                <b>{pendingOrdersCount}</b>
+                <small>طلبات جديدة أو قيد المعالجة</small>
               </div>
-              <div className="report-kpi-card">
-                <span>معدل التحويل</span>
-                <b>{reportConversion}%</b>
-                <small>من الزيارة إلى الطلب حسب التتبع</small>
+              <div className="reports-kpi-card admin-card">
+                <span>متوسط الطلب</span>
+                <b>{formatPrice(averageOrderValue)} ر.س</b>
+                <small>قيمة الطلب الواحد</small>
               </div>
-              <div className="report-kpi-card">
-                <span>كوبونات فعالة</span>
-                <b>{activeCoupons}</b>
-                <small>{expiredCoupons} كوبون منتهي يحتاج مراجعة</small>
+              <div className="reports-kpi-card admin-card danger">
+                <span>مخزون منخفض</span>
+                <b>{lowStockProducts.length}</b>
+                <small>منتجات تحتاج إعادة تعبئة</small>
               </div>
             </div>
 
-            <div className="reports-grid-main">
-              <div className="admin-card report-panel report-wide">
-                <div className="panel-head report-panel-head">
+            <div className="reports-layout-grid">
+              <div className="admin-card reports-chart-card">
+                <div className="panel-head">
                   <div>
-                    <span>Sales Funnel</span>
-                    <h2>مسار التحويل</h2>
+                    <span>Sales Trend</span>
+                    <h2>مبيعات آخر 7 أيام</h2>
                   </div>
-                  <small>يساعدك تعرف أين يتوقف العميل قبل إتمام الطلب</small>
                 </div>
-                <div className="report-funnel-line">
-                  <div><b>{funnelStats.visit_store}</b><span>زيارة</span></div>
-                  <div><b>{funnelStats.view_product}</b><span>عرض منتج</span></div>
-                  <div><b>{funnelStats.add_to_cart}</b><span>إضافة للسلة</span></div>
-                  <div><b>{funnelStats.checkout}</b><span>الدفع</span></div>
-                  <div className="success"><b>{funnelStats.purchase}</b><span>طلب مكتمل</span></div>
-                </div>
-              </div>
-
-              <div className="admin-card report-panel">
-                <div className="panel-head report-panel-head">
-                  <div><span>Order Status</span><h2>حالة الطلبات</h2></div>
-                </div>
-                <div className="report-status-list">
-                  {reportStatusRows.map(row => (
-                    <div className="report-status-row" key={row.label}>
+                <div className="reports-bars">
+                  {reportSalesRows.map(row => (
+                    <div className="reports-bar-item" key={row.label}>
+                      <div className="reports-bar-track"><i style={{ height: `${Math.max(8, Math.round((row.value / maxReportSales) * 100))}%` }} /></div>
+                      <b>{formatPrice(row.value)}</b>
                       <span>{row.label}</span>
-                      <b>{row.value}</b>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="admin-card report-panel">
-                <div className="panel-head report-panel-head">
-                  <div><span>Top Products</span><h2>الأكثر مبيعًا</h2></div>
+              <div className="admin-card reports-panel-card">
+                <div className="panel-head">
+                  <div>
+                    <span>Order Status</span>
+                    <h2>حالة الطلبات</h2>
+                  </div>
                 </div>
-                <div className="report-list">
-                  {reportBestSellers.length ? reportBestSellers.map(item => (
-                    <div className="report-list-row" key={item.name}>
-                      <div><b>{item.name}</b><span>{item.qty} قطعة مباعة</span></div>
-                      <em>{formatPrice(item.value)} ر.س</em>
+                <div className="reports-status-list">
+                  {reportStatusRows.length ? reportStatusRows.map(row => (
+                    <div className="reports-status-row" key={row.status}>
+                      <div><b>{row.label}</b><span>{row.count} طلب</span></div>
+                      <div className="reports-progress"><i style={{ width: `${row.percent}%` }} /></div>
+                      <em>{row.percent}%</em>
                     </div>
-                  )) : <div className="dashboard-empty">لا توجد مبيعات في الفترة المحددة</div>}
+                  )) : <div className="dashboard-empty">لا توجد طلبات بعد</div>}
+                </div>
+              </div>
+            </div>
+
+            <div className="reports-layout-grid three">
+              <div className="admin-card reports-panel-card">
+                <div className="panel-head">
+                  <div>
+                    <span>Best Sellers</span>
+                    <h2>الأكثر مبيعاً</h2>
+                  </div>
+                </div>
+                <div className="reports-list">
+                  {adminBestSellers.length ? adminBestSellers.map((product, index) => (
+                    <div className="reports-list-row" key={product.name}>
+                      <strong>{index + 1}</strong>
+                      <div><b>{product.name}</b><span>{product.qty} قطعة مباعة</span></div>
+                      <em>{formatPrice(product.value)} ر.س</em>
+                    </div>
+                  )) : <div className="dashboard-empty">لا توجد مبيعات بعد</div>}
                 </div>
               </div>
 
-              <div className="admin-card report-panel">
-                <div className="panel-head report-panel-head">
-                  <div><span>Top Cities</span><h2>المدن الأعلى طلبًا</h2></div>
+              <div className="admin-card reports-panel-card">
+                <div className="panel-head">
+                  <div>
+                    <span>Top Cities</span>
+                    <h2>المدن الأكثر طلباً</h2>
+                  </div>
                 </div>
-                <div className="report-list compact">
-                  {topCities.length ? topCities.map(([city, count]) => (
-                    <div className="report-list-row" key={city}>
-                      <div><b>{city}</b><span>عدد الطلبات</span></div>
-                      <em>{count}</em>
+                <div className="reports-list">
+                  {reportCityRows.length ? reportCityRows.map(([city, count]) => (
+                    <div className="reports-list-row" key={city}>
+                      <strong>•</strong>
+                      <div><b>{city}</b><span>{count} طلب</span></div>
                     </div>
-                  )) : <div className="dashboard-empty">لا توجد بيانات مدن حتى الآن</div>}
+                  )) : <div className="dashboard-empty">لا توجد بيانات مدن بعد</div>}
                 </div>
               </div>
 
-              <div className="admin-card report-panel">
-                <div className="panel-head report-panel-head">
-                  <div><span>Inventory Alerts</span><h2>تنبيهات مهمة</h2></div>
+              <div className="admin-card reports-panel-card reports-alerts-card">
+                <div className="panel-head">
+                  <div>
+                    <span>Admin Alerts</span>
+                    <h2>تنبيهات مهمة</h2>
+                  </div>
                 </div>
-                <div className="report-alerts">
-                  {reportAlerts.map(alert => (
-                    <div className={alert.value ? "report-alert active" : "report-alert"} key={alert.title}>
-                      <b>{alert.value}</b>
-                      <div><span>{alert.title}</span><small>{alert.text}</small></div>
-                    </div>
-                  ))}
+                <div className="reports-alert-list">
+                  <div><b>{pendingOrdersCount}</b><span>طلبات تحتاج متابعة</span></div>
+                  <div><b>{lowStockProducts.length}</b><span>منتجات منخفضة المخزون</span></div>
+                  <div><b>{newCustomersCount}</b><span>عملاء جدد خلال الأسبوع</span></div>
+                  <div><b>{usedCouponsCount}</b><span>استخدامات الكوبونات</span></div>
                 </div>
               </div>
+            </div>
 
-              <div className="admin-card report-panel report-wide">
-                <div className="panel-head report-panel-head">
-                  <div><span>Recent Orders</span><h2>آخر الطلبات في الفترة</h2></div>
+            <div className="admin-card reports-panel-card">
+              <div className="panel-head">
+                <div>
+                  <span>Recent Orders</span>
+                  <h2>آخر الطلبات</h2>
                 </div>
-                <div className="report-orders-table">
-                  <div className="report-orders-head"><span>العميل</span><span>التاريخ</span><span>الحالة</span><span>الإجمالي</span></div>
-                  {reportOrders.slice().sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt)).slice(0, 8).map(order => (
-                    <div className="report-orders-row" key={order.id}>
-                      <span>{order.name || order.customerName || "طلب عميل"}</span>
-                      <span>{formatOrderDate(order.createdAt)}</span>
-                      <span>{order.status || "new"}</span>
-                      <b>{formatPrice(order.total)} ر.س</b>
-                    </div>
-                  ))}
-                  {!reportOrders.length && <div className="dashboard-empty">لا توجد طلبات في الفترة المحددة</div>}
-                </div>
+              </div>
+              <div className="reports-table">
+                {dashboardOrders.slice().sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt)).slice(0, 6).map(order => (
+                  <div className="reports-table-row" key={order.id}>
+                    <b>{order.name || order.customerName || "طلب عميل"}</b>
+                    <span>{formatOrderDate(order.createdAt)}</span>
+                    <span>{reportStatusLabels[order.status || "new"] || order.status || "جديد"}</span>
+                    <em>{formatPrice(order.total)} ر.س</em>
+                  </div>
+                ))}
+                {dashboardOrders.length === 0 && <div className="dashboard-empty">لا توجد طلبات حتى الآن</div>}
               </div>
             </div>
           </section>
         )}
-
 
         {tab === "coupons" && (
           <section className="coupons-admin-page">
