@@ -7175,3 +7175,94 @@ a[href="./"]:hover {
 @media (max-width: 780px) {
   :root { --gd-admin-screen-scale: 1; }
 }
+
+/* ===== ADMIN SIZE TUNING - smaller screen and sidebar ===== */
+@media (min-width: 1051px) {
+  .admin {
+    grid-template-columns: 230px minmax(0, 1fr) !important;
+  }
+
+  .admin-sidebar {
+    width: 230px !important;
+    padding: 14px !important;
+    gap: 7px !important;
+  }
+
+  .admin-brand {
+    padding: 12px 10px 16px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .admin-brand b {
+    font-size: 21px !important;
+  }
+
+  .admin-brand span {
+    font-size: 10px !important;
+    letter-spacing: .09em !important;
+  }
+
+  .admin-sidebar button {
+    min-height: 39px !important;
+    padding: 9px 11px !important;
+    border-radius: 13px !important;
+    font-size: 13px !important;
+    gap: 7px !important;
+  }
+
+  .admin-sidebar button svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .side-bottom {
+    gap: 6px !important;
+    padding-top: 10px !important;
+  }
+
+  .admin-main {
+    padding: 22px !important;
+    max-width: 1380px !important;
+    width: 100% !important;
+    margin-inline: auto !important;
+  }
+
+  .admin-top {
+    padding: 16px !important;
+    border-radius: 22px !important;
+  }
+
+  .admin-top h1 {
+    font-size: 32px !important;
+  }
+
+  .admin-top span {
+    font-size: 12px !important;
+  }
+
+  .admin-actions button {
+    height: 38px !important;
+    padding: 0 13px !important;
+    border-radius: 13px !important;
+    font-size: 12px !important;
+  }
+
+  .admin-card,
+  .stat {
+    border-radius: 22px !important;
+  }
+
+  .admin-card {
+    padding: 18px !important;
+  }
+
+  .admin-card h2 {
+    font-size: 23px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .stat {
+    min-height: 122px !important;
+    padding: 18px !important;
+  }
+}
