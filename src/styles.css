@@ -7372,39 +7372,93 @@ a[href="./"]:hover {
   }
 }
 
-/* ===== CLEAN ADMIN SIDEBAR FIX - admin only, no store impact ===== */
+/* ===== ADMIN SIDEBAR TRUE FIX - fixed layout, admin only =====
+   Keeps the admin sidebar fixed while only the admin content scrolls.
+   This targets .admin only, so the storefront is not affected. */
 @media (min-width: 1051px) {
   .admin {
-    display: grid !important;
-    grid-template-columns: 190px minmax(0, 1fr) !important;
+    display: block !important;
+    position: relative !important;
     width: 100% !important;
     max-width: none !important;
-    align-items: start !important;
+    min-height: 100vh !important;
+    padding-right: 190px !important;
+    box-sizing: border-box !important;
     overflow-x: hidden !important;
+    background: #F5F1E8 !important;
   }
 
   .admin-sidebar {
-    position: sticky !important;
-    top: 0 !important;
+    position: fixed !important;
+    inset: 0 0 0 auto !important;
     width: 190px !important;
     min-width: 190px !important;
     max-width: 190px !important;
     height: 100vh !important;
+    height: 100dvh !important;
     max-height: 100vh !important;
+    max-height: 100dvh !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
     padding: 12px 10px !important;
-    align-self: start !important;
-    z-index: 30 !important;
+    z-index: 1000 !important;
   }
 
   .admin-main {
     width: 100% !important;
-    min-width: 0 !important;
     max-width: none !important;
+    min-width: 0 !important;
+    min-height: 100vh !important;
     margin: 0 !important;
     padding: 18px 20px !important;
     box-sizing: border-box !important;
+  }
+
+  .admin-brand {
+    padding: 10px 8px 14px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .admin-brand-logo {
+    max-width: 92px !important;
+    max-height: 64px !important;
+    object-fit: contain !important;
+  }
+
+  .admin-sidebar button {
+    min-height: 36px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    gap: 6px !important;
+  }
+
+  .admin-sidebar button svg {
+    width: 14px !important;
+    height: 14px !important;
+    flex: 0 0 14px !important;
+  }
+
+  .admin-submenu button {
+    min-height: 32px !important;
+    font-size: 11px !important;
+    padding: 7px 9px !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .admin {
+    display: block !important;
+    padding-right: 0 !important;
+  }
+
+  .admin-sidebar {
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
   }
 }
