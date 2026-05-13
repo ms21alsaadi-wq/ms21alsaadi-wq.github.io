@@ -3462,27 +3462,6 @@ return (
                   </div>
                 </div>
 
-
-                  <div className="pro-form-section product-six-card product-live-preview-card">
-                    <h3><span className="product-section-icon">👁️</span> معاينة المنتج</h3>
-                    <div className="live-product-preview">
-                      <div className="live-product-image">
-                        {imagePreview ? (
-                          <img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" />
-                        ) : (
-                          <span>صورة المنتج</span>
-                        )}
-                      </div>
-                      <div className="live-product-preview-body">
-                        <b>{editing?.name || "اسم المنتج"}</b>
-                        <small>{editing?.category || "القسم"}</small>
-                        <strong>{editing?.price ? `${formatPrice(editing.price)} ر.س` : "السعر"}</strong>
-                      </div>
-                    </div>
-                    <div className="product-card-note">معاينة سريعة لشكل المنتج قبل الحفظ.</div>
-                  </div>
-                </div>
-
                 {galleryImages.length > 0 && (
                   <div className="gallery-manager compact-gallery-manager">
                     <div className="gallery-manager-head">
@@ -3509,6 +3488,27 @@ return (
                   {editing && <button type="button" className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>إلغاء التعديل</button>}
                 </div>
               </form>
+
+              <div className="admin-card product-live-preview-panel">
+                <div className="product-live-preview-head">
+                  <span>Live Preview</span>
+                  <h3>معاينة المنتج</h3>
+                </div>
+                <div className="live-product-preview">
+                  <div className="live-product-image">
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" />
+                    ) : (
+                      <span>صورة المنتج</span>
+                    )}
+                  </div>
+                  <div className="live-product-preview-body">
+                    <b>{editing?.name || "اسم المنتج"}</b>
+                    <small>{editing?.category || "القسم"}</small>
+                    <strong>{editing?.price ? `${formatPrice(editing.price)} ر.س` : "السعر"}</strong>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="admin-card products-manager pro-products-manager full-products-manager products-list-compact-final">

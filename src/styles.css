@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap');
+
 * {
   box-sizing: border-box;
 }html {
@@ -1118,7 +1120,6 @@
   min-height: 220px;
 }
 }/* ===== GREEN DIXAM FULL BRAND IDENTITY ===== */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap');
 
 :root {
   --gd-primary: #0F3D2E;
@@ -8287,17 +8288,33 @@ a[href="./"]:hover {
 }
 
 
-/* ===== PRODUCTS PREVIEW GALLERY STICKY FINAL ===== */
-/* تحسين آمن لصفحة المنتجات: المعرض داخل كرت الصور + معاينة + شريط حفظ ثابت */
-
-.products-six-card-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 12px !important;
+/* ===== PRODUCTS SAFE PREVIEW STICKY BUILD FIXED ===== */
+.product-live-preview-panel {
+  margin-top: 12px !important;
+  padding: 14px !important;
+  border-radius: 22px !important;
 }
 
-.products-six-card-grid .product-live-preview-card {
-  grid-column: 1 / -1 !important;
-  min-height: 170px !important;
+.product-live-preview-head {
+  display: flex !important;
+  align-items: end !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-bottom: 10px !important;
+}
+
+.product-live-preview-head span {
+  font-size: 10px !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+  color: #6b8e23 !important;
+  font-weight: 900 !important;
+}
+
+.product-live-preview-head h3 {
+  margin: 0 !important;
+  font-size: 16px !important;
+  color: #0f3d2e !important;
 }
 
 .live-product-preview {
@@ -8306,8 +8323,8 @@ a[href="./"]:hover {
   gap: 12px !important;
   align-items: center !important;
   padding: 10px !important;
-  border-radius: 15px !important;
-  background: rgba(255,255,255,.58) !important;
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.60) !important;
   border: 1px solid rgba(15,61,46,.10) !important;
 }
 
@@ -8353,16 +8370,11 @@ a[href="./"]:hover {
   color: #0f3d2e !important;
 }
 
-.products-six-card-form .compact-gallery-manager {
-  margin-top: 12px !important;
-  margin-bottom: 10px !important;
-}
-
 .products-six-card-form .pro-actions {
   position: sticky !important;
   bottom: 14px !important;
   z-index: 25 !important;
-  background: rgba(255, 252, 244, .94) !important;
+  background: rgba(255,252,244,.94) !important;
   backdrop-filter: blur(12px) !important;
   border: 1px solid rgba(15,61,46,.10) !important;
   box-shadow: 0 16px 34px rgba(15,61,46,.10) !important;
@@ -8374,17 +8386,7 @@ a[href="./"]:hover {
   min-width: 180px !important;
 }
 
-@media (max-width: 1200px) {
-  .products-six-card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
 @media (max-width: 760px) {
-  .products-six-card-grid {
-    grid-template-columns: 1fr !important;
-  }
-
   .live-product-preview {
     grid-template-columns: 1fr !important;
   }
