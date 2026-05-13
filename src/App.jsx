@@ -3461,23 +3461,26 @@ return (
                   </label>
                 </div>
 
-                <div className="products-safe-extra-cards">
+                
+              </div>
+
+              <div className="products-safe-extra-cards balanced-products-grid">
                 <div className="pro-form-section products-safe-extra-card">
                   <h3><span className="product-section-icon">⭐</span> منتجات مميزة</h3>
-                  <p>فعّل خيار المنتج المميز من كرت الخيارات والصورة لعرض المنتج ضمن المنتجات البارزة.</p>
+                  <p>عرض المنتجات المهمة داخل واجهة المتجر والصفحات الرئيسية.</p>
                   <div className="products-safe-card-note">يعتمد على خيار المنتج المميز الحالي.</div>
                 </div>
 
                 <div className="pro-form-section products-safe-extra-card">
                   <h3><span className="product-section-icon">%</span> المنتجات بخصم</h3>
-                  <p>أي منتج يحتوي على سعر بعد الخصم سيظهر ضمن منتجات العروض والخصومات.</p>
-                  <div className="products-safe-card-note">يعتمد على حقل سعر الخصم الحالي.</div>
+                  <p>أي منتج يحتوي على خصم سيظهر ضمن منتجات العروض والتخفيضات.</p>
+                  <div className="products-safe-card-note">يعتمد على حقل الخصم الحالي.</div>
                 </div>
 
                 <div className="pro-form-section products-safe-extra-card">
                   <h3><span className="product-section-icon">🔎</span> SEO</h3>
-                  <p>استخدم اسم المنتج والوصف والصورة لتحسين ظهور المنتج في محركات البحث والمشاركة.</p>
-                  <div className="products-safe-card-note">تحسين مبدئي بدون تغيير بنية البيانات.</div>
+                  <p>تحسين ظهور المنتج في محركات البحث والمشاركة وروابط المتجر.</p>
+                  <div className="products-safe-card-note">تحسين تلقائي اعتمادًا على البيانات الحالية.</div>
                 </div>
               </div>
 

@@ -8205,3 +8205,55 @@ a[href="./"]:hover {
     grid-template-columns: 1fr !important;
   }
 }
+
+
+/* ===== FINAL BALANCED PRODUCTS GRID ===== */
+.products-form-safe-six-cards .pro-product-form-horizontal{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+  align-items:stretch!important;
+  margin-bottom:12px!important;
+}
+
+.products-form-safe-six-cards .pro-form-section{
+  min-height:260px!important;
+  height:100%!important;
+}
+
+.products-form-safe-six-cards .balanced-products-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+  margin-top:12px!important;
+  width:100%!important;
+}
+
+.products-form-safe-six-cards .balanced-products-grid .products-safe-extra-card{
+  min-height:220px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+}
+
+.products-form-safe-six-cards .products-safe-card-note{
+  margin-top:auto!important;
+}
+
+.products-form-safe-six-cards .pro-actions{
+  margin-top:12px!important;
+}
+
+@media (max-width: 1100px){
+  .products-form-safe-six-cards .pro-product-form-horizontal,
+  .products-form-safe-six-cards .balanced-products-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+@media (max-width: 700px){
+  .products-form-safe-six-cards .pro-product-form-horizontal,
+  .products-form-safe-six-cards .balanced-products-grid{
+    grid-template-columns:1fr!important;
+  }
+}
