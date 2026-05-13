@@ -3322,7 +3322,7 @@ return (
 
         {tab === "products" && (
           <section className="admin-products-stacked">
-            <div className="admin-card excel-wide-card">
+            <div className="admin-card excel-wide-card products-import-compact-final">
               <div className="excel-wide-content">
                 <div>
                   <span>Bulk import</span>
@@ -3369,7 +3369,7 @@ return (
               )}
             </div>
 
-            <div className="admin-card product-form-card pro-form-card full-product-form-card">
+            <div className="admin-card product-form-card pro-form-card full-product-form-card products-form-compact-final">
               <div className="pro-card-head">
                 <div>
                   <span>Product editor</span>
@@ -3379,8 +3379,8 @@ return (
               </div>
 
               <form onSubmit={saveProduct} className="product-form pro-product-form pro-product-form-horizontal">
-                <div className="pro-form-section">
-                  <h3>معلومات المنتج</h3>
+                <div className="pro-form-section compact-product-info-section">
+                  <h3><span className="product-section-icon">📝</span> معلومات المنتج</h3>
                   <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} required placeholder="مثال: مونستيرا فاخرة" /></Control>
                   <Control label="الوصف"><textarea name="description" defaultValue={editing?.description || ""} placeholder="اكتب وصف مختصر وجميل للمنتج" /></Control>
                   <div className="two">
@@ -3389,8 +3389,8 @@ return (
                   </div>
                 </div>
 
-                <div className="pro-form-section">
-                  <h3>السعر والمخزون</h3>
+                <div className="pro-form-section compact-product-pricing-section">
+                  <h3><span className="product-section-icon">🏷️</span> السعر والمخزون</h3>
                   <div className="two">
                     <Control label="السعر"><input name="price" type="number" min="0" step="1" defaultValue={editing?.price || ""} required /></Control>
                     <Control label="السعر قبل الخصم"><input name="oldPrice" type="number" min="0" step="1" defaultValue={editing?.oldPrice || ""} /></Control>
@@ -3410,8 +3410,8 @@ return (
                   </div>
                 </div>
 
-                <div className="pro-form-section">
-                  <h3>الخيارات والصورة</h3>
+                <div className="pro-form-section compact-product-media-section">
+                  <h3><span className="product-section-icon">🖼️</span> الخيارات والصورة</h3>
                   <div className="two">
                     <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
                     <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={Array.isArray(editing?.sizes) ? editing.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")} /></Control>
@@ -3468,7 +3468,7 @@ return (
               </form>
             </div>
 
-            <div className="admin-card products-manager pro-products-manager full-products-manager">
+            <div className="admin-card products-manager pro-products-manager full-products-manager products-list-compact-final">
               <div className="pro-card-head products-manager-head">
                 <div>
                   <span>Catalogue</span>
