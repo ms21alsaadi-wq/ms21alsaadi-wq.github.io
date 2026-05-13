@@ -207,7 +207,7 @@
 }.search-box {
   position: relative;
 }.search-box svg {
-  position: fixed;
+  position: absolute;
   right: 16px;
   top: 50%;
   transform: translateY(-50%);
@@ -247,7 +247,7 @@
 }.product:hover .product-img img {
   transform: scale(1.05);
 }.product-img span {
-  position: fixed;
+  position: absolute;
   right: 14px;
   top: 14px;
   background: #fff;
@@ -256,7 +256,7 @@
   font-size: 12px;
   font-weight: 900;
 }.product-img button {
-  position: fixed;
+  position: absolute;
   left: 14px;
   top: 14px;
   border: 0;
@@ -516,13 +516,6 @@
   display: grid;
   grid-template-columns: 280px 1fr;
 }.admin-sidebar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  overflow-y: auto;
-  z-index: 1000;
-
   position: sticky;
   top: 0;
   height: 100vh;
@@ -781,7 +774,7 @@
 }.luxe-nav-center a::after,
 .luxe-nav-center button::after {
   content: "";
-  position: fixed;
+  position: absolute;
   right: 0;
   bottom: 2px;
   width: 0;
@@ -837,7 +830,7 @@
   box-shadow: 0 12px 30px rgba(0,0,0,.1);
   background: #fff;
 }.luxe-cart-icon span {
-  position: fixed;
+  position: absolute;
   top: -7px;
   left: -7px;
   min-width: 22px;
@@ -1050,7 +1043,7 @@
   box-shadow: 0 22px 60px rgba(31,77,43,.12);
   background: #183d28;
 }.plant-category-card img {
-  position: fixed;
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -1061,7 +1054,7 @@
   transform: scale(1.06);
 }.plant-category-card::after {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: linear-gradient(180deg, transparent 20%, rgba(24,61,40,.78));
 }.plant-category-card div {
@@ -1197,7 +1190,7 @@
   position: relative;
 }.hero-image::before {
   content: "GREEN DIXAM";
-  position: fixed;
+  position: absolute;
   z-index: 2;
   right: 32px;
   bottom: 30px;
@@ -1290,7 +1283,7 @@
   align-items: center;
   justify-content: center;
 }.hero-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: rgba(15, 61, 46, 0.65);
 }.hero-content {
@@ -1346,7 +1339,7 @@
   border-color: rgba(194,169,104,.48) !important;
 }.product::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   background: linear-gradient(145deg, rgba(194,169,104,.16), transparent 42%);
@@ -1928,7 +1921,7 @@
   height: 100%;
   object-fit: cover;
 }.status {
-  position: fixed;
+  position: absolute;
   top: 14px;
   right: 14px;
   border-radius: 999px;
@@ -3717,7 +3710,7 @@
   gap: 12px;
 }.customer-coupon-card::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset-inline-start: -30px;
   top: 50%;
   width: 60px;
@@ -5483,7 +5476,7 @@
 }/* الدائرة */
 .header-sticky-wrapper > .header-sticky-inline-control input[type="checkbox"] + span::after {
   content: "";
-  position: fixed;
+  position: absolute;
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -5832,7 +5825,7 @@
 }
 
 .live-map-grid {
-  position: fixed;
+  position: absolute;
   inset: 18px;
   border-radius: 20px;
   background-image:
@@ -5842,7 +5835,7 @@
 }
 
 .live-map-dot {
-  position: fixed;
+  position: absolute;
   width: 13px;
   height: 13px;
   border-radius: 999px;
@@ -5858,7 +5851,7 @@
 .dot-5 { top: 68%; right: 70%; }
 
 .live-map-label {
-  position: fixed;
+  position: absolute;
   right: 20px;
   bottom: 18px;
   display: grid;
@@ -6080,7 +6073,7 @@
 }
 
 .live-real-map-note {
-  position: fixed;
+  position: absolute;
   right: 16px;
   bottom: 16px;
   left: 16px;
@@ -6173,7 +6166,7 @@
 .hero-layered::before,
 .hero-full-media::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   background:
     radial-gradient(circle at top right, rgba(194,169,104,.16), transparent 28%),
@@ -6463,7 +6456,7 @@
 }
 
 .hero-video-mode .hero-drive-video {
-  position: fixed;
+  position: absolute;
   inset: 0;
 }
 
@@ -6607,7 +6600,7 @@
 }
 
 .product-select-check {
-  position: fixed;
+  position: absolute;
   top: 14px;
   right: 14px;
   z-index: 5;
@@ -6746,7 +6739,7 @@
 }
 
 .product-drag-handle {
-  position: fixed;
+  position: absolute;
   top: 54px;
   right: 14px;
   z-index: 5;
@@ -7377,62 +7370,5 @@ a[href="./"]:hover {
   .dashboard-hero,
   .admin-card {
     border-radius: 20px !important;
-  }
-}
-
-/* ===== ADMIN SIDEBAR FIX - ADMIN ONLY ===== */
-@media (min-width: 1051px) {
-  .admin {
-    display: block !important;
-    width: 100% !important;
-    min-height: 100vh !important;
-    padding-right: 170px !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
-  }
-
-  .admin-sidebar {
-    position: fixed !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 170px !important;
-    min-width: 170px !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    z-index: 1000 !important;
-    padding: 10px 9px !important;
-    box-sizing: border-box !important;
-  }
-
-  .admin-main {
-    width: 100% !important;
-    max-width: none !important;
-    min-width: 0 !important;
-    margin: 0 !important;
-    padding: 18px 22px !important;
-    box-sizing: border-box !important;
-  }
-
-  .admin-sidebar button {
-    min-height: 34px !important;
-    padding: 7px 9px !important;
-    font-size: 11.5px !important;
-  }
-}
-
-@media (max-width: 1050px) {
-  .admin {
-    padding-right: 0 !important;
-  }
-
-  .admin-sidebar {
-    position: relative !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    height: auto !important;
-    max-height: none !important;
   }
 }
