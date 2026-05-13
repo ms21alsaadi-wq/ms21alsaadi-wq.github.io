@@ -3420,6 +3420,14 @@ return (
                     </div>
                     <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
                     <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
+                    <Control label="رفع صور متعددة للمعرض">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={e => uploadGalleryImages(e.target.files)}
+                      />
+                    </Control>
                     {imagePreview && <div className="product-image-preview pro-preview compact-preview"><span>الصورة الأساسية</span><img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" /></div>}
                   </div>
 
@@ -3454,14 +3462,26 @@ return (
                   </div>
                 </div>
 
-                <Control label="رفع صور متعددة للمعرض">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={e => uploadGalleryImages(e.target.files)}
-                  />
-                </Control>
+
+                  <div className="pro-form-section product-six-card product-live-preview-card">
+                    <h3><span className="product-section-icon">👁️</span> معاينة المنتج</h3>
+                    <div className="live-product-preview">
+                      <div className="live-product-image">
+                        {imagePreview ? (
+                          <img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" />
+                        ) : (
+                          <span>صورة المنتج</span>
+                        )}
+                      </div>
+                      <div className="live-product-preview-body">
+                        <b>{editing?.name || "اسم المنتج"}</b>
+                        <small>{editing?.category || "القسم"}</small>
+                        <strong>{editing?.price ? `${formatPrice(editing.price)} ر.س` : "السعر"}</strong>
+                      </div>
+                    </div>
+                    <div className="product-card-note">معاينة سريعة لشكل المنتج قبل الحفظ.</div>
+                  </div>
+                </div>
 
                 {galleryImages.length > 0 && (
                   <div className="gallery-manager compact-gallery-manager">
