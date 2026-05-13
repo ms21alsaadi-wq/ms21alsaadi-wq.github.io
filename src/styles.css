@@ -7372,3 +7372,23 @@ a[href="./"]:hover {
     border-radius: 20px !important;
   }
 }
+
+
+/* fixed admin sidebar final */
+.admin{
+  display:block !important;
+}
+.admin-sidebar{
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 220px !important;
+  height: 100vh !important;
+  overflow-y: auto !important;
+  z-index: 999 !important;
+}
+.admin-main{
+  margin-right: 220px !important;
+  width: calc(100% - 220px) !important;
+  min-height: 100vh !important;
+}
