@@ -2158,9 +2158,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
         color: String(option.color || "").trim(),
         stock: option.stock === "" ? "" : Number(option.stock || 0),
         price: option.price === "" ? "" : Number(option.price || 0),
+        oldPrice: option.oldPrice === "" || option.oldPrice == null ? "" : Number(option.oldPrice || 0),
         sku: String(option.sku || "").trim()
       }))
-      .filter(option => option.size || option.color || option.stock !== "" || option.price !== "" || option.sku);
+      .filter(option => option.size || option.color || option.stock !== "" || option.price !== "" || option.oldPrice !== "" || option.sku);
 
     const sizes = cleanOptions.length
       ? [...new Set(cleanOptions.map(option => option.size).filter(Boolean))]
@@ -3147,19 +3148,43 @@ return (
 
         {tab === "products" && (
           <section className="admin-products-stacked">
-            <div className="admin-card excel-wide-card products-import-compact-final">
-              <div className="excel-wide-content">
-                <div>
-                  <span>Bulk import</span>
-                  <h2>إضافة منتجات عبر Excel</h2>
-                  <p>حمّل القالب، عبّئ المنتجات، ارفع الملف، راجع المعاينة، ثم اضغط حفظ. لن يتم تغيير أي شيء قبل الحفظ.</p>
+            <div className="admin-card products-top-combo-card">
+              <div className="products-top-combo">
+                <div className="top-combo-panel add-product-panel">
+                  <div className="combo-title-line">
+                    <span className="combo-icon"><PackagePlus size={18}/></span>
+                    <div>
+                      <h2>إضافة منتج جديد</h2>
+                      <p>أضف منتج جديد بشكل يدوي</p>
+                    </div>
+                  </div>
+                  <button className="admin-primary combo-main-btn" type="button" onClick={() => document.getElementById("product-editor-form")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                    <Plus size={17}/> منتج جديد
+                  </button>
+                  <small className="combo-note">سيتم الانتقال إلى نموذج إضافة منتج جديد</small>
                 </div>
-                <div className="excel-wide-actions">
-                  <button className="admin-secondary" type="button" onClick={downloadProductsTemplate}>تحميل قالب Excel</button>
-                  <label className="excel-upload-btn">
-                    رفع ملف Excel
-                    <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
-                  </label>
+
+                <div className="combo-divider" />
+
+                <div className="top-combo-panel excel-product-panel">
+                  <div className="combo-title-line">
+                    <span className="combo-icon excel"><Download size={18}/></span>
+                    <div>
+                      <h2>إضافة منتجات عبر Excel</h2>
+                      <p>حمّل ملف Excel يحتوي على المنتجات وسيتم استيرادها</p>
+                    </div>
+                  </div>
+                  <div className="excel-wide-actions combo-excel-actions">
+                    <button className="admin-secondary" type="button" onClick={downloadProductsTemplate}><Download size={16}/> تحميل قالب Excel</button>
+                    <label className="excel-upload-btn">
+                      <Download size={16}/> رفع ملف Excel
+                      <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
+                    </label>
+                  </div>
+                  <div className="combo-meta-row">
+                    <span>صيغة الملفات المدعومة: xls, xlsx.</span>
+                    <span>لمعرفة طريقة التعبئة، حمل القالب المرفق.</span>
+                  </div>
                 </div>
               </div>
 
@@ -3203,7 +3228,79 @@ return (
                 {editing && <button className="admin-secondary" onClick={resetProductEditor}>منتج جديد</button>}
               </div>
 
-              <form onSubmit={saveProduct} className="product-form products-six-card-form">
+              <form id="product-editor-form" onSubmit={saveProduct} className="product-form products-six-card-form">
+                <div className="product-options-master-card">
+                  <div className="product-options-master-head">
+                    <div>
+                      <span>نظام خيارات المنتج</span>
+                      <h3>إدارة خيارات المقاسات والألوان والأسعار والمخزون</h3>
+                    </div>
+                    <span className="product-section-icon"><Settings size={18}/></span>
+                  </div>
+
+                  <div className="options-master-grid">
+                    <div className="options-preview-panel">
+                      <div className="options-subhead">
+                        <b>معاينة الخيارات</b>
+                        <small>{productOptions.length} خيارات</small>
+                      </div>
+                      <div className="option-stats-row">
+                        <div><span>الخيارات الكلية</span><b>{productOptions.length}</b></div>
+                        <div><span>المقاسات</span><b>{new Set(productOptions.map(o => o.size).filter(Boolean)).size}</b></div>
+                        <div><span>الألوان</span><b>{new Set(productOptions.map(o => o.color).filter(Boolean)).size}</b></div>
+                        <div><span>إجمالي المخزون</span><b>{productOptions.reduce((sum, o) => sum + Number(o.stock || 0), 0)}</b></div>
+                      </div>
+                      <div className="option-preview-table">
+                        <div className="option-preview-head"><span>اللون</span><span>المقاس</span><span>السعر</span><span>بعد الخصم</span><span>المخزون</span><span>SKU</span></div>
+                        {productOptions.length ? productOptions.map((option, index) => (
+                          <div className="option-preview-row" key={`preview-${index}`}>
+                            <span>{option.color || "—"}</span>
+                            <span>{option.size || "—"}</span>
+                            <span>{option.price || editing?.price || "—"}</span>
+                            <span>{option.oldPrice || editing?.oldPrice || "—"}</span>
+                            <span>{option.stock || 0}</span>
+                            <span>{option.sku || "—"}</span>
+                          </div>
+                        )) : <div className="option-preview-empty">أضف خيارًا ليظهر هنا</div>}
+                      </div>
+                      <div className="option-available-note"><CheckCircle2 size={15}/> سيظهر المنتج بهذا الشكل للعملاء حسب الخيارات المتاحة</div>
+                    </div>
+
+                    <div className="options-editor-panel">
+                      <div className="option-chip-section">
+                        <div className="option-chip-head"><b>إدارة الألوان</b></div>
+                        <div className="option-chip-row">
+                          {[...new Set(productOptions.map(o => o.color).filter(Boolean))].map(color => <span className="option-chip" key={color}>{color}<button type="button">×</button></span>)}
+                          <button type="button" className="option-add-chip" onClick={addProductOption}><Plus size={14}/> إضافة لون</button>
+                        </div>
+                      </div>
+
+                      <div className="option-chip-section">
+                        <div className="option-chip-head"><b>إدارة المقاسات</b></div>
+                        <div className="option-chip-row">
+                          {[...new Set(productOptions.map(o => o.size).filter(Boolean))].map(size => <span className="option-chip" key={size}>{size}<button type="button">×</button></span>)}
+                          <button type="button" className="option-add-chip" onClick={addProductOption}><Plus size={14}/> إضافة مقاس</button>
+                        </div>
+                      </div>
+
+                      <div className="option-combinations-title">الخيارات (المقاس × اللون)</div>
+                      <div className="product-options-builder refined-options-builder">
+                        {productOptions.map((option, index) => (
+                          <div className="product-option-row refined-option-row" key={index}>
+                            <input value={option.color} onChange={e => updateProductOption(index, "color", e.target.value)} placeholder="اللون" />
+                            <input value={option.size} onChange={e => updateProductOption(index, "size", e.target.value)} placeholder="المقاس" />
+                            <input value={option.sku} onChange={e => updateProductOption(index, "sku", e.target.value)} placeholder="SKU اختياري" />
+                            <input type="number" min="0" value={option.price} onChange={e => updateProductOption(index, "price", e.target.value)} placeholder="السعر" />
+                            <input type="number" min="0" value={option.oldPrice || ""} onChange={e => updateProductOption(index, "oldPrice", e.target.value)} placeholder="السعر بعد الخصم" />
+                            <input type="number" min="0" value={option.stock} onChange={e => updateProductOption(index, "stock", e.target.value)} placeholder="المخزون" />
+                            <button type="button" className="admin-danger-soft" onClick={() => removeProductOption(index)}><Trash2 size={14}/></button>
+                          </div>
+                        ))}
+                        <button type="button" className="option-add-row-btn" onClick={addProductOption}><Plus size={15}/> إضافة خيار جديد</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div className="products-six-card-grid">
                   <div className="pro-form-section product-six-card">
                     <h3><span className="product-section-icon">📝</span> معلومات المنتج</h3>
@@ -3244,26 +3341,7 @@ return (
                       <Control label="الألوان العامة"><input name="colors" defaultValue={Array.isArray(editing?.colors) ? editing.colors.join(",") : (editing?.colors || "")} placeholder="أخضر, أبيض, أسود" /></Control>
                     </div>
 
-                    <div className="product-options-builder">
-                      <div className="options-builder-head">
-                        <div>
-                          <b>نظام خيارات المنتج</b>
-                          <small>اربط كل مقاس بلون ومخزون وسعر خاص عند الحاجة.</small>
-                        </div>
-                        <button type="button" className="admin-secondary" onClick={addProductOption}>+ إضافة خيار</button>
-                      </div>
-
-                      {productOptions.map((option, index) => (
-                        <div className="product-option-row" key={index}>
-                          <input value={option.size} onChange={e => updateProductOption(index, "size", e.target.value)} placeholder="المقاس" />
-                          <input value={option.color} onChange={e => updateProductOption(index, "color", e.target.value)} placeholder="اللون" />
-                          <input type="number" min="0" value={option.stock} onChange={e => updateProductOption(index, "stock", e.target.value)} placeholder="المخزون" />
-                          <input type="number" min="0" value={option.price} onChange={e => updateProductOption(index, "price", e.target.value)} placeholder="سعر خاص" />
-                          <input value={option.sku} onChange={e => updateProductOption(index, "sku", e.target.value)} placeholder="SKU الخيار" />
-                          <button type="button" className="admin-danger-soft" onClick={() => removeProductOption(index)}>حذف</button>
-                        </div>
-                      ))}
-                    </div>
+                    <div className="product-options-mini-note">تم نقل إدارة خيارات المنتج إلى كرت مستقل ومرتب أعلى النموذج.</div>
                     <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
                     <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
                     <Control label="رفع صور متعددة للمعرض">
