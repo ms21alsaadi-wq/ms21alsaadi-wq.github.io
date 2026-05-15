@@ -3224,12 +3224,6 @@ return (
                 <div>
                   <span>Product editor</span>
                   <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
-                  <div className="product-flow-steps">
-                    <span>1 معلومات المنتج</span>
-                    <span>2 السعر والصور</span>
-                    <span>3 الخيارات</span>
-                    <span>4 الحفظ</span>
-                  </div>
                 </div>
                 {editing && <button className="admin-secondary" onClick={resetProductEditor}>منتج جديد</button>}
               </div>
@@ -3319,13 +3313,13 @@ return (
                     <div className="product-card-note">لا يغيّر بنية البيانات الحالية.</div>
                   </div>
                 </div>
-
                 <div className="product-options-master-card">
                   <div className="product-options-master-head">
                     <div>
                       <span>نظام خيارات المنتج</span>
                       <h3>إدارة خيارات المقاسات والألوان والأسعار والمخزون</h3>
                     </div>
+                    <span className="product-section-icon"><Settings size={18}/></span>
                   </div>
 
                   <div className="options-master-grid">
@@ -3391,6 +3385,7 @@ return (
                     </div>
                   </div>
                 </div>
+
 
                 {galleryImages.length > 0 && (
                   <div className="gallery-manager compact-gallery-manager">

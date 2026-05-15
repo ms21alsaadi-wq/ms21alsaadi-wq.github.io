@@ -9093,273 +9093,290 @@ a[href="./"]:hover {
   .combo-meta-row { flex-direction: column !important; align-items: center !important; }
 }
 
-/* ===== FIX: products top spacing/button alignment/settings icon ===== */
+/* ===== Final products admin redesign: compact header + logical editor flow ===== */
 .admin-products-stacked{
   display:flex !important;
   flex-direction:column !important;
-  gap:6px !important;
-}
-.products-top-combo-card{
-  margin-bottom:0 !important;
-  padding:14px !important;
-}
-.products-form-compact-final.full-product-form-card{
-  margin-top:0 !important;
-  padding-top:10px !important;
-}
-.products-form-compact-final > .pro-card-head,
-.full-product-form-card .pro-card-head{
-  min-height:0 !important;
-  margin-bottom:8px !important;
-  padding:0 4px 6px !important;
-  border-bottom:0 !important;
-}
-.products-form-compact-final .pro-card-head span{
-  line-height:1.1 !important;
-}
-.products-form-compact-final .pro-card-head h2{
-  margin:2px 0 0 !important;
-}
-.combo-main-btn,
-.combo-excel-actions button,
-.combo-excel-actions .excel-upload-btn,
-.excel-upload-btn{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  line-height:1 !important;
-  padding:0 18px !important;
-  overflow:hidden !important;
-  white-space:nowrap !important;
-  box-sizing:border-box !important;
-}
-.combo-excel-actions .excel-upload-btn{
-  height:48px !important;
-  min-height:48px !important;
-  max-height:48px !important;
-}
-.combo-excel-actions .excel-upload-btn svg,
-.combo-excel-actions button svg{
-  flex:0 0 auto !important;
-  margin:0 !important;
-}
-.product-options-master-head{
-  align-items:flex-start !important;
-  margin-bottom:12px !important;
-}
-.product-options-master-head .product-section-icon{
-  display:none !important;
-}
-.product-options-master-card{
-  padding-top:16px !important;
-  margin-top:0 !important;
-}
-#product-editor-form{
-  margin-top:0 !important;
-}
-@media (max-width: 860px){
-  .admin-products-stacked{gap:8px !important;}
-}
-
-/* ===== CLEANER PRODUCT SECTION V2 ===== */
-.admin-products-stacked{
-  gap:16px !important;
-}
-.products-top-combo-card{
-  border-radius:28px !important;
-  padding:18px !important;
-}
-.products-top-combo{
-  grid-template-columns:1fr 1fr !important;
   gap:18px !important;
 }
-.top-combo-panel{
-  min-height:160px !important;
-  padding:22px !important;
+
+.products-top-combo-card{
+  padding:14px 18px !important;
+  margin:0 0 10px !important;
   border-radius:24px !important;
-  box-shadow:none !important;
+  min-height:0 !important;
+  background:rgba(255,252,244,.92) !important;
 }
-.combo-title-line{
+
+.products-top-combo{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:14px !important;
+  align-items:stretch !important;
+  direction:rtl !important;
+}
+
+.combo-divider{display:none !important;}
+
+.top-combo-panel{
+  min-height:116px !important;
+  padding:16px !important;
+  border:1px solid rgba(15,61,46,.08) !important;
+  border-radius:20px !important;
+  background:rgba(255,255,255,.72) !important;
+  display:grid !important;
+  grid-template-columns:auto 1fr !important;
+  grid-template-areas:"icon text" "actions actions" "meta meta" !important;
+  gap:10px 12px !important;
   align-items:center !important;
-  justify-content:center !important;
-  text-align:center !important;
-  gap:10px !important;
+  text-align:right !important;
 }
-.combo-title-line h2{
-  margin:0 0 4px !important;
-  font-size:18px !important;
+
+.combo-title-line{
+  grid-area:text !important;
+  margin:0 !important;
+  display:block !important;
+  text-align:right !important;
 }
-.combo-title-line p,
+
+.combo-title-line .combo-icon,
+.top-combo-panel > .combo-icon{
+  grid-area:icon !important;
+}
+
+.combo-title-line .combo-icon{
+  float:right !important;
+  margin-left:10px !important;
+}
+
+.top-combo-panel h2{
+  font-size:17px !important;
+  line-height:1.25 !important;
+  margin:0 !important;
+}
+
+.top-combo-panel p,
 .combo-note,
 .combo-meta-row span{
   font-size:12px !important;
+  line-height:1.6 !important;
+  margin:2px 0 0 !important;
 }
+
 .combo-main-btn{
-  width:min(420px,100%) !important;
-  height:54px !important;
-  margin:18px auto 8px !important;
-  font-size:17px !important;
-  box-shadow:0 14px 26px rgba(15,61,46,.16) !important;
-}
-.combo-excel-actions{
-  grid-template-columns:1fr 1fr !important;
-  max-width:640px !important;
-  margin:18px auto 0 !important;
-}
-.combo-excel-actions button,
-.combo-excel-actions .excel-upload-btn{
-  height:48px !important;
-  min-height:48px !important;
-  max-height:48px !important;
-  font-size:14px !important;
-  line-height:1 !important;
-}
-.combo-meta-row{
-  max-width:640px !important;
-  margin:14px auto 0 !important;
-}
-.full-product-form-card{
-  border-radius:28px !important;
-  padding:22px !important;
-}
-.products-form-compact-final > .pro-card-head,
-.full-product-form-card .pro-card-head{
-  background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(250,248,240,.38)) !important;
-  border:1px solid rgba(15,61,46,.08) !important;
-  border-radius:22px !important;
-  padding:16px 18px !important;
-  margin-bottom:16px !important;
-}
-.product-flow-steps{
-  display:flex !important;
-  flex-wrap:wrap !important;
-  gap:8px !important;
-  margin-top:10px !important;
-}
-.product-flow-steps span{
+  grid-area:actions !important;
+  width:100% !important;
+  min-height:46px !important;
+  height:46px !important;
+  margin:0 !important;
+  padding:0 18px !important;
   display:inline-flex !important;
   align-items:center !important;
   justify-content:center !important;
-  min-height:28px !important;
-  padding:5px 12px !important;
-  border-radius:999px !important;
-  background:rgba(15,61,46,.06) !important;
-  color:#0f3d2e !important;
-  font-size:12px !important;
-  font-weight:900 !important;
-}
-.products-six-card-grid{
-  display:grid !important;
-  grid-template-columns:1.15fr 1fr 1.15fr !important;
-  gap:14px !important;
-  align-items:stretch !important;
-}
-.product-six-card{
-  padding:18px !important;
-  border-radius:22px !important;
-  min-height:auto !important;
-  box-shadow:none !important;
-  background:rgba(255,255,255,.74) !important;
-  border:1px solid rgba(15,61,46,.10) !important;
-}
-.product-six-card h3{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
   gap:8px !important;
-  padding-bottom:10px !important;
-  margin-bottom:12px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+
+.combo-note{
+  grid-area:meta !important;
+  text-align:center !important;
+}
+
+.combo-excel-actions{
+  grid-area:actions !important;
+  width:100% !important;
+  margin:0 !important;
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:10px !important;
+}
+
+.combo-excel-actions button,
+.combo-excel-actions .excel-upload-btn{
+  height:46px !important;
+  min-height:46px !important;
+  padding:0 16px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+  line-height:1 !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+}
+
+.combo-meta-row{
+  grid-area:meta !important;
+  margin:0 !important;
+  padding-top:8px !important;
+}
+
+.full-product-form-card.products-form-compact-final{
+  padding:18px !important;
+  border-radius:24px !important;
+  margin:0 !important;
+}
+
+.products-form-compact-final > .pro-card-head{
+  min-height:0 !important;
+  padding:0 0 12px !important;
+  margin:0 0 14px !important;
   border-bottom:1px solid rgba(15,61,46,.08) !important;
-  font-size:16px !important;
 }
-.product-six-card .control,
-.product-six-card label{
-  margin-bottom:10px !important;
+
+.products-form-compact-final > .pro-card-head::before{
+  content:"1 معلومات المنتج  ·  2 السعر والصور  ·  3 الخيارات  ·  4 الحفظ";
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(15,61,46,.06);
+  color:#0f3d2e;
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:12px;
+  font-weight:900;
+  order:3;
 }
-.product-six-card input,
-.product-six-card textarea,
-.product-six-card select{
-  min-height:42px !important;
-  border-radius:12px !important;
-}
-.product-six-card textarea{
-  min-height:84px !important;
-}
-.product-options-mini-note,
-.product-card-help,
-.product-card-note{
-  display:none !important;
-}
-.product-options-master-card{
-  margin-top:16px !important;
-  margin-bottom:0 !important;
-  border-radius:26px !important;
-  padding:20px !important;
-  background:#fff !important;
-}
-.product-options-master-head{
-  padding-bottom:14px !important;
-  border-bottom:1px solid rgba(15,61,46,.08) !important;
-  margin-bottom:16px !important;
-}
-.options-master-grid{
-  grid-template-columns:1fr 1.08fr !important;
+
+.products-six-card-form{
+  display:flex !important;
+  flex-direction:column !important;
   gap:16px !important;
 }
-.options-editor-panel,
-.options-preview-panel{
-  background:#fff !important;
+
+.products-six-card-grid{
+  display:grid !important;
+  grid-template-columns:1.35fr .9fr !important;
+  gap:14px !important;
+  align-items:start !important;
+}
+
+.products-six-card-grid .product-six-card{
+  min-height:auto !important;
+  height:auto !important;
+  padding:18px !important;
   border-radius:20px !important;
-  padding:16px !important;
 }
-.refined-option-row{
-  grid-template-columns:1fr 1fr 1.2fr 1fr 1fr .85fr 38px !important;
-  gap:8px !important;
+
+.products-six-card-grid .product-six-card:nth-child(1){
+  grid-column:1 / 2 !important;
+  grid-row:1 / 3 !important;
 }
+
+.products-six-card-grid .product-six-card:nth-child(2){
+  grid-column:2 / 3 !important;
+  grid-row:1 / 2 !important;
+}
+
+.products-six-card-grid .product-six-card:nth-child(3){
+  grid-column:1 / -1 !important;
+  grid-row:3 / 4 !important;
+}
+
+.products-six-card-grid .product-six-card:nth-child(4),
+.products-six-card-grid .product-six-card:nth-child(5),
+.products-six-card-grid .product-six-card:nth-child(6){
+  min-height:120px !important;
+}
+
+.products-six-card-grid .product-six-card h3{
+  font-size:16px !important;
+  margin-bottom:14px !important;
+}
+
+.products-six-card-form .control,
+.products-six-card-form .two,
+.products-six-card-form .three{
+  gap:10px !important;
+}
+
+.products-six-card-form input,
+.products-six-card-form select,
+.products-six-card-form textarea{
+  min-height:42px !important;
+  height:auto !important;
+}
+
+.products-six-card-form textarea{
+  min-height:104px !important;
+}
+
+.product-options-master-card{
+  order:20 !important;
+  margin:0 !important;
+  padding:20px !important;
+  border-radius:24px !important;
+  background:rgba(255,255,255,.72) !important;
+}
+
+.product-options-master-head{
+  margin-bottom:18px !important;
+}
+
+.options-master-grid{
+  grid-template-columns:1.1fr .9fr !important;
+  gap:16px !important;
+}
+
+.options-editor-panel{order:1 !important;}
+.options-preview-panel{order:2 !important;}
+
 .option-chip-section{
-  background:rgba(250,250,247,.72) !important;
   padding:14px !important;
+  margin-bottom:12px !important;
 }
-.option-add-row-btn{
-  min-height:44px !important;
-  font-size:14px !important;
+
+.refined-option-row{
+  grid-template-columns:1fr 1fr 1.2fr .9fr .9fr .75fr 38px !important;
 }
-.gallery-manager{
-  margin-top:16px !important;
-  border-radius:22px !important;
+
+.gallery-manager.compact-gallery-manager{
+  order:18 !important;
 }
-.pro-actions{
-  margin-top:16px !important;
+
+.products-six-card-form .pro-actions{
+  order:30 !important;
   position:sticky !important;
-  bottom:12px !important;
-  z-index:5 !important;
-  background:rgba(255,255,255,.92) !important;
-  border:1px solid rgba(15,61,46,.10) !important;
-  border-radius:22px !important;
-  padding:14px !important;
-  backdrop-filter:blur(12px) !important;
+  bottom:10px !important;
+  z-index:4 !important;
+  background:rgba(255,252,244,.88) !important;
+  backdrop-filter:blur(10px) !important;
+  border:1px solid rgba(15,61,46,.08) !important;
+  border-radius:18px !important;
+  padding:12px !important;
+  margin-top:0 !important;
 }
+
 .product-live-preview-panel{
   display:none !important;
 }
-.products-list-compact-final{
-  border-radius:28px !important;
-  padding:22px !important;
+
+.products-manager.pro-products-manager{
   margin-top:0 !important;
 }
-.products-manager-head{
-  border-radius:22px !important;
-  background:rgba(255,255,255,.7) !important;
-  border:1px solid rgba(15,61,46,.08) !important;
-  padding:16px !important;
-}
-@media (max-width:1200px){
+
+@media (max-width:1100px){
+  .products-top-combo,
   .products-six-card-grid,
-  .options-master-grid{grid-template-columns:1fr !important;}
+  .options-master-grid{
+    grid-template-columns:1fr !important;
+  }
+  .products-six-card-grid .product-six-card{
+    grid-column:auto !important;
+    grid-row:auto !important;
+  }
 }
-@media (max-width:760px){
-  .products-top-combo{grid-template-columns:1fr !important;}
+
+@media (max-width:700px){
+  .top-combo-panel{
+    grid-template-columns:1fr !important;
+    grid-template-areas:"text" "actions" "meta" !important;
+    text-align:center !important;
+  }
+  .combo-title-line{text-align:center !important;}
+  .combo-title-line .combo-icon{float:none !important;margin:0 auto 8px !important;}
   .combo-excel-actions{grid-template-columns:1fr !important;}
+  .products-form-compact-final > .pro-card-head::before{display:none !important;}
   .refined-option-row{grid-template-columns:1fr 1fr !important;}
-  .product-flow-steps span{font-size:11px !important;}
 }
