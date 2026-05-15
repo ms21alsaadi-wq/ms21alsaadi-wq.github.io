@@ -3243,11 +3243,11 @@ return (
               </div>
 
               <div className="product-modal-tabs" role="tablist">
-                <button type="button" className={productFormTab === "info" ? "active" : ""} onClick={() => setProductFormTab("info")}>١ المعلومات</button>
-                <button type="button" className={productFormTab === "pricing" ? "active" : ""} onClick={() => setProductFormTab("pricing")}>٢ الأسعار والمخزون</button>
-                <button type="button" className={productFormTab === "images" ? "active" : ""} onClick={() => setProductFormTab("images")}>٣ الصور</button>
-                <button type="button" className={productFormTab === "options" ? "active" : ""} onClick={() => setProductFormTab("options")}>٤ الخيارات</button>
-                <button type="button" className={productFormTab === "seo" ? "active" : ""} onClick={() => setProductFormTab("seo")}>٥ SEO</button>
+                <button type="button" className={productFormTab === "info" ? "active" : ""} onClick={() => setProductFormTab("info")}> المعلومات</button>
+                <button type="button" className={productFormTab === "pricing" ? "active" : ""} onClick={() => setProductFormTab("pricing")}> الأسعار والمخزون</button>
+                <button type="button" className={productFormTab === "images" ? "active" : ""} onClick={() => setProductFormTab("images")}> الصور</button>
+                <button type="button" className={productFormTab === "options" ? "active" : ""} onClick={() => setProductFormTab("options")}> الخيارات</button>
+                <button type="button" className={productFormTab === "seo" ? "active" : ""} onClick={() => setProductFormTab("seo")}> SEO</button>
               </div>
 
               <form id="product-editor-form" onSubmit={saveProduct} className={`product-form products-six-card-form product-editor-tabs-form active-tab-${productFormTab}`}>
