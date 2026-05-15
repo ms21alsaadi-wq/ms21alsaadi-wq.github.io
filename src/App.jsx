@@ -3,7 +3,7 @@ import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
   Save, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2
+  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -2618,8 +2618,26 @@ return (
       </aside>
 
       <main className="admin-main">
-        <header className="admin-top">
-          <div><span>لوحة التحكم</span><h1>{titleFor(tab)}</h1></div>
+        <header className="admin-top modern-admin-top">
+          <div className="modern-admin-title">
+            <span>لوحة التحكم</span>
+            <h1>{titleFor(tab)}</h1>
+          </div>
+          <div className="modern-admin-actions">
+            <button type="button" className="modern-admin-icon-btn" onClick={() => go("/")} title="معاينة المتجر">
+              <ExternalLink size={18}/>
+              <span>معاينة</span>
+            </button>
+            <div className="modern-admin-pill">
+              <Clock size={16}/>
+              <span>{formatOrderDate(new Date())}</span>
+            </div>
+            <div className="modern-admin-live">
+              <span className="live-dot"/>
+              <b>{liveVisitors}</b>
+              <small>نشط</small>
+            </div>
+          </div>
         </header>
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "homepage") && (
