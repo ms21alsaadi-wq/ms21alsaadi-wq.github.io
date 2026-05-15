@@ -9131,3 +9131,67 @@ a[href="./"]:hover {
 .form-actions.pro-actions .admin-primary,.form-actions.pro-actions .admin-secondary{height:48px !important; min-width:150px !important; display:flex !important; align-items:center !important; justify-content:center !important; gap:8px !important;}
 .products-manager{margin-top:0 !important;}
 @media (max-width:900px){.products-top-combo{grid-template-columns:1fr !important}.product-modal-tabs{grid-template-columns:1fr 1fr !important; position:static !important}.options-master-grid{grid-template-columns:1fr !important}.product-option-row,.refined-option-row{grid-template-columns:1fr 1fr !important}.product-modal-shell{padding:14px !important}.combo-excel-actions{grid-template-columns:1fr !important}}
+
+/* ===== Fixed footer for product modal actions ===== */
+.product-modal-shell{
+  padding-bottom:0 !important;
+}
+.product-modal-shell .full-product-form-card{
+  padding-bottom:0 !important;
+}
+.product-modal-footer{
+  position:sticky !important;
+  bottom:0 !important;
+  z-index:10 !important;
+  margin:18px -20px 0 !important;
+  padding:16px 22px !important;
+  background:rgba(251,250,245,.96) !important;
+  backdrop-filter:blur(14px) !important;
+  border-top:1px solid rgba(15,74,53,.10) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  border-radius:0 0 26px 26px !important;
+  box-shadow:0 -14px 34px rgba(15,74,53,.08) !important;
+}
+.product-modal-footer-actions{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+.product-modal-footer .admin-primary,
+.product-modal-footer .admin-secondary{
+  height:50px !important;
+  min-width:160px !important;
+  border-radius:16px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+  white-space:nowrap !important;
+}
+.product-modal-footer .admin-primary{
+  min-width:220px !important;
+}
+.product-editor-tabs-form .pro-actions,
+.product-editor-tabs-form .form-actions.pro-actions{
+  display:none !important;
+}
+@media (max-width:700px){
+  .product-modal-footer{
+    margin:14px -14px 0 !important;
+    padding:12px !important;
+    flex-direction:column-reverse !important;
+    align-items:stretch !important;
+  }
+  .product-modal-footer-actions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+  }
+  .product-modal-footer .admin-primary,
+  .product-modal-footer .admin-secondary{
+    width:100% !important;
+    min-width:0 !important;
+  }
+}
