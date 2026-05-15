@@ -1791,9 +1791,9 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [productStatusFilter, setProductStatusFilter] = useState("all");
   const [productCategoryFilter, setProductCategoryFilter] = useState("all");
   const [productSort, setProductSort] = useState("newest");
-  const [productModalOpen, setProductModalOpen] = useState(false);
-  const [productEditorTab, setProductEditorTab] = useState("info");
   const [productOptions, setProductOptions] = useState([{ size: "", color: "", stock: "", price: "", sku: "" }]);
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [productFormTab, setProductFormTab] = useState("info");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [draggedProductId, setDraggedProductId] = useState(null);
   const [liveVisitors, setLiveVisitors] = useState(0);
@@ -1876,6 +1876,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       color: option.color || "",
       stock: option.stock ?? "",
       price: option.price ?? "",
+      oldPrice: option.oldPrice ?? "",
       sku: option.sku || ""
     })));
   }, [editing]);
@@ -2146,18 +2147,14 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setImagePreview("");
     setGalleryImages([]);
     setProductOptions([{ size: "", color: "", stock: "", price: "", sku: "" }]);
+    setProductFormTab("info");
+    setProductModalOpen(false);
   };
 
   const openProductEditor = (product = null) => {
     setEditing(product);
-    setProductEditorTab("info");
+    setProductFormTab("info");
     setProductModalOpen(true);
-  };
-
-  const closeProductEditor = () => {
-    resetProductEditor();
-    setProductModalOpen(false);
-    setProductEditorTab("info");
   };
 
   const saveProduct = async (e) => {
@@ -2213,8 +2210,6 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setNotice(editing ? "تم تعديل المنتج بنجاح" : "تم إضافة المنتج بنجاح");
     setTimeout(() => setNotice(""), 2200);
     resetProductEditor();
-    setProductModalOpen(false);
-    setProductEditorTab("info");
     f.reset();
     setTab("products");
   };
@@ -2249,10 +2244,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       status: String(pick("status", "الحالة") || "active").trim(),
       featured: String(pick("featured", "مميز") || "").toLowerCase() === "true" || String(pick("featured", "مميز") || "") === "نعم",
       image,
-      gallery: image ? [image] : [],
-      colors: [],
-      seoTitle: "",
-      seoDescription: "",
+      gallery: galleryImages,
+      colors: f.colors?.value?.split(",").map(v => v.trim()).filter(Boolean) || [],
+      seoTitle: f.seoTitle?.value?.trim() || "",
+      seoDescription: f.seoDescription?.value?.trim() || "",
       updatedAt: serverTimestamp()
     };
   };
@@ -3174,7 +3169,7 @@ return (
                       <p>أضف منتج جديد بشكل يدوي</p>
                     </div>
                   </div>
-                  <button className="admin-primary combo-main-btn" type="button" onClick={() => openProductEditor()}>
+                  <button className="admin-primary combo-main-btn" type="button" onClick={() => openProductEditor(null)}>
                     <Plus size={17}/> منتج جديد
                   </button>
                   <small className="combo-note">سيفتح نموذج الإضافة داخل نافذة مرتبة</small>
@@ -3236,32 +3231,26 @@ return (
             </div>
 
             {productModalOpen && (
-              <div className="product-editor-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeProductEditor(); }}>
-                <div className="admin-card product-form-card pro-form-card full-product-form-card products-form-compact-final product-editor-modal" role="dialog" aria-modal="true">
-                  <div className="pro-card-head product-modal-head">
+              <div className="product-modal-backdrop" onClick={resetProductEditor}>
+                <div className="product-modal-shell" onClick={e => e.stopPropagation()}>
+            <div className="admin-card product-form-card pro-form-card full-product-form-card products-form-compact-final">
+              <div className="pro-card-head">
                 <div>
                   <span>Product editor</span>
                   <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
                 </div>
-                <div className="product-modal-head-actions">
-                  {editing && <button className="admin-secondary" type="button" onClick={() => openProductEditor()}>منتج جديد</button>}
-                  <button className="product-modal-close" type="button" onClick={closeProductEditor} aria-label="إغلاق"><X size={18}/></button>
-                </div>
+                <button type="button" className="modal-close-btn" onClick={resetProductEditor}>×</button>
               </div>
 
-              <div className="product-editor-tabs" role="tablist">
-                {[
-                  ["info", "المعلومات"],
-                  ["pricing", "الأسعار والمخزون"],
-                  ["images", "الصور"],
-                  ["options", "الخيارات"],
-                  ["seo", "SEO"]
-                ].map(([id, label]) => (
-                  <button key={id} type="button" className={productEditorTab === id ? "active" : ""} onClick={() => setProductEditorTab(id)}>{label}</button>
-                ))}
+              <div className="product-modal-tabs" role="tablist">
+                <button type="button" className={productFormTab === "info" ? "active" : ""} onClick={() => setProductFormTab("info")}>١ المعلومات</button>
+                <button type="button" className={productFormTab === "pricing" ? "active" : ""} onClick={() => setProductFormTab("pricing")}>٢ الأسعار والمخزون</button>
+                <button type="button" className={productFormTab === "images" ? "active" : ""} onClick={() => setProductFormTab("images")}>٣ الصور</button>
+                <button type="button" className={productFormTab === "options" ? "active" : ""} onClick={() => setProductFormTab("options")}>٤ الخيارات</button>
+                <button type="button" className={productFormTab === "seo" ? "active" : ""} onClick={() => setProductFormTab("seo")}>٥ SEO</button>
               </div>
 
-              <form id="product-editor-form" onSubmit={saveProduct} className={`product-form products-six-card-form product-editor-tab-${productEditorTab}`}>
+              <form id="product-editor-form" onSubmit={saveProduct} className={`product-form products-six-card-form product-editor-tabs-form active-tab-${productFormTab}`}>
                 <div className="product-options-master-card">
                   <div className="product-options-master-head">
                     <div>
@@ -3337,18 +3326,18 @@ return (
                 <div className="products-six-card-grid">
                   <div className="pro-form-section product-six-card">
                     <h3><span className="product-section-icon">📝</span> معلومات المنتج</h3>
-                    <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} required placeholder="مثال: مونستيرا فاخرة" /></Control>
+                    <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} placeholder="مثال: مونستيرا فاخرة" /></Control>
                     <Control label="الوصف"><textarea name="description" defaultValue={editing?.description || ""} placeholder="اكتب وصف مختصر وجميل للمنتج" /></Control>
                     <div className="two">
-                      <Control label="النوع/المورد"><input name="brand" defaultValue={editing?.brand || ""} required placeholder="Monstera" /></Control>
-                      <Control label="القسم"><input name="category" defaultValue={editing?.category || "نباتات داخلية"} required /></Control>
+                      <Control label="النوع/المورد"><input name="brand" defaultValue={editing?.brand || ""} placeholder="Monstera" /></Control>
+                      <Control label="القسم"><input name="category" defaultValue={editing?.category || "نباتات داخلية"} /></Control>
                     </div>
                   </div>
 
                   <div className="pro-form-section product-six-card">
                     <h3><span className="product-section-icon">🏷️</span> السعر والمخزون</h3>
                     <div className="two">
-                      <Control label="السعر"><input name="price" type="number" min="0" step="1" defaultValue={editing?.price || ""} required /></Control>
+                      <Control label="السعر"><input name="price" type="number" min="0" step="1" defaultValue={editing?.price || ""} /></Control>
                       <Control label="السعر قبل الخصم"><input name="oldPrice" type="number" min="0" step="1" defaultValue={editing?.oldPrice || ""} /></Control>
                     </div>
                     <div className="two">
@@ -3442,7 +3431,7 @@ return (
 
                 <div className="form-actions pro-actions">
                   <button className="admin-primary"><Save size={16}/> {editing ? "حفظ التعديل" : "إضافة المنتج"}</button>
-                  <button type="button" className="admin-secondary" onClick={closeProductEditor}>إلغاء</button>
+                  <button type="button" className="admin-secondary" onClick={resetProductEditor}>إلغاء</button>
                 </div>
               </form>
 
@@ -3466,6 +3455,8 @@ return (
                   </div>
                 </div>
               </div>
+            </div>
+
                 </div>
               </div>
             )}
