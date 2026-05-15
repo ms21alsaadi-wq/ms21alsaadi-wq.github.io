@@ -17,153 +17,15 @@ import {
   addDoc, query, orderBy, where
 } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
-
-const STORE_WHATSAPP = "966508983003";
-
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_t04scol";
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_v9wzhwf";
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "c8wX_e15GQ-c3xseZ";
-
-const defaultSettings = {
-  storeName: "GREEN DIXAM",
-  tagline: "rare nature, refined living",
-
-  primaryColor: "#0F3D2E",
-  accentColor: "#C2A968",
-  backgroundColor: "#F5F1E8",
-  cardColor: "#FFFFFF",
-  fontFamily: "Cairo",
-  logo: "",
-
-  heroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
-  heroSubtitle: "اختر نبتتك بسهولة – نباتات داخلية مختارة بعناية، تغليف أنيق، وتوصيل سريع داخل السعودية.",
-  heroBadge: "Green Dixam Boutique",
-  heroButtonText: "تسوق الآن",
-  heroImage: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1400&q=80",
-  heroHeight: 520,
-  heroStatsProducts: "منتجات",
-  heroStatsPackaging: "تغليف فاخر",
-  heroStatsCustomers: "حسابات عملاء",
-
-  bannerTitle: "عرض الإطلاق",
-  bannerSubtitle: "استخدم كوبون GREEN10 واحصل على خصم خاص على أول طلب.",
-  bannerImage: "",
-  productImageHeight: 280,
-
-  homeHeaderTitle: "GREEN DIXAM",
-  homeHeaderSubtitle: "RARE NATURE, REFINED LIVING",
-  homeHeaderImage: "",
-  homeHeaderBg: "#F5F1E8",
-  homeHeaderText: "#0F3D2E",
-  homeHeaderLang: "AR",
-  homeHeaderWhatsapp: "966508983003",
-  homeHeaderInstagram: "",
-  homeHeaderTiktok: "",
-  homeHeaderSnapchat: "",
-  homeHeaderX: "",
-  homeHeaderTopBar: "شحن سريع داخل السعودية 🚚",
-  homeTopBarEnabled: true,
-  homeTopBarBg: "#0F3D2E",
-  homeTopBarText: "#FFFFFF",
-  homeHeaderCtaText: "اطلب الآن",
-  homeHeaderSticky: true,
-  homePagesTitle: "الصفحات",
-  homePages: [
-    { label: "النباتات", href: "/page/products", visible: true },
-    { label: "العروض", href: "/page/offers", visible: true },
-    { label: "دليل العناية", href: "/page/care-guide", visible: true }
-  ],
-
-  homeHeroTitle: "نباتات طبيعية تضيف حياة لمساحتك 🌿",
-  homeHeroDesc: "اختر نبتتك بسهولة – نباتات داخلية مختارة بعناية، تغليف أنيق، وتوصيل سريع داخل السعودية.",
-  homeHeroImage: "",
-  homeHeroBgImage: "",
-  homeHeroImagePosition: "left",
-  homeHeroVideo: "",
-  homeHeroLayout: "split",
-  homeHeroButton: "تسوق الآن",
-  homeHeroButtonLink: "#products",
-
-  homePlantSectionsTitle: "اختر طابعك الأخضر",
-  homePlantSectionsDesc: "نباتات داخلية، نباتات سهلة العناية، وأصص وإكسسوارات بطابع فاخر.",
-  homePlantSectionsImage: "",
-
-  homeCareTitle: "عناية هادئة لنباتات تدوم",
-  homeCareDesc: "اختر الإضاءة المناسبة، اسقِ النبات بدون إفراط، واستخدم أصيص بتصريف جيد.",
-  homeCareImage: "",
-
-  homeOfferTitle: "عرض الإطلاق",
-  homeOfferDesc: "استخدم كوبون GREEN10 واحصل على خصم خاص على أول طلب.",
-  homeOfferImage: "",
-
-  homeProductsTitle: "نباتات نادرة ومنتجات فاخرة مختارة بعناية",
-  homeProductsDesc: "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."
-};
-
-const defaultProducts = [
-  { id: "1", name: "شجرة دم الأخوين المصغرة", brand: "Socotra Inspired", category: "نباتات نادرة", price: 299, oldPrice: 349, rating: 4.9, sizes: "صغير,متوسط", tag: "Rare", image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80" },
-  { id: "2", name: "مونستيرا فاخرة", brand: "Monstera", category: "نباتات داخلية", price: 189, oldPrice: 239, rating: 4.9, sizes: "متوسط,كبير", tag: "Luxury", image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80" },
-  { id: "3", name: "زاميا كلاسيكية", brand: "ZZ Plant", category: "سهلة العناية", price: 139, oldPrice: 169, rating: 4.8, sizes: "صغير,متوسط,كبير", tag: "Organic", image: "https://images.unsplash.com/photo-1593482892290-f54927ae2b65?auto=format&fit=crop&w=1200&q=80" },
-  { id: "4", name: "سانسيفيريا ذهبية", brand: "Sansevieria", category: "تنقية الهواء", price: 129, oldPrice: 159, rating: 4.8, sizes: "صغير,متوسط", tag: "Timeless", image: "https://images.unsplash.com/photo-1593691509543-c55fb32d8de5?auto=format&fit=crop&w=1200&q=80" },
-  { id: "5", name: "فيكس ليراتا كبير", brand: "Fiddle Leaf Fig", category: "نباتات فاخرة", price: 269, oldPrice: 329, rating: 4.9, sizes: "كبير", tag: "Exclusive", image: "https://images.unsplash.com/photo-1604762524889-3e2fcc145683?auto=format&fit=crop&w=1200&q=80" },
-  { id: "6", name: "كالاثيا أوربيفوليا", brand: "Calathea", category: "نباتات داخلية", price: 169, oldPrice: 209, rating: 4.7, sizes: "متوسط", tag: "Refined", image: "https://images.unsplash.com/photo-1616500163718-4f8e4dc7598f?auto=format&fit=crop&w=1200&q=80" },
-  { id: "7", name: "أصيص سيراميك ذهبي", brand: "Golden Ceramic", category: "أصص فاخرة", price: 89, oldPrice: 119, rating: 4.8, sizes: "S,M,L", tag: "Gold", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80" },
-  { id: "8", name: "مجموعة عناية راقية", brand: "Plant Rare", category: "العناية", price: 99, oldPrice: 129, rating: 4.8, sizes: "مجموعة كاملة", tag: "Rare", image: "https://images.unsplash.com/photo-1615218287208-84135e0c4f08?auto=format&fit=crop&w=1200&q=80" }
-];
-
-const palettes = [
-  { name: "هدايا خضراء Black Gold", primaryColor: "#0F3D2E", accentColor: "#C2A968", backgroundColor: "#F5F1E8", cardColor: "#FFFFFF" },
-  { name: "Navy Silver", primaryColor: "#0f172a", accentColor: "#c0c7d1", backgroundColor: "#f4f7fb", cardColor: "#FFFFFF" },
-  { name: "Coffee Cream", primaryColor: "#3b2f2f", accentColor: "#c8a46a", backgroundColor: "#f7efe5", cardColor: "#fffaf4" },
-  { name: "Sport Red", primaryColor: "#111827", accentColor: "#ef4444", backgroundColor: "#f8fafc", cardColor: "#FFFFFF" }
-];
-
-function formatPrice(value) {
-  return new Intl.NumberFormat("ar-SA").format(Number(value || 0));
-}
-
-function formatOrderDate(value) {
-  if (!value) return "غير متوفر";
-  const date = value?.toDate ? value.toDate() : new Date(value);
-  if (Number.isNaN(date.getTime())) return "غير متوفر";
-  return new Intl.DateTimeFormat("ar-SA", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(date);
-}
-
-function orderTimestamp(value) {
-  if (!value) return 0;
-  if (value?.toDate) return value.toDate().getTime();
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
-}
-
-function getTrackingUrl(company, trackingNumber, customShipping = "") {
-  const code = String(trackingNumber || "").trim();
-  if (!code) return "";
-
-  const name = String(company || customShipping || "").toLowerCase();
-
-  if (name.includes("aramex")) return `https://www.aramex.com/track/results?ShipmentNumber=${encodeURIComponent(code)}`;
-  if (name.includes("smsa") || name.includes("سمسا")) return `https://www.smsaexpress.com/sa/track?tracknumbers=${encodeURIComponent(code)}`;
-  if (name.includes("dhl")) return `https://www.dhl.com/sa-en/home/tracking.html?tracking-id=${encodeURIComponent(code)}`;
-  if (name.includes("fedex")) return `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(code)}`;
-
-  return `https://www.google.com/search?q=${encodeURIComponent(`${customShipping || company || "tracking"} ${code}`)}`;
-}
+import { STORE_WHATSAPP, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, defaultSettings, defaultProducts, palettes } from "./data/storeData";
+import { formatPrice, formatOrderDate, orderTimestamp, getTrackingUrl, orderStatusLabel, couponUsedByCustomer, sizesArray, uid, makePageSlug, normalizePageHref, getTrafficSource, formatDuration, getGoogleDriveFileId, normalizeVideoUrl, isGoogleDriveVideo, firebaseError } from "./utils/helpers";
 
 
-function orderStatusLabel(status) {
-  const labels = {
-    new: "تم استلام الطلب",
-    processing: "قيد التجهيز",
-    shipped: "تم الشحن",
-    completed: "مكتمل",
-    cancelled: "ملغي"
-  };
-  return labels[status] || status || "تم تحديث الطلب";
-}
+
+
+
+
+
 
 async function sendOrderStatusEmail(order, status) {
   const email = order?.customerEmail || order?.email;
@@ -204,18 +66,7 @@ async function sendOrderStatusEmail(order, status) {
 }
 
 
-function couponUsedByCustomer(coupon, customerId, customerEmail) {
-  const usedBy = coupon?.usedBy || {};
-  const usedEmails = coupon?.usedEmails || {};
-  return Boolean(
-    (customerId && usedBy[customerId]) ||
-    (customerEmail && usedEmails[customerEmail])
-  );
-}
 
-function sizesArray(sizes) {
-  return String(sizes || "").split(",").map(s => s.trim()).filter(Boolean);
-}
 function fileToDataUrl(file, options = {}) {
   const {
     maxWidth = 900,
@@ -263,53 +114,10 @@ function fileToDataUrl(file, options = {}) {
     reader.readAsDataURL(file);
   });
 }
-function uid() {
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function makePageSlug(text, fallback = "page") {
-  const cleaned = String(text || fallback)
-    .trim()
-    .toLowerCase()
-    .replace(/[^\u0600-\u06FFa-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return cleaned || fallback;
-}
-
-function normalizePageHref(page, index = 0) {
-  const href = String(page?.href || "").trim();
-
-  if (href.startsWith("/page/")) return href;
-  if (href.startsWith("#")) return `/page/${makePageSlug(page?.label, `page-${index + 1}`)}`;
-  if (!href) return `/page/${makePageSlug(page?.label, `page-${index + 1}`)}`;
-  if (href.startsWith("/")) return href;
-
-  return `/page/${makePageSlug(href || page?.label, `page-${index + 1}`)}`;
-}
 
 
-function getTrafficSource() {
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const utm = params.get("utm_source");
-    if (utm) return utm;
 
-    const ref = document.referrer || "";
-    if (!ref) return "مباشر";
 
-    const host = new URL(ref).hostname.toLowerCase();
-    if (host.includes("google")) return "Google";
-    if (host.includes("instagram")) return "Instagram";
-    if (host.includes("tiktok")) return "TikTok";
-    if (host.includes("snapchat")) return "Snapchat";
-    if (host.includes("twitter") || host.includes("x.com")) return "X";
-    if (host.includes("facebook")) return "Facebook";
-
-    return host.replace("www.", "");
-  } catch {
-    return "مباشر";
-  }
-}
 
 
 async function getVisitorGeo() {
@@ -344,14 +152,6 @@ async function getVisitorGeo() {
 }
 
 
-function formatDuration(ms) {
-  const seconds = Math.max(0, Math.floor(Number(ms || 0) / 1000));
-  if (seconds < 60) return `${seconds}ث`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}د`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}س ${minutes % 60}د`;
-}
 
 
 
@@ -375,44 +175,10 @@ async function trackFunnelStep(step, extra = {}) {
 
 
 
-function getGoogleDriveFileId(url = "") {
-  const value = String(url || "").trim();
-  if (!value.includes("drive.google.com")) return "";
-
-  const fileMatch = value.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if (fileMatch?.[1]) return fileMatch[1];
-
-  const idMatch = value.match(/[?&]id=([^&]+)/);
-  if (idMatch?.[1]) return idMatch[1];
-
-  return "";
-}
-
-function normalizeVideoUrl(url = "") {
-  const value = String(url || "").trim();
-  if (!value) return "";
-
-  const driveId = getGoogleDriveFileId(value);
-  if (driveId) {
-    return `https://drive.google.com/file/d/${driveId}/preview`;
-  }
-
-  return value;
-}
-
-function isGoogleDriveVideo(url = "") {
-  return Boolean(getGoogleDriveFileId(url));
-}
 
 
-function firebaseError(err) {
-  const code = err?.code || "";
-  if (code.includes("invalid-credential")) return "بيانات الدخول غير صحيحة";
-  if (code.includes("email-already-in-use")) return "الإيميل مستخدم مسبقاً";
-  if (code.includes("weak-password")) return "كلمة المرور ضعيفة";
-  if (code.includes("operation-not-allowed")) return "فعّل طريقة الدخول من Firebase Authentication";
-  return err?.message || "حدث خطأ غير معروف";
-}
+
+
 
 export default function App() {
   const [path, setPath] = useState(window.location.pathname);
