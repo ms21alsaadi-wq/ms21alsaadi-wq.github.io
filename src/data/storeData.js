@@ -1,4 +1,4 @@
-export export const STORE_WHATSAPP = "966508983003";
+export const STORE_WHATSAPP = "966508983003";
 
 export const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_t04scol";
 export const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_v9wzhwf";
