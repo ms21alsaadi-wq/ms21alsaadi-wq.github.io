@@ -1791,6 +1791,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [productStatusFilter, setProductStatusFilter] = useState("all");
   const [productCategoryFilter, setProductCategoryFilter] = useState("all");
   const [productSort, setProductSort] = useState("newest");
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [productEditorTab, setProductEditorTab] = useState("info");
   const [productOptions, setProductOptions] = useState([{ size: "", color: "", stock: "", price: "", sku: "" }]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [draggedProductId, setDraggedProductId] = useState(null);
@@ -2146,6 +2148,18 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setProductOptions([{ size: "", color: "", stock: "", price: "", sku: "" }]);
   };
 
+  const openProductEditor = (product = null) => {
+    setEditing(product);
+    setProductEditorTab("info");
+    setProductModalOpen(true);
+  };
+
+  const closeProductEditor = () => {
+    resetProductEditor();
+    setProductModalOpen(false);
+    setProductEditorTab("info");
+  };
+
   const saveProduct = async (e) => {
     e.preventDefault();
     const f = e.target;
@@ -2199,6 +2213,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setNotice(editing ? "تم تعديل المنتج بنجاح" : "تم إضافة المنتج بنجاح");
     setTimeout(() => setNotice(""), 2200);
     resetProductEditor();
+    setProductModalOpen(false);
+    setProductEditorTab("info");
     f.reset();
     setTab("products");
   };
@@ -2233,10 +2249,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       status: String(pick("status", "الحالة") || "active").trim(),
       featured: String(pick("featured", "مميز") || "").toLowerCase() === "true" || String(pick("featured", "مميز") || "") === "نعم",
       image,
-      gallery: galleryImages,
-      colors: f.colors?.value?.split(",").map(v => v.trim()).filter(Boolean) || [],
-      seoTitle: f.seoTitle?.value?.trim() || "",
-      seoDescription: f.seoDescription?.value?.trim() || "",
+      gallery: image ? [image] : [],
+      colors: [],
+      seoTitle: "",
+      seoDescription: "",
       updatedAt: serverTimestamp()
     };
   };
@@ -3158,10 +3174,10 @@ return (
                       <p>أضف منتج جديد بشكل يدوي</p>
                     </div>
                   </div>
-                  <button className="admin-primary combo-main-btn" type="button" onClick={() => document.getElementById("product-editor-form")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                  <button className="admin-primary combo-main-btn" type="button" onClick={() => openProductEditor()}>
                     <Plus size={17}/> منتج جديد
                   </button>
-                  <small className="combo-note">سيتم الانتقال إلى نموذج إضافة منتج جديد</small>
+                  <small className="combo-note">سيفتح نموذج الإضافة داخل نافذة مرتبة</small>
                 </div>
 
                 <div className="combo-divider" />
@@ -3219,16 +3235,105 @@ return (
               )}
             </div>
 
-            <div className="admin-card product-form-card pro-form-card full-product-form-card products-form-compact-final">
-              <div className="pro-card-head">
+            {productModalOpen && (
+              <div className="product-editor-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeProductEditor(); }}>
+                <div className="admin-card product-form-card pro-form-card full-product-form-card products-form-compact-final product-editor-modal" role="dialog" aria-modal="true">
+                  <div className="pro-card-head product-modal-head">
                 <div>
                   <span>Product editor</span>
                   <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
                 </div>
-                {editing && <button className="admin-secondary" onClick={resetProductEditor}>منتج جديد</button>}
+                <div className="product-modal-head-actions">
+                  {editing && <button className="admin-secondary" type="button" onClick={() => openProductEditor()}>منتج جديد</button>}
+                  <button className="product-modal-close" type="button" onClick={closeProductEditor} aria-label="إغلاق"><X size={18}/></button>
+                </div>
               </div>
 
-              <form id="product-editor-form" onSubmit={saveProduct} className="product-form products-six-card-form">
+              <div className="product-editor-tabs" role="tablist">
+                {[
+                  ["info", "المعلومات"],
+                  ["pricing", "الأسعار والمخزون"],
+                  ["images", "الصور"],
+                  ["options", "الخيارات"],
+                  ["seo", "SEO"]
+                ].map(([id, label]) => (
+                  <button key={id} type="button" className={productEditorTab === id ? "active" : ""} onClick={() => setProductEditorTab(id)}>{label}</button>
+                ))}
+              </div>
+
+              <form id="product-editor-form" onSubmit={saveProduct} className={`product-form products-six-card-form product-editor-tab-${productEditorTab}`}>
+                <div className="product-options-master-card">
+                  <div className="product-options-master-head">
+                    <div>
+                      <span>نظام خيارات المنتج</span>
+                      <h3>إدارة خيارات المقاسات والألوان والأسعار والمخزون</h3>
+                    </div>
+                    <span className="product-section-icon"><Settings size={18}/></span>
+                  </div>
+
+                  <div className="options-master-grid">
+                    <div className="options-preview-panel">
+                      <div className="options-subhead">
+                        <b>معاينة الخيارات</b>
+                        <small>{productOptions.length} خيارات</small>
+                      </div>
+                      <div className="option-stats-row">
+                        <div><span>الخيارات الكلية</span><b>{productOptions.length}</b></div>
+                        <div><span>المقاسات</span><b>{new Set(productOptions.map(o => o.size).filter(Boolean)).size}</b></div>
+                        <div><span>الألوان</span><b>{new Set(productOptions.map(o => o.color).filter(Boolean)).size}</b></div>
+                        <div><span>إجمالي المخزون</span><b>{productOptions.reduce((sum, o) => sum + Number(o.stock || 0), 0)}</b></div>
+                      </div>
+                      <div className="option-preview-table">
+                        <div className="option-preview-head"><span>اللون</span><span>المقاس</span><span>السعر</span><span>بعد الخصم</span><span>المخزون</span><span>SKU</span></div>
+                        {productOptions.length ? productOptions.map((option, index) => (
+                          <div className="option-preview-row" key={`preview-${index}`}>
+                            <span>{option.color || "—"}</span>
+                            <span>{option.size || "—"}</span>
+                            <span>{option.price || editing?.price || "—"}</span>
+                            <span>{option.oldPrice || editing?.oldPrice || "—"}</span>
+                            <span>{option.stock || 0}</span>
+                            <span>{option.sku || "—"}</span>
+                          </div>
+                        )) : <div className="option-preview-empty">أضف خيارًا ليظهر هنا</div>}
+                      </div>
+                      <div className="option-available-note"><CheckCircle2 size={15}/> سيظهر المنتج بهذا الشكل للعملاء حسب الخيارات المتاحة</div>
+                    </div>
+
+                    <div className="options-editor-panel">
+                      <div className="option-chip-section">
+                        <div className="option-chip-head"><b>إدارة الألوان</b></div>
+                        <div className="option-chip-row">
+                          {[...new Set(productOptions.map(o => o.color).filter(Boolean))].map(color => <span className="option-chip" key={color}>{color}<button type="button">×</button></span>)}
+                          <button type="button" className="option-add-chip" onClick={addProductOption}><Plus size={14}/> إضافة لون</button>
+                        </div>
+                      </div>
+
+                      <div className="option-chip-section">
+                        <div className="option-chip-head"><b>إدارة المقاسات</b></div>
+                        <div className="option-chip-row">
+                          {[...new Set(productOptions.map(o => o.size).filter(Boolean))].map(size => <span className="option-chip" key={size}>{size}<button type="button">×</button></span>)}
+                          <button type="button" className="option-add-chip" onClick={addProductOption}><Plus size={14}/> إضافة مقاس</button>
+                        </div>
+                      </div>
+
+                      <div className="option-combinations-title">الخيارات (المقاس × اللون)</div>
+                      <div className="product-options-builder refined-options-builder">
+                        {productOptions.map((option, index) => (
+                          <div className="product-option-row refined-option-row" key={index}>
+                            <input value={option.color} onChange={e => updateProductOption(index, "color", e.target.value)} placeholder="اللون" />
+                            <input value={option.size} onChange={e => updateProductOption(index, "size", e.target.value)} placeholder="المقاس" />
+                            <input value={option.sku} onChange={e => updateProductOption(index, "sku", e.target.value)} placeholder="SKU اختياري" />
+                            <input type="number" min="0" value={option.price} onChange={e => updateProductOption(index, "price", e.target.value)} placeholder="السعر" />
+                            <input type="number" min="0" value={option.oldPrice || ""} onChange={e => updateProductOption(index, "oldPrice", e.target.value)} placeholder="السعر بعد الخصم" />
+                            <input type="number" min="0" value={option.stock} onChange={e => updateProductOption(index, "stock", e.target.value)} placeholder="المخزون" />
+                            <button type="button" className="admin-danger-soft" onClick={() => removeProductOption(index)}><Trash2 size={14}/></button>
+                          </div>
+                        ))}
+                        <button type="button" className="option-add-row-btn" onClick={addProductOption}><Plus size={15}/> إضافة خيار جديد</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div className="products-six-card-grid">
                   <div className="pro-form-section product-six-card">
                     <h3><span className="product-section-icon">📝</span> معلومات المنتج</h3>
@@ -3313,79 +3418,6 @@ return (
                     <div className="product-card-note">لا يغيّر بنية البيانات الحالية.</div>
                   </div>
                 </div>
-                <div className="product-options-master-card">
-                  <div className="product-options-master-head">
-                    <div>
-                      <span>نظام خيارات المنتج</span>
-                      <h3>إدارة خيارات المقاسات والألوان والأسعار والمخزون</h3>
-                    </div>
-                    <span className="product-section-icon"><Settings size={18}/></span>
-                  </div>
-
-                  <div className="options-master-grid">
-                    <div className="options-preview-panel">
-                      <div className="options-subhead">
-                        <b>معاينة الخيارات</b>
-                        <small>{productOptions.length} خيارات</small>
-                      </div>
-                      <div className="option-stats-row">
-                        <div><span>الخيارات الكلية</span><b>{productOptions.length}</b></div>
-                        <div><span>المقاسات</span><b>{new Set(productOptions.map(o => o.size).filter(Boolean)).size}</b></div>
-                        <div><span>الألوان</span><b>{new Set(productOptions.map(o => o.color).filter(Boolean)).size}</b></div>
-                        <div><span>إجمالي المخزون</span><b>{productOptions.reduce((sum, o) => sum + Number(o.stock || 0), 0)}</b></div>
-                      </div>
-                      <div className="option-preview-table">
-                        <div className="option-preview-head"><span>اللون</span><span>المقاس</span><span>السعر</span><span>بعد الخصم</span><span>المخزون</span><span>SKU</span></div>
-                        {productOptions.length ? productOptions.map((option, index) => (
-                          <div className="option-preview-row" key={`preview-${index}`}>
-                            <span>{option.color || "—"}</span>
-                            <span>{option.size || "—"}</span>
-                            <span>{option.price || editing?.price || "—"}</span>
-                            <span>{option.oldPrice || editing?.oldPrice || "—"}</span>
-                            <span>{option.stock || 0}</span>
-                            <span>{option.sku || "—"}</span>
-                          </div>
-                        )) : <div className="option-preview-empty">أضف خيارًا ليظهر هنا</div>}
-                      </div>
-                      <div className="option-available-note"><CheckCircle2 size={15}/> سيظهر المنتج بهذا الشكل للعملاء حسب الخيارات المتاحة</div>
-                    </div>
-
-                    <div className="options-editor-panel">
-                      <div className="option-chip-section">
-                        <div className="option-chip-head"><b>إدارة الألوان</b></div>
-                        <div className="option-chip-row">
-                          {[...new Set(productOptions.map(o => o.color).filter(Boolean))].map(color => <span className="option-chip" key={color}>{color}<button type="button">×</button></span>)}
-                          <button type="button" className="option-add-chip" onClick={addProductOption}><Plus size={14}/> إضافة لون</button>
-                        </div>
-                      </div>
-
-                      <div className="option-chip-section">
-                        <div className="option-chip-head"><b>إدارة المقاسات</b></div>
-                        <div className="option-chip-row">
-                          {[...new Set(productOptions.map(o => o.size).filter(Boolean))].map(size => <span className="option-chip" key={size}>{size}<button type="button">×</button></span>)}
-                          <button type="button" className="option-add-chip" onClick={addProductOption}><Plus size={14}/> إضافة مقاس</button>
-                        </div>
-                      </div>
-
-                      <div className="option-combinations-title">الخيارات (المقاس × اللون)</div>
-                      <div className="product-options-builder refined-options-builder">
-                        {productOptions.map((option, index) => (
-                          <div className="product-option-row refined-option-row" key={index}>
-                            <input value={option.color} onChange={e => updateProductOption(index, "color", e.target.value)} placeholder="اللون" />
-                            <input value={option.size} onChange={e => updateProductOption(index, "size", e.target.value)} placeholder="المقاس" />
-                            <input value={option.sku} onChange={e => updateProductOption(index, "sku", e.target.value)} placeholder="SKU اختياري" />
-                            <input type="number" min="0" value={option.price} onChange={e => updateProductOption(index, "price", e.target.value)} placeholder="السعر" />
-                            <input type="number" min="0" value={option.oldPrice || ""} onChange={e => updateProductOption(index, "oldPrice", e.target.value)} placeholder="السعر بعد الخصم" />
-                            <input type="number" min="0" value={option.stock} onChange={e => updateProductOption(index, "stock", e.target.value)} placeholder="المخزون" />
-                            <button type="button" className="admin-danger-soft" onClick={() => removeProductOption(index)}><Trash2 size={14}/></button>
-                          </div>
-                        ))}
-                        <button type="button" className="option-add-row-btn" onClick={addProductOption}><Plus size={15}/> إضافة خيار جديد</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
 
                 {galleryImages.length > 0 && (
                   <div className="gallery-manager compact-gallery-manager">
@@ -3410,7 +3442,7 @@ return (
 
                 <div className="form-actions pro-actions">
                   <button className="admin-primary"><Save size={16}/> {editing ? "حفظ التعديل" : "إضافة المنتج"}</button>
-                  {editing && <button type="button" className="admin-secondary" onClick={resetProductEditor}>إلغاء التعديل</button>}
+                  <button type="button" className="admin-secondary" onClick={closeProductEditor}>إلغاء</button>
                 </div>
               </form>
 
@@ -3434,7 +3466,9 @@ return (
                   </div>
                 </div>
               </div>
-            </div>
+                </div>
+              </div>
+            )}
 
             <div className="admin-card products-manager pro-products-manager full-products-manager products-list-compact-final">
               <div className="pro-card-head products-manager-head">
@@ -3628,7 +3662,7 @@ return (
                       )}
 
                       <div className="admin-product-actions">
-                        <button onClick={()=>setEditing(p)}><Pencil size={16}/> تعديل كامل</button>
+                        <button onClick={()=>openProductEditor(p)}><Pencil size={16}/> تعديل كامل</button>
                         <button type="button" onClick={()=>duplicateProduct(p)}><Plus size={16}/> نسخ</button>
                         <button className="danger" onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={16}/> حذف</button>
                       </div>
