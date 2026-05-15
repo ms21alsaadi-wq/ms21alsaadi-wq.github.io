@@ -1789,7 +1789,9 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [pendingImport, setPendingImport] = useState([]);
   const [productSearch, setProductSearch] = useState("");
   const [productStatusFilter, setProductStatusFilter] = useState("all");
+  const [productCategoryFilter, setProductCategoryFilter] = useState("all");
   const [productSort, setProductSort] = useState("newest");
+  const [productOptions, setProductOptions] = useState([{ size: "", color: "", stock: "", price: "", sku: "" }]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [draggedProductId, setDraggedProductId] = useState(null);
   const [liveVisitors, setLiveVisitors] = useState(0);
@@ -1864,6 +1866,16 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   useEffect(() => {
     setImagePreview(editing?.image || "");
     setGalleryImages(Array.isArray(editing?.gallery) ? editing.gallery : []);
+    const currentOptions = Array.isArray(editing?.options) && editing.options.length
+      ? editing.options
+      : [{ size: "", color: "", stock: "", price: "", sku: "" }];
+    setProductOptions(currentOptions.map(option => ({
+      size: option.size || "",
+      color: option.color || "",
+      stock: option.stock ?? "",
+      price: option.price ?? "",
+      sku: option.sku || ""
+    })));
   }, [editing]);
 
   const updateDraft = (key, value) => {
@@ -1881,11 +1893,15 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setTimeout(() => setNotice(""), 1800);
   };
 
+  const adminProductCategories = useMemo(() => ["all", ...new Set(products.map(product => product.category).filter(Boolean))], [products]);
+
   const filteredAdminProducts = products
     .filter(product => {
       const q = productSearch.trim().toLowerCase();
       const searchable = `${product.name || ""} ${product.category || ""} ${product.brand || ""} ${product.sku || ""}`.toLowerCase();
       const matchesSearch = !q || searchable.includes(q);
+
+      const matchesCategory = productCategoryFilter === "all" || product.category === productCategoryFilter;
 
       const matchesStatus =
         productStatusFilter === "all" ||
@@ -1894,7 +1910,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
         (productStatusFilter === "featured" && product.featured) ||
         (productStatusFilter === "out" && Number(product.stock || 0) <= 0);
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesCategory && matchesStatus;
     })
     .sort((a, b) => {
       if (productSort === "price_high") return Number(b.price || 0) - Number(a.price || 0);
@@ -2111,34 +2127,77 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setImagePreview(image);
   };
 
+  const updateProductOption = (index, key, value) => {
+    setProductOptions(prev => prev.map((option, i) => i === index ? { ...option, [key]: value } : option));
+  };
+
+  const addProductOption = () => {
+    setProductOptions(prev => [...prev, { size: "", color: "", stock: "", price: "", sku: "" }]);
+  };
+
+  const removeProductOption = (index) => {
+    setProductOptions(prev => prev.length > 1 ? prev.filter((_, i) => i !== index) : [{ size: "", color: "", stock: "", price: "", sku: "" }]);
+  };
+
+  const resetProductEditor = () => {
+    setEditing(null);
+    setImagePreview("");
+    setGalleryImages([]);
+    setProductOptions([{ size: "", color: "", stock: "", price: "", sku: "" }]);
+  };
+
   const saveProduct = async (e) => {
     e.preventDefault();
     const f = e.target;
     let image = f.imageUrl.value.trim();
     if (f.imageFile.files[0]) image = await fileToDataUrl(f.imageFile.files[0], { maxWidth: 1100, maxHeight: 900, quality: 0.82 });
     const id = editing?.id || uid();
+    const cleanOptions = productOptions
+      .map(option => ({
+        size: String(option.size || "").trim(),
+        color: String(option.color || "").trim(),
+        stock: option.stock === "" ? "" : Number(option.stock || 0),
+        price: option.price === "" ? "" : Number(option.price || 0),
+        sku: String(option.sku || "").trim()
+      }))
+      .filter(option => option.size || option.color || option.stock !== "" || option.price !== "" || option.sku);
+
+    const sizes = cleanOptions.length
+      ? [...new Set(cleanOptions.map(option => option.size).filter(Boolean))]
+      : String(f.sizes.value || "").split(",").map(item => item.trim()).filter(Boolean);
+
+    const colors = cleanOptions.length
+      ? [...new Set(cleanOptions.map(option => option.color).filter(Boolean))]
+      : String(f.colors.value || "").split(",").map(item => item.trim()).filter(Boolean);
+
+    const gallery = [...new Set([image || editing?.image || "", ...galleryImages].filter(Boolean))];
+
     const product = {
-      name: f.name.value,
-      brand: f.brand.value,
-      category: f.category.value,
+      name: f.name.value.trim(),
+      brand: f.brand.value.trim(),
+      category: f.category.value.trim(),
       price: Number(f.price.value),
       oldPrice: Number(f.oldPrice.value || f.price.value),
       rating: Number(f.rating.value || 5),
-      sizes: f.sizes.value,
-      tag: f.tag.value,
-      description: f.description.value,
+      sizes,
+      colors,
+      options: cleanOptions,
+      tag: f.tag.value.trim(),
+      description: f.description.value.trim(),
       stock: Number(f.stock.value || 0),
-      sku: f.sku.value,
+      sku: f.sku.value.trim(),
       status: f.status.value,
       featured: f.featured.checked,
       image: image || editing?.image || "",
+      gallery,
+      order: editing?.order ?? Date.now(),
+      createdAt: editing?.createdAt || serverTimestamp(),
       updatedAt: serverTimestamp()
     };
     await setDoc(doc(db, "products", id), product, { merge: true });
     setNotice(editing ? "تم تعديل المنتج بنجاح" : "تم إضافة المنتج بنجاح");
     setTimeout(() => setNotice(""), 2200);
-    setEditing(null);
-    setImagePreview("");
+    resetProductEditor();
     f.reset();
     setTab("products");
   };
@@ -3141,7 +3200,7 @@ return (
                   <span>Product editor</span>
                   <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
                 </div>
-                {editing && <button className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>منتج جديد</button>}
+                {editing && <button className="admin-secondary" onClick={resetProductEditor}>منتج جديد</button>}
               </div>
 
               <form onSubmit={saveProduct} className="product-form products-six-card-form">
@@ -3181,8 +3240,29 @@ return (
                     <h3><span className="product-section-icon">🖼️</span> الخيارات والصورة</h3>
                     <div className="three">
                       <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
-                      <Control label="الأحجام/الخيارات"><input name="sizes" defaultValue={Array.isArray(editing?.sizes) ? editing.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")} /></Control>
-                      <Control label="الألوان"><input name="colors" defaultValue={Array.isArray(editing?.colors) ? editing.colors.join(",") : (editing?.colors || "")} placeholder="أخضر, أبيض, أسود" /></Control>
+                      <Control label="الأحجام العامة"><input name="sizes" defaultValue={Array.isArray(editing?.sizes) ? editing.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")} placeholder="صغير, متوسط, كبير" /></Control>
+                      <Control label="الألوان العامة"><input name="colors" defaultValue={Array.isArray(editing?.colors) ? editing.colors.join(",") : (editing?.colors || "")} placeholder="أخضر, أبيض, أسود" /></Control>
+                    </div>
+
+                    <div className="product-options-builder">
+                      <div className="options-builder-head">
+                        <div>
+                          <b>نظام خيارات المنتج</b>
+                          <small>اربط كل مقاس بلون ومخزون وسعر خاص عند الحاجة.</small>
+                        </div>
+                        <button type="button" className="admin-secondary" onClick={addProductOption}>+ إضافة خيار</button>
+                      </div>
+
+                      {productOptions.map((option, index) => (
+                        <div className="product-option-row" key={index}>
+                          <input value={option.size} onChange={e => updateProductOption(index, "size", e.target.value)} placeholder="المقاس" />
+                          <input value={option.color} onChange={e => updateProductOption(index, "color", e.target.value)} placeholder="اللون" />
+                          <input type="number" min="0" value={option.stock} onChange={e => updateProductOption(index, "stock", e.target.value)} placeholder="المخزون" />
+                          <input type="number" min="0" value={option.price} onChange={e => updateProductOption(index, "price", e.target.value)} placeholder="سعر خاص" />
+                          <input value={option.sku} onChange={e => updateProductOption(index, "sku", e.target.value)} placeholder="SKU الخيار" />
+                          <button type="button" className="admin-danger-soft" onClick={() => removeProductOption(index)}>حذف</button>
+                        </div>
+                      ))}
                     </div>
                     <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
                     <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
@@ -3251,7 +3331,7 @@ return (
 
                 <div className="form-actions pro-actions">
                   <button className="admin-primary"><Save size={16}/> {editing ? "حفظ التعديل" : "إضافة المنتج"}</button>
-                  {editing && <button type="button" className="admin-secondary" onClick={()=>{setEditing(null); setImagePreview("");}}>إلغاء التعديل</button>}
+                  {editing && <button type="button" className="admin-secondary" onClick={resetProductEditor}>إلغاء التعديل</button>}
                 </div>
               </form>
 
@@ -3335,6 +3415,12 @@ return (
                   <option value="out">نفد المخزون</option>
                 </select>
 
+                <select value={productCategoryFilter} onChange={e => setProductCategoryFilter(e.target.value)}>
+                  {adminProductCategories.map(category => (
+                    <option key={category} value={category}>{category === "all" ? "كل الأقسام" : category}</option>
+                  ))}
+                </select>
+
                 <select value={productSort} onChange={e => setProductSort(e.target.value)}>
                   <option value="custom">الترتيب اليدوي</option>
                   <option value="newest">الأحدث</option>
@@ -3396,6 +3482,12 @@ return (
                       <div>
                         <small>{p.category}</small>
                         <h3>{p.name}</h3>
+                        <div className="admin-product-badges">
+                          <span>{p.category || "بدون قسم"}</span>
+                          {p.featured && <span>مميز</span>}
+                          {Array.isArray(p.options) && p.options.length > 0 && <span>{p.options.length} خيارات</span>}
+                          {Array.isArray(p.gallery) && p.gallery.length > 1 && <span>{p.gallery.length} صور</span>}
+                        </div>
                         <p>{p.description || p.brand}</p>
                       </div>
 
@@ -3425,6 +3517,14 @@ return (
                         </label>
 
                         <label>
+                          <span>القسم</span>
+                          <input
+                            defaultValue={p.category || ""}
+                            onBlur={e => quickUpdateProduct(p.id, { category: e.target.value.trim(), updatedAt: serverTimestamp() })}
+                          />
+                        </label>
+
+                        <label>
                           <span>الحالة</span>
                           <select
                             defaultValue={p.status || "active"}
@@ -3435,6 +3535,18 @@ return (
                           </select>
                         </label>
                       </div>
+
+                      {Array.isArray(p.options) && p.options.length > 0 && (
+                        <div className="admin-product-options-list">
+                          {p.options.slice(0, 4).map((option, index) => (
+                            <span key={index}>
+                              {[option.size, option.color].filter(Boolean).join(" / ") || "خيار"}
+                              {option.stock !== "" && option.stock !== undefined ? ` • ${option.stock} مخزون` : ""}
+                            </span>
+                          ))}
+                          {p.options.length > 4 && <span>+{p.options.length - 4}</span>}
+                        </div>
+                      )}
 
                       <div className="admin-product-actions">
                         <button onClick={()=>setEditing(p)}><Pencil size={16}/> تعديل كامل</button>
