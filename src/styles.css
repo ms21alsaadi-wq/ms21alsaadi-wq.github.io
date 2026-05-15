@@ -9093,162 +9093,70 @@ a[href="./"]:hover {
   .combo-meta-row { flex-direction: column !important; align-items: center !important; }
 }
 
-
-/* ===== Product Admin Layout Refresh ===== */
-
-.products-top-combo-card{
-  padding:28px !important;
-  border-radius:28px !important;
-  margin-bottom:22px !important;
-}
-
-.products-top-combo{
-  display:grid !important;
-  grid-template-columns:1fr 1fr !important;
-  gap:28px !important;
-  align-items:stretch !important;
-}
-
-.top-combo-panel{
-  min-height:220px !important;
-  border:1px solid rgba(0,0,0,.06) !important;
-  border-radius:24px !important;
-  padding:28px !important;
-  background:#fff !important;
+/* ===== FIX: products top spacing/button alignment/settings icon ===== */
+.admin-products-stacked{
   display:flex !important;
   flex-direction:column !important;
+  gap:6px !important;
+}
+.products-top-combo-card{
+  margin-bottom:0 !important;
+  padding:14px !important;
+}
+.products-form-compact-final.full-product-form-card{
+  margin-top:0 !important;
+  padding-top:10px !important;
+}
+.products-form-compact-final > .pro-card-head,
+.full-product-form-card .pro-card-head{
+  min-height:0 !important;
+  margin-bottom:8px !important;
+  padding:0 4px 6px !important;
+  border-bottom:0 !important;
+}
+.products-form-compact-final .pro-card-head span{
+  line-height:1.1 !important;
+}
+.products-form-compact-final .pro-card-head h2{
+  margin:2px 0 0 !important;
+}
+.combo-main-btn,
+.combo-excel-actions button,
+.combo-excel-actions .excel-upload-btn,
+.excel-upload-btn{
+  display:inline-flex !important;
+  align-items:center !important;
   justify-content:center !important;
+  line-height:1 !important;
+  padding:0 18px !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+  box-sizing:border-box !important;
 }
-
-.combo-main-btn{
-  height:58px !important;
-  border-radius:18px !important;
-  font-size:17px !important;
-  margin-top:18px !important;
+.combo-excel-actions .excel-upload-btn{
+  height:48px !important;
+  min-height:48px !important;
+  max-height:48px !important;
 }
-
-.combo-note{
-  margin-top:14px !important;
-  opacity:.7;
+.combo-excel-actions .excel-upload-btn svg,
+.combo-excel-actions button svg{
+  flex:0 0 auto !important;
+  margin:0 !important;
 }
-
-.combo-divider{
+.product-options-master-head{
+  align-items:flex-start !important;
+  margin-bottom:12px !important;
+}
+.product-options-master-head .product-section-icon{
   display:none !important;
 }
-
-/* Product Editor */
+.product-options-master-card{
+  padding-top:16px !important;
+  margin-top:0 !important;
+}
 #product-editor-form{
-  margin-top:14px !important;
+  margin-top:0 !important;
 }
-
-.product-editor-grid{
-  display:grid !important;
-  grid-template-columns:1fr 1fr 1fr !important;
-  gap:18px !important;
-  align-items:start !important;
-}
-
-.product-editor-grid .admin-card{
-  border-radius:26px !important;
-  padding:22px !important;
-}
-
-.product-editor-grid .admin-card h3,
-.product-editor-grid .admin-card h2{
-  margin-bottom:16px !important;
-}
-
-.product-options-builder{
-  background:#f8f8f6 !important;
-  border-radius:22px !important;
-  padding:18px !important;
-  margin-top:14px !important;
-}
-
-.product-options-row{
-  display:grid !important;
-  grid-template-columns:1.2fr 1.2fr 1fr 1fr 1.4fr auto !important;
-  gap:10px !important;
-  align-items:center !important;
-  margin-bottom:10px !important;
-}
-
-.product-options-row input,
-.product-options-row select{
-  height:44px !important;
-  border-radius:14px !important;
-}
-
-.product-options-header{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  margin-bottom:14px !important;
-}
-
-.product-chip-group{
-  display:flex !important;
-  flex-wrap:wrap !important;
-  gap:10px !important;
-  margin-top:10px !important;
-}
-
-.product-chip{
-  background:#fff !important;
-  border:1px solid rgba(0,0,0,.08) !important;
-  border-radius:999px !important;
-  padding:10px 16px !important;
-  display:flex !important;
-  align-items:center !important;
-  gap:8px !important;
-  font-size:14px !important;
-}
-
-.product-chip button{
-  border:none !important;
-  background:none !important;
-  cursor:pointer !important;
-}
-
-.product-preview-table{
-  overflow:auto !important;
-  border-radius:20px !important;
-  border:1px solid rgba(0,0,0,.06) !important;
-}
-
-.product-preview-table table{
-  width:100% !important;
-  border-collapse:collapse !important;
-}
-
-.product-preview-table th{
-  background:#f7f7f4 !important;
-  font-size:14px !important;
-}
-
-.product-preview-table th,
-.product-preview-table td{
-  padding:14px !important;
-  border-bottom:1px solid rgba(0,0,0,.05) !important;
-  text-align:center !important;
-}
-
-@media (max-width: 1200px){
-  .product-editor-grid{
-    grid-template-columns:1fr 1fr !important;
-  }
-}
-
 @media (max-width: 860px){
-  .products-top-combo{
-    grid-template-columns:1fr !important;
-  }
-
-  .product-editor-grid{
-    grid-template-columns:1fr !important;
-  }
-
-  .product-options-row{
-    grid-template-columns:1fr 1fr !important;
-  }
+  .admin-products-stacked{gap:8px !important;}
 }

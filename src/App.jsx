@@ -3235,7 +3235,6 @@ return (
                       <span>نظام خيارات المنتج</span>
                       <h3>إدارة خيارات المقاسات والألوان والأسعار والمخزون</h3>
                     </div>
-                    <span className="product-section-icon"><Settings size={18}/></span>
                   </div>
 
                   <div className="options-master-grid">
