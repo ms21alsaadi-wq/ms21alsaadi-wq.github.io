@@ -1678,7 +1678,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                     <div className="account-empty-state">
                       <h3>لا توجد طلبات بعد</h3>
                       <p>بعد إتمام أول طلب سيظهر هنا مع حالة الطلب والشحن والتتبع.</p>
-                      <button className="secondary" onClick={() => go("/")}>تصفح المنتجات</button>
+                      <button className="secondary product-flat-top-btn" onClick={() => go("/")}>تصفح المنتجات</button>
                     </div>
                   )}
                 </div>

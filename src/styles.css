@@ -10891,3 +10891,102 @@ html, body, #root {
   border-color:#0f4d36 !important;
   box-shadow:none !important;
 }
+
+
+/* ===== ACTUAL product header buttons flat style ===== */
+/* Targets the three visible top buttons in Products Workspace:
+   New Product, Excel Template, Upload Excel.
+*/
+.admin-main .product-admin-workspace .products-hero button,
+.admin-main .product-admin-workspace .products-toolbar button,
+.admin-main .product-admin-workspace .products-workspace-header button,
+.admin-main .product-admin-workspace .products-workspace-actions button,
+.admin-main .product-admin-workspace .product-import-actions button,
+.admin-main .product-admin-workspace .product-toolbar-actions button,
+.admin-main .product-admin-workspace .workspace-actions button,
+.admin-main .product-admin-workspace .excel-import-actions button,
+.admin-main .product-admin-workspace .bulk-import-actions button{
+  background:#ffffff !important;
+  background-image:none !important;
+  color:#0f4d36 !important;
+  border:1px solid rgba(15,77,54,.16) !important;
+  box-shadow:none !important;
+  text-shadow:none !important;
+  filter:none !important;
+}
+
+.admin-main .product-admin-workspace .products-hero button:hover,
+.admin-main .product-admin-workspace .products-toolbar button:hover,
+.admin-main .product-admin-workspace .products-workspace-header button:hover,
+.admin-main .product-admin-workspace .products-workspace-actions button:hover,
+.admin-main .product-admin-workspace .product-import-actions button:hover,
+.admin-main .product-admin-workspace .product-toolbar-actions button:hover,
+.admin-main .product-admin-workspace .workspace-actions button:hover,
+.admin-main .product-admin-workspace .excel-import-actions button:hover,
+.admin-main .product-admin-workspace .bulk-import-actions button:hover{
+  background:#0f4d36 !important;
+  background-image:none !important;
+  color:#ffffff !important;
+  border-color:#0f4d36 !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+
+.admin-main .product-admin-workspace .products-hero button:hover svg,
+.admin-main .product-admin-workspace .products-toolbar button:hover svg,
+.admin-main .product-admin-workspace .products-workspace-header button:hover svg,
+.admin-main .product-admin-workspace .products-workspace-actions button:hover svg,
+.admin-main .product-admin-workspace .product-import-actions button:hover svg,
+.admin-main .product-admin-workspace .product-toolbar-actions button:hover svg,
+.admin-main .product-admin-workspace .workspace-actions button:hover svg,
+.admin-main .product-admin-workspace .excel-import-actions button:hover svg,
+.admin-main .product-admin-workspace .bulk-import-actions button:hover svg{
+  color:#ffffff !important;
+  stroke:#ffffff !important;
+}
+
+/* Strong fallback: first card in products tab header buttons */
+.admin-main .product-admin-workspace > :first-child button,
+.admin-main .product-admin-workspace > section:first-child button,
+.admin-main .product-admin-workspace > div:first-child button{
+  background:#ffffff !important;
+  background-image:none !important;
+  color:#0f4d36 !important;
+  border:1px solid rgba(15,77,54,.16) !important;
+  box-shadow:none !important;
+  filter:none !important;
+}
+
+.admin-main .product-admin-workspace > :first-child button:hover,
+.admin-main .product-admin-workspace > section:first-child button:hover,
+.admin-main .product-admin-workspace > div:first-child button:hover{
+  background:#0f4d36 !important;
+  color:#ffffff !important;
+  border-color:#0f4d36 !important;
+}
+
+
+/* Direct class injected into the three product top buttons */
+.product-flat-top-btn{
+  background:#ffffff !important;
+  background-image:none !important;
+  color:#0f4d36 !important;
+  border:1px solid rgba(15,77,54,.16) !important;
+  box-shadow:none !important;
+  filter:none !important;
+  text-shadow:none !important;
+  transform:none !important;
+}
+
+.product-flat-top-btn:hover{
+  background:#0f4d36 !important;
+  background-image:none !important;
+  color:#ffffff !important;
+  border-color:#0f4d36 !important;
+  box-shadow:none !important;
+}
+
+.product-flat-top-btn:hover svg{
+  color:#ffffff !important;
+  stroke:#ffffff !important;
+}
