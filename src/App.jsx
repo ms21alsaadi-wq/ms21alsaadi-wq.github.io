@@ -971,7 +971,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       </section>
 <section id="products" className="container product-section">
         <div className="section-title"><span>Rare Catalogue</span><h2>{settings.homeProductsTitle || "نباتات نادرة ومنتجات فاخرة مختارة بعناية"}</h2><p className="home-section-desc">{settings.homeProductsDesc || "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}</p></div>
-        <div className={`products-grid ${productsViewMode === "rows" ? "products-view-rows" : "products-view-cards"}`}>
+        <div className="products-grid">
           {filtered.map(p => {
             const sizes = sizesArray(p.sizes);
             return (
@@ -3862,6 +3862,18 @@ return (
               )}
 
               <div className={`admin-product-cards ${productsViewMode === "rows" ? "products-view-rows" : "products-view-cards"}`}>
+                {productsViewMode === "rows" && (
+                  <div className="products-excel-header">
+                    <span>تحديد</span>
+                    <span>الصورة</span>
+                    <span>المنتج</span>
+                    <span>القسم</span>
+                    <span>السعر</span>
+                    <span>المخزون</span>
+                    <span>الحالة</span>
+                    <span>إجراءات</span>
+                  </div>
+                )}
                 {filteredAdminProducts.map(p => (
                   <div
                     className={`admin-product-card ${selectedProducts.includes(p.id) ? "selected" : ""} ${draggedProductId === p.id ? "dragging" : ""}`}
@@ -3872,13 +3884,6 @@ return (
                     onDrop={() => { reorderProducts(draggedProductId, p.id); setDraggedProductId(null); }}
                     onDragEnd={() => setDraggedProductId(null)}
                   >
-                    <label className="product-select-check">
-                      <input
-                        type="checkbox"
-                        checked={selectedProducts.includes(p.id)}
-                        onChange={() => toggleProductSelection(p.id)}
-                      />
-                    </label>
                     <button type="button" className="product-drag-handle" title="اسحب لترتيب المنتج">↕</button>
                     <div className="admin-product-thumb">
                       <img src={p.image} alt={p.name || "منتج"} loading="lazy" decoding="async" />
@@ -3921,6 +3926,13 @@ return (
                       )}
 
                       <div className="admin-product-actions">
+                        <label className="product-select-check" title="تحديد المنتج">
+                          <input
+                            type="checkbox"
+                            checked={selectedProducts.includes(p.id)}
+                            onChange={() => toggleProductSelection(p.id)}
+                          />
+                        </label>
                         <button onClick={()=>openProductEditor(p)}><Pencil size={16}/> تعديل كامل</button>
                         <button type="button" onClick={()=>duplicateProduct(p)}><Plus size={16}/> نسخ</button>
                         <button className="danger" onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={16}/> حذف</button>
