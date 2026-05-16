@@ -10515,3 +10515,17 @@ html, body, #root {
     padding: 14px !important;
   }
 }
+
+
+/* Sidebar spacing fix */
+.admin-shell,
+.dashboard-shell,
+.modern-admin-layout{
+  gap:24px !important;
+}
+
+.admin-main,
+.dashboard-main,
+.main-content{
+  padding-right:24px !important;
+}
