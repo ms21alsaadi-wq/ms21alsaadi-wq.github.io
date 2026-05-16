@@ -3,7 +3,7 @@ import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
   Save, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock, Languages
+  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock, Languages, Grid3X3, Rows3
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -971,7 +971,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       </section>
 <section id="products" className="container product-section">
         <div className="section-title"><span>Rare Catalogue</span><h2>{settings.homeProductsTitle || "نباتات نادرة ومنتجات فاخرة مختارة بعناية"}</h2><p className="home-section-desc">{settings.homeProductsDesc || "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}</p></div>
-        <div className="products-grid">
+        <div className={`products-grid ${productViewMode === "rows" ? "products-rows-mode" : "products-cards-mode"}`}>
           {filtered.map(p => {
             const sizes = sizesArray(p.sizes);
             return (
@@ -1468,7 +1468,7 @@ function StoreCustomPage({ page, products, go }) {
       </div>
 
       {pageProducts.length > 0 ? (
-        <div className="products-grid store-page-products">
+        <div className={`products-grid store-page-products ${productViewMode === "rows" ? "products-rows-mode" : "products-cards-mode"}`}>
           {pageProducts.map(product => (
             <article className="product" key={product.id}>
               <div className="product-img">
@@ -2029,6 +2029,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [galleryImages, setGalleryImages] = useState([]);
   const [pendingImport, setPendingImport] = useState([]);
   const [productSearch, setProductSearch] = useState("");
+  const [productViewMode, setProductViewMode] = useState(() => localStorage.getItem("productViewMode") || "grid");
   const [productStatusFilter, setProductStatusFilter] = useState("all");
   const [productCategoryFilter, setProductCategoryFilter] = useState("all");
   const [productSort, setProductSort] = useState("newest");
@@ -2801,6 +2802,11 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   ];
 
   const selectedThemeSection = themeSections.find(section => section.id === openSection);
+  const setProductViewModeAndSave = (mode) => {
+    setProductViewMode(mode);
+    localStorage.setItem("productViewMode", mode);
+  };
+
   const changeAdminLanguage = (language) => {
     setAdminLanguage(language);
     localStorage.setItem("adminLanguage", language);
@@ -3388,6 +3394,26 @@ return (
                       <div className={`admin-coupon-card ${coupon.active ? "active" : "disabled"} ${expired ? "expired" : ""}`} key={coupon.id}>
                         <div>
                           <span>{t("discountCode")}</span>
+            <div className="products-view-toggle" aria-label="طريقة عرض المنتجات">
+              <button
+                type="button"
+                className={productViewMode === "grid" ? "active" : ""}
+                onClick={() => setProductViewModeAndSave("grid")}
+                title="عرض الكروت"
+              >
+                <Grid3X3 size={16}/>
+                <span>كروت</span>
+              </button>
+              <button
+                type="button"
+                className={productViewMode === "rows" ? "active" : ""}
+                onClick={() => setProductViewModeAndSave("rows")}
+                title="عرض الصفوف"
+              >
+                <Rows3 size={16}/>
+                <span>صفوف</span>
+              </button>
+            </div>
                           <h3>{coupon.code}</h3>
                           <p>خصم {coupon.percent}% • استخدام مرة واحدة لكل عميل</p>
                           <small>تم استخدامه: {Object.keys(coupon.usedBy || {}).length} مرة</small>
