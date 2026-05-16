@@ -1017,7 +1017,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
             </div>
             <div className="cart-foot">
               <div className="coupon-box">
-                <label>كود الخصم</label>
+                <label>{t("discountCode")}</label>
                 <div className="coupon-input-row">
                   <input
                     value={couponCode}
@@ -1599,7 +1599,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
             <button className={tab === "profile" ? "active" : ""} onClick={() => setTab("profile")}>بياناتي</button>
             <button className={tab === "orders" ? "active" : ""} onClick={() => setTab("orders")}>طلباتي</button>
             <button className={tab === "appearance" ? "active" : ""} onClick={() => setTab("appearance")}>المظهر</button>
-            <button className={tab === "coupons" ? "active" : ""} onClick={() => setTab("coupons")}>{t("coupons")}</button>
+            <button className={tab === "coupons" ? "active" : ""} onClick={() => setTab("coupons")}>الكوبونات</button>
             <button className={tab === "wallet" ? "active" : ""} onClick={() => setTab("wallet")}>المحفظة</button>
           </div>
 
@@ -1703,7 +1703,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
               <section className="account-tab-panel">
                 <div className="account-section-title">
                   <span>Coupons</span>
-                  <h2>{t("coupons")}</h2>
+                  <h2>الكوبونات</h2>
                   <p>كل الكوبونات المتاحة والمنتهية تظهر هنا بوضوح.</p>
                 </div>
 
@@ -1714,7 +1714,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                     .map(coupon => (
                       <div className={`customer-coupon-card ${couponClass(coupon)}`} key={coupon.id}>
                         <div>
-                          <span>كود الخصم</span>
+                          <span>{t("discountCode")}</span>
                           <h3>{coupon.code}</h3>
                           <p>خصم {coupon.percent}%</p>
                         </div>
@@ -1784,47 +1784,119 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [adminLanguage, setAdminLanguage] = useState(() => localStorage.getItem("adminLanguage") || "ar");
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
 
-  const adminText = {
+  const adminI18n = {
     ar: {
       dashboard: "لوحة التحكم",
-      dashboardSubtitle: "نظرة عامة على أداء المتجر اليوم",
-      products: "المنتجات",
+      home: "الرئيسية",
+      reports: "التقارير",
+      identity: "هوية المتجر",
+      storeTheme: "ثيم المتجر",
       orders: "الطلبات",
       customers: "العملاء",
+      products: "المنتجات",
+      productManagement: "إدارة المنتجات",
       coupons: "الكوبونات",
-      abandonedCarts: "السلات المتروكة",
-      liveVisitors: "الزوار المباشرون",
-      themeSettings: "تخصيص الواجهة",
+      users: "المستخدمين",
       settings: "الإعدادات",
-      previewStore: "معاينة المتجر",
+      notifications: "الإشعارات",
       adminPanel: "لوحة الإدارة",
-      language: "اللغة",
+      pulse: "نبض المتجر",
+      activeNow: "زائر نشط الآن",
+      logout: "خروج",
+      language: "لغة لوحة التحكم",
       arabic: "العربية",
       english: "English",
       currentAdminLanguage: "لغة لوحة التحكم الحالية",
       adminPanelLanguage: "Admin panel language",
+      preview: "معاينة",
+      previewStore: "معاينة المتجر",
+      active: "نشط",
+      unsaved: "التغييرات غير محفوظة حتى تضغط حفظ",
+      unsavedDesc: "أي تعديل في هوية المتجر أو ثيم المتجر لن يظهر في المتجر إلا بعد الحفظ.",
+      cancelChanges: "إلغاء التغييرات",
+      saveChanges: "حفظ التغييرات",
+      dashboardIntro: "نظرة سريعة على أداء المتجر والطلبات والمبيعات.",
+      lastUpdate: "آخر تحديث",
+      visitorsNow: "الزوار الآن",
+      ordersToday: "طلبات اليوم",
+      newOrderToday: "طلب جديد اليوم",
+      salesToday: "مبيعات اليوم",
+      salesTodayDesc: "إجمالي قيمة طلبات اليوم",
+      last7Days: "آخر 7 أيام",
+      ordersWeek: "طلب خلال الأسبوع",
       totalSales: "إجمالي المبيعات",
-      ordersCount: "عدد الطلبات",
-      productsCount: "عدد المنتجات",
-      customersCount: "عدد العملاء",
-      recentOrders: "آخر الطلبات",
-      topProducts: "أفضل المنتجات",
-      salesFunnel: "مسار المبيعات",
-      productManagement: "إدارة المنتجات",
-      addProduct: "إضافة منتج",
-      importExcel: "استيراد Excel",
-      searchProducts: "البحث في المنتجات",
-      filter: "فلترة",
-      allProducts: "كل المنتجات",
-      visible: "ظاهر",
-      hidden: "مخفي",
-      edit: "تعديل",
+      totalSalesDesc: "من كل الطلبات المسجلة",
+      conversionFunnel: "مسار التحويل",
+      visitedStore: "زار المتجر",
+      openedProduct: "فتح منتج",
+      addedCart: "أضاف للسلة",
+      reachedPayment: "وصل الدفع",
+      orderCompleted: "تم الطلب",
+      liveAnalytics: "تحليلات مباشرة",
+      topPages: "أكثر الصفحات عليها زوار",
+      noData: "لا توجد بيانات حالياً",
+      trafficSource: "مصدر الدخول",
+      sessionDuration: "مدة الجلسة",
+      sessionDurationDesc: "متوسط مدة بقاء الزوار النشطين الآن.",
+      liveNotifications: "إشعارات مباشرة",
+      noLiveEvents: "لا توجد أحداث مباشرة حالياً",
+      topProduct: "أفضل منتج",
+      noSalesYet: "لا توجد مبيعات بعد",
+      recentOrders: "أحدث الطلبات",
+      noOrdersYet: "لا توجد طلبات حتى الآن",
+      quickNumbers: "أرقام سريعة",
+      inventory: "المخزون",
+      reportsCenter: "مركز التقارير",
+      reportsIntro: "قراءة سريعة لأداء المتجر، المبيعات، الطلبات، المنتجات، والتنبيهات المهمة.",
+      exportCsv: "تصدير التقرير CSV",
+      thisMonth: "هذا الشهر",
+      allPeriod: "كل الفترة",
+      advancedFiltersLater: "سيتم ربط الفلاتر المتقدمة لاحقاً بدون التأثير على البيانات الحالية.",
+      needsFollowUp: "تحتاج متابعة",
+      newOrProcessing: "طلبات جديدة أو قيد المعالجة",
+      averageOrder: "متوسط الطلب",
+      averageOrderDesc: "قيمة الطلب الواحد",
+      lowStock: "مخزون منخفض",
+      lowStockDesc: "منتجات تحتاج إعادة تعبئة",
+      salesLast7Days: "مبيعات آخر 7 أيام",
+      orderStatus: "حالة الطلبات",
+      bestSelling: "الأكثر مبيعاً",
+      topCities: "المدن الأكثر طلباً",
+      noCityData: "لا توجد بيانات مدن بعد",
+      importantAlerts: "تنبيهات مهمة",
+      ordersNeedFollow: "طلبات تحتاج متابعة",
+      lowStockProducts: "منتجات منخفضة المخزون",
+      newCustomersWeek: "عملاء جدد خلال الأسبوع",
+      couponUses: "استخدامات الكوبونات",
+      manageCoupons: "إدارة الكوبونات",
+      couponIntro: "أنشئ كوبونات خصم بنسبة مئوية. كل كوبون مخصص للاستخدام مرة واحدة لكل عميل.",
+      coupon: "كوبون",
+      addCoupon: "إضافة كوبون",
+      activeCoupon: "كوبون مفعل",
+      saveCoupon: "حفظ الكوبون",
+      discountCode: "كود الخصم",
       delete: "حذف",
+      noCoupons: "لا توجد كوبونات بعد",
+      readyColors: "ألوان جاهزة",
+      editIdentity: "تعديل هوية المتجر",
+      logo: "الشعار",
+      logoHint: "يفضل رفع شعار PNG أو JPG بحجم صغير. سيتم ضغطه تلقائيًا قبل الحفظ.",
+      productIntro: "أضف، استورد، وابحث عن المنتجات من نفس المكان بدون نماذج مفتوحة داخل الصفحة.",
+      newProduct: "منتج جديد",
+      excelTemplate: "قالب Excel",
+      uploadExcel: "رفع Excel",
+      allProducts: "كل المنتجات",
+      visibleProducts: "الظاهرة",
+      lowStockOnly: "منخفضة المخزون",
+      categories: "الأقسام",
+      importedPreview: "معاينة المنتجات المستوردة",
+      cancelImport: "إلغاء الاستيراد",
       save: "حفظ",
       cancel: "إلغاء",
-      saveDraft: "حفظ كمسودة",
-      publish: "نشر المنتج",
-      productInfo: "المعلومات",
+      edit: "تعديل",
+      hidden: "مخفي",
+      visible: "ظاهر",
+      info: "المعلومات",
       pricingStock: "الأسعار والمخزون",
       images: "الصور",
       options: "الخيارات",
@@ -1832,44 +1904,116 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     },
     en: {
       dashboard: "Dashboard",
-      dashboardSubtitle: "A quick overview of your store performance today",
-      products: "Products",
+      home: "Home",
+      reports: "Reports",
+      identity: "Store identity",
+      storeTheme: "Store theme",
       orders: "Orders",
       customers: "Customers",
+      products: "Products",
+      productManagement: "Product management",
       coupons: "Coupons",
-      abandonedCarts: "Abandoned carts",
-      liveVisitors: "Live visitors",
-      themeSettings: "Theme customization",
+      users: "Users",
       settings: "Settings",
-      previewStore: "Preview store",
-      adminPanel: "Admin panel",
-      language: "Language",
+      notifications: "Notifications",
+      adminPanel: "Admin Panel",
+      pulse: "Store pulse",
+      activeNow: "active visitor now",
+      logout: "Logout",
+      language: "Admin language",
       arabic: "Arabic",
       english: "English",
       currentAdminLanguage: "Current admin panel language",
       adminPanelLanguage: "Admin panel language",
+      preview: "Preview",
+      previewStore: "Preview store",
+      active: "Active",
+      unsaved: "Changes are not saved until you click save",
+      unsavedDesc: "Store identity or theme changes will not appear in the store until saved.",
+      cancelChanges: "Discard changes",
+      saveChanges: "Save changes",
+      dashboardIntro: "A quick overview of store performance, orders, and sales.",
+      lastUpdate: "Last update",
+      visitorsNow: "Visitors now",
+      ordersToday: "Orders today",
+      newOrderToday: "new order today",
+      salesToday: "Sales today",
+      salesTodayDesc: "Total value of today’s orders",
+      last7Days: "Last 7 days",
+      ordersWeek: "orders this week",
       totalSales: "Total sales",
-      ordersCount: "Orders",
-      productsCount: "Products",
-      customersCount: "Customers",
+      totalSalesDesc: "From all recorded orders",
+      conversionFunnel: "Conversion funnel",
+      visitedStore: "Visited store",
+      openedProduct: "Opened product",
+      addedCart: "Added to cart",
+      reachedPayment: "Reached payment",
+      orderCompleted: "Order completed",
+      liveAnalytics: "Live analytics",
+      topPages: "Top active pages",
+      noData: "No data yet",
+      trafficSource: "Traffic source",
+      sessionDuration: "Session duration",
+      sessionDurationDesc: "Average duration for active visitors now.",
+      liveNotifications: "Live notifications",
+      noLiveEvents: "No live events yet",
+      topProduct: "Top product",
+      noSalesYet: "No sales yet",
       recentOrders: "Recent orders",
-      topProducts: "Top products",
-      salesFunnel: "Sales funnel",
-      productManagement: "Product management",
-      addProduct: "Add product",
-      importExcel: "Import Excel",
-      searchProducts: "Search products",
-      filter: "Filter",
-      allProducts: "All products",
-      visible: "Visible",
-      hidden: "Hidden",
-      edit: "Edit",
+      noOrdersYet: "No orders yet",
+      quickNumbers: "Quick numbers",
+      inventory: "Inventory",
+      reportsCenter: "Reports center",
+      reportsIntro: "A quick read of sales, orders, products, and important alerts.",
+      exportCsv: "Export CSV report",
+      thisMonth: "This month",
+      allPeriod: "All time",
+      advancedFiltersLater: "Advanced filters will be connected later without affecting current data.",
+      needsFollowUp: "Needs follow-up",
+      newOrProcessing: "New or processing orders",
+      averageOrder: "Average order",
+      averageOrderDesc: "Value per order",
+      lowStock: "Low stock",
+      lowStockDesc: "Products need restocking",
+      salesLast7Days: "Sales last 7 days",
+      orderStatus: "Order status",
+      bestSelling: "Best selling",
+      topCities: "Top cities",
+      noCityData: "No city data yet",
+      importantAlerts: "Important alerts",
+      ordersNeedFollow: "Orders need follow-up",
+      lowStockProducts: "Low-stock products",
+      newCustomersWeek: "New customers this week",
+      couponUses: "Coupon uses",
+      manageCoupons: "Manage coupons",
+      couponIntro: "Create percentage discount coupons. Each coupon is limited to one use per customer.",
+      coupon: "Coupon",
+      addCoupon: "Add coupon",
+      activeCoupon: "Active coupon",
+      saveCoupon: "Save coupon",
+      discountCode: "Discount code",
       delete: "Delete",
+      noCoupons: "No coupons yet",
+      readyColors: "Ready colors",
+      editIdentity: "Edit store identity",
+      logo: "Logo",
+      logoHint: "PNG or JPG logo is recommended. It will be compressed before saving.",
+      productIntro: "Add, import, and search products from one clean place without open forms on the page.",
+      newProduct: "New product",
+      excelTemplate: "Excel template",
+      uploadExcel: "Upload Excel",
+      allProducts: "All products",
+      visibleProducts: "Visible",
+      lowStockOnly: "Low stock",
+      categories: "Categories",
+      importedPreview: "Imported products preview",
+      cancelImport: "Cancel import",
       save: "Save",
       cancel: "Cancel",
-      saveDraft: "Save draft",
-      publish: "Publish product",
-      productInfo: "Info",
+      edit: "Edit",
+      hidden: "Hidden",
+      visible: "Visible",
+      info: "Info",
       pricingStock: "Pricing & stock",
       images: "Images",
       options: "Options",
@@ -1877,7 +2021,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     }
   };
 
-  const t = (key) => adminText[adminLanguage]?.[key] || adminText.ar[key] || key;
+  const t = (key) => adminI18n[adminLanguage]?.[key] || adminI18n.ar[key] || key;
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
@@ -2666,15 +2810,15 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   };
 
 return (
-    <div className="admin" dir="rtl">
+    <div className={`admin admin-lang-${adminLanguage}`} dir={adminLanguage === "ar" ? "rtl" : "ltr"}>
       <aside className="admin-sidebar">
         <div className="admin-brand">
           {settings.logo ? <img className="admin-brand-logo" src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>{settings.storeName}</b>}
-          <span>Admin Panel</span>
+          <span>{t("adminPanel")}</span>
         </div>
-        <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> الرئيسية</button>
-        <button className={tab==="reports"?"on":""} onClick={()=>setTab("reports")}><TrendingUp/> التقارير</button>
-        <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> هوية المتجر</button>
+        <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> {t("home")}</button>
+        <button className={tab==="reports"?"on":""} onClick={()=>setTab("reports")}><TrendingUp/> {t("reports")}</button>
+        <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> {t("identity")}</button>
         <div className="admin-menu-group">
           <button
             className={tab==="homepage"?"on":""}
@@ -2683,7 +2827,7 @@ return (
               setThemeMenuOpen(!themeMenuOpen);
             }}
           >
-            <Home/> ثيم المتجر <span className="admin-menu-chevron">{themeMenuOpen ? "−" : "+"}</span>
+            <Home/> {t("storeTheme")} <span className="admin-menu-chevron">{themeMenuOpen ? "−" : "+"}</span>
           </button>
           {themeMenuOpen && (
             <div className="admin-submenu">
@@ -2699,28 +2843,28 @@ return (
             </div>
           )}
         </div>
-        <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> الطلبات</button>
-        <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> العملاء</button>
-        <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> المنتجات</button>
-        <button className={tab==="coupons"?"on":""} onClick={()=>setTab("coupons")}><Palette/> الكوبونات</button>
-        <button className={tab==="users"?"on":""} onClick={()=>setTab("users")}><Users/> المستخدمين</button>
-        <button className={tab==="settings"?"on":""} onClick={()=>setTab("settings")}><Settings/> الإعدادات</button>
-        <button className={tab==="notifications"?"on":""} onClick={()=>setTab("notifications")}><Bell/> الإشعارات</button>
+        <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> {t("orders")}</button>
+        <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> {t("customers")}</button>
+        <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> {t("products")}</button>
+        <button className={tab==="coupons"?"on":""} onClick={()=>setTab("coupons")}><Palette/> {t("coupons")}</button>
+        <button className={tab==="users"?"on":""} onClick={()=>setTab("users")}><Users/> {t("users")}</button>
+        <button className={tab==="settings"?"on":""} onClick={()=>setTab("settings")}><Settings/> {t("settings")}</button>
+        <button className={tab==="notifications"?"on":""} onClick={()=>setTab("notifications")}><Bell/> {t("notifications")}</button>
 
         <div className="admin-sidebar-card">
-          <span>نبض المتجر</span>
+          <span>{t("pulse")}</span>
           <b>{liveVisitors}</b>
-          <small>زائر نشط الآن</small>
+          <small>{t("activeNow")}</small>
         </div>
 
-        <div className="side-bottom"><button onClick={()=>signOut(auth)}><LogOut/> خروج</button></div>
+        <div className="side-bottom"><button onClick={()=>signOut(auth)}><LogOut/> {t("logout")}</button></div>
       </aside>
 
       <main className="admin-main">
         <header className="admin-top modern-admin-top">
           <div className="modern-admin-title">
             <span>{t("dashboard")}</span>
-            <h1>{titleFor(tab)}</h1>
+            <h1>{titleFor(tab, adminLanguage)}</h1>
           </div>
           <div className="modern-admin-actions">
             <div className="admin-language-switcher">
@@ -2762,7 +2906,7 @@ return (
             </div>
             <button type="button" className="modern-admin-icon-btn" onClick={() => go("/")} title={t("previewStore")}>
               <ExternalLink size={18}/>
-              <span>معاينة</span>
+              <span>{t("preview")}</span>
             </button>
             <div className="modern-admin-pill">
               <Clock size={16}/>
@@ -2771,7 +2915,7 @@ return (
             <div className="modern-admin-live">
               <span className="live-dot"/>
               <b>{liveVisitors}</b>
-              <small>نشط</small>
+              <small>{t("active")}</small>
             </div>
           </div>
         </header>
@@ -2779,12 +2923,12 @@ return (
         {(tab === "identity" || tab === "homepage") && (
           <div className="admin-save-bar">
             <div>
-              <b>التغييرات غير محفوظة حتى تضغط حفظ</b>
-              <span>أي تعديل في هوية المتجر أو ثيم المتجر لن يظهر في المتجر إلا بعد الحفظ.</span>
+              <b>{t("unsaved")}</b>
+              <span>{t("unsavedDesc")}</span>
             </div>
             <div className="save-bar-actions">
-              <button className="admin-secondary" onClick={resetDraftSettings}>إلغاء التغييرات</button>
-              <button className="admin-primary" onClick={saveDraftSettings}>حفظ التغييرات</button>
+              <button className="admin-secondary" onClick={resetDraftSettings}>{t("cancelChanges")}</button>
+              <button className="admin-primary" onClick={saveDraftSettings}>{t("saveChanges")}</button>
             </div>
           </div>
         )}
@@ -2794,15 +2938,15 @@ return (
             <div className="admin-card dashboard-hero">
               <div>
                 <span>Store Overview</span>
-                <h2>{t("dashboard")}</h2>
-                <p>نظرة سريعة على أداء متجر GREEN DIXAM والطلبات والمبيعات.</p>
+                <h2>Dashboard</h2>
+                <p>{t("dashboardIntro")}</p>
               </div>
               <div className="dashboard-hero-actions">
                 <div className="dashboard-hero-badge">
                   <b>{formatOrderDate(new Date())}</b>
-                  <small>آخر تحديث</small>
+                  <small>{t("lastUpdate")}</small>
                 </div>
-                <button type="button" className="preview-store-btn" onClick={() => go("/")}>معاينة المتجر</button>
+                <button type="button" className="preview-store-btn" onClick={() => go("/")}>{t("previewStore")}</button>
               </div>
             </div>
 
@@ -2818,33 +2962,33 @@ return (
 
             <div className="dashboard-stats-grid">
               <button type="button" className="dash-stat-card live-visitors-card live-visitors-clickable" onClick={() => setShowLiveVisitors(true)}>
-                <span>الزوار الآن</span>
+                <span>{t("visitorsNow")}</span>
                 <b>{liveVisitors}</b>
                 <small><i></i> مباشر الآن</small>
               </button>
 
               <div className="dash-stat-card">
-                <span>طلبات اليوم</span>
+                <span>{t("ordersToday")}</span>
                 <b>{todayOrders.length}</b>
-                <small>طلب جديد اليوم</small>
+                <small>{t("newOrderToday")}</small>
               </div>
 
               <div className="dash-stat-card gold">
-                <span>مبيعات اليوم</span>
+                <span>{t("salesToday")}</span>
                 <b>{formatPrice(todaySales)} ر.س</b>
-                <small>إجمالي قيمة طلبات اليوم</small>
+                <small>{t("salesTodayDesc")}</small>
               </div>
 
               <div className="dash-stat-card">
-                <span>آخر 7 أيام</span>
+                <span>{t("last7Days")}</span>
                 <b>{weekOrders.length}</b>
-                <small>طلب خلال الأسبوع</small>
+                <small>{t("ordersWeek")}</small>
               </div>
 
               <div className="dash-stat-card">
-                <span>إجمالي المبيعات</span>
+                <span>{t("totalSales")}</span>
                 <b>{formatPrice(totalSales)} ر.س</b>
-                <small>من كل الطلبات المسجلة</small>
+                <small>{t("totalSalesDesc")}</small>
               </div>
             </div>
 
@@ -2852,43 +2996,43 @@ return (
             <div className="admin-card funnel-panel">
               <div className="panel-head">
                 <div>
-                  <span>{t("salesFunnel")}</span>
-                  <h2>مسار التحويل</h2>
+                  <span>{t("conversionFunnel")}</span>
+                  <h2>{t("conversionFunnel")}</h2>
                 </div>
               </div>
 
               <div className="funnel-grid">
                 <div className="funnel-step">
                   <b>{funnelStats.visit_store}</b>
-                  <span>زار المتجر</span>
+                  <span>{t("visitedStore")}</span>
                 </div>
 
                 <div className="funnel-arrow">→</div>
 
                 <div className="funnel-step">
                   <b>{funnelStats.view_product}</b>
-                  <span>فتح منتج</span>
+                  <span>{t("openedProduct")}</span>
                 </div>
 
                 <div className="funnel-arrow">→</div>
 
                 <div className="funnel-step">
                   <b>{funnelStats.add_to_cart}</b>
-                  <span>أضاف للسلة</span>
+                  <span>{t("addedCart")}</span>
                 </div>
 
                 <div className="funnel-arrow">→</div>
 
                 <div className="funnel-step">
                   <b>{funnelStats.checkout}</b>
-                  <span>وصل الدفع</span>
+                  <span>{t("reachedPayment")}</span>
                 </div>
 
                 <div className="funnel-arrow">→</div>
 
                 <div className="funnel-step success">
                   <b>{funnelStats.purchase}</b>
-                  <span>تم الطلب</span>
+                  <span>{t("orderCompleted")}</span>
                 </div>
               </div>
             </div>
@@ -2897,45 +3041,45 @@ return (
               <div className="panel-head">
                 <div>
                   <span>Live Analytics</span>
-                  <h2>تحليلات مباشرة</h2>
+                  <h2>{t("liveAnalytics")}</h2>
                 </div>
               </div>
 
               <div className="live-analytics-grid">
                 <div className="live-analytics-box">
-                  <h3>أكثر الصفحات عليها زوار</h3>
+                  <h3>{t("topPages")}</h3>
                   {topLivePages.length ? topLivePages.map(([page, count]) => (
                     <div className="live-mini-row" key={page}>
                       <span>{page}</span>
                       <b>{count}</b>
                     </div>
-                  )) : <p>لا توجد بيانات حالياً</p>}
+                  )) : <p>{t("noData")}</p>}
                 </div>
 
                 <div className="live-analytics-box">
-                  <h3>مصدر الدخول</h3>
+                  <h3>{t("trafficSource")}</h3>
                   {topSources.length ? topSources.map(([source, count]) => (
                     <div className="live-mini-row" key={source}>
                       <span>{source}</span>
                       <b>{count}</b>
                     </div>
-                  )) : <p>لا توجد بيانات حالياً</p>}
+                  )) : <p>{t("noData")}</p>}
                 </div>
 
                 <div className="live-analytics-box">
-                  <h3>مدة الجلسة</h3>
+                  <h3>{t("sessionDuration")}</h3>
                   <div className="live-duration-big">{formatDuration(averageSessionDuration)}</div>
-                  <p>متوسط مدة بقاء الزوار النشطين الآن.</p>
+                  <p>{t("sessionDurationDesc")}</p>
                 </div>
 
                 <div className="live-analytics-box live-events-box">
-                  <h3>إشعارات مباشرة</h3>
+                  <h3>{t("liveNotifications")}</h3>
                   {liveEvents.length ? liveEvents.slice(0, 5).map(event => (
                     <div className={`live-event-row ${event.type || ""}`} key={event.id}>
                       <span>{event.title || "نشاط مباشر"}</span>
                       <small>{event.path || "/"}</small>
                     </div>
-                  )) : <p>لا توجد أحداث مباشرة حالياً</p>}
+                  )) : <p>{t("noLiveEvents")}</p>}
                 </div>
               </div>
             </div>
@@ -2952,7 +3096,7 @@ return (
                 <div className="panel-head">
                   <div>
                     <span>Best Seller</span>
-                    <h2>أفضل منتج</h2>
+                    <h2>{t("topProduct")}</h2>
                   </div>
                 </div>
 
@@ -2966,7 +3110,7 @@ return (
                     </div>
                   </div>
                 ) : (
-                  <div className="dashboard-empty">لا توجد مبيعات بعد</div>
+                  <div className="dashboard-empty">{t("noSalesYet")}</div>
                 )}
               </div>
 
@@ -2974,7 +3118,7 @@ return (
                 <div className="panel-head">
                   <div>
                     <span>Recent Orders</span>
-                    <h2>أحدث الطلبات</h2>
+                    <h2>{t("recentOrders")}</h2>
                   </div>
                 </div>
 
@@ -2994,7 +3138,7 @@ return (
                     ))}
 
                   {dashboardOrders.length === 0 && (
-                    <div className="dashboard-empty">لا توجد طلبات حتى الآن</div>
+                    <div className="dashboard-empty">{t("noOrdersYet")}</div>
                   )}
                 </div>
               </div>
@@ -3003,7 +3147,7 @@ return (
                 <div className="panel-head">
                   <div>
                     <span>Quick Numbers</span>
-                    <h2>أرقام سريعة</h2>
+                    <h2>{t("quickNumbers")}</h2>
                   </div>
                 </div>
 
@@ -3011,7 +3155,7 @@ return (
                   <div><span>{t("products")}</span><b>{products.length}</b></div>
                   <div><span>{t("customers")}</span><b>{customers.length}</b></div>
                   <div><span>{t("orders")}</span><b>{orders.length}</b></div>
-                  <div><span>المخزون</span><b>{products.reduce((sum,p)=>sum + Number(p.stock || 0), 0)}</b></div>
+                  <div><span>{t("inventory")}</span><b>{products.reduce((sum,p)=>sum + Number(p.stock || 0), 0)}</b></div>
                 </div>
               </div>
             </div>
@@ -3024,55 +3168,55 @@ return (
             <div className="reports-hero-card admin-card">
               <div>
                 <span>Reports Center</span>
-                <h2>مركز التقارير</h2>
-                <p>قراءة سريعة لأداء المتجر، المبيعات، الطلبات، المنتجات، والتنبيهات المهمة.</p>
+                <h2>{t("reportsCenter")}</h2>
+                <p>{t("reportsIntro")}</p>
               </div>
               <div className="reports-hero-actions">
-                <button className="admin-secondary" type="button" onClick={exportReportsCsv}>تصدير التقرير CSV</button>
+                <button className="admin-secondary" type="button" onClick={exportReportsCsv}>{t("exportCsv")}</button>
                 <div className="reports-update-pill">
                   <b>{formatOrderDate(new Date())}</b>
-                  <small>آخر تحديث</small>
+                  <small>{t("lastUpdate")}</small>
                 </div>
               </div>
             </div>
 
             <div className="reports-filter-strip admin-card">
-              <button className="active" type="button">آخر 7 أيام</button>
-              <button type="button">هذا الشهر</button>
-              <button type="button">كل الفترة</button>
-              <span>سيتم ربط الفلاتر المتقدمة لاحقاً بدون التأثير على البيانات الحالية.</span>
+              <button className="active" type="button">{t("last7Days")}</button>
+              <button type="button">{t("thisMonth")}</button>
+              <button type="button">{t("allPeriod")}</button>
+              <span>{t("advancedFiltersLater")}</span>
             </div>
 
             <div className="reports-kpi-grid">
               <div className="reports-kpi-card admin-card">
-                <span>إجمالي المبيعات</span>
+                <span>{t("totalSales")}</span>
                 <b>{formatPrice(totalSales)} ر.س</b>
                 <small>كل الطلبات المسجلة</small>
               </div>
               <div className="reports-kpi-card admin-card">
-                <span>مبيعات اليوم</span>
+                <span>{t("salesToday")}</span>
                 <b>{formatPrice(todaySales)} ر.س</b>
                 <small>{todayOrders.length} طلب اليوم</small>
               </div>
               <div className="reports-kpi-card admin-card">
                 <span>طلبات الأسبوع</span>
                 <b>{weekOrders.length}</b>
-                <small>آخر 7 أيام</small>
+                <small>{t("last7Days")}</small>
               </div>
               <div className="reports-kpi-card admin-card warning">
-                <span>تحتاج متابعة</span>
+                <span>{t("needsFollowUp")}</span>
                 <b>{pendingOrdersCount}</b>
-                <small>طلبات جديدة أو قيد المعالجة</small>
+                <small>{t("newOrProcessing")}</small>
               </div>
               <div className="reports-kpi-card admin-card">
-                <span>متوسط الطلب</span>
+                <span>{t("averageOrder")}</span>
                 <b>{formatPrice(averageOrderValue)} ر.س</b>
-                <small>قيمة الطلب الواحد</small>
+                <small>{t("averageOrderDesc")}</small>
               </div>
               <div className="reports-kpi-card admin-card danger">
-                <span>مخزون منخفض</span>
+                <span>{t("lowStock")}</span>
                 <b>{lowStockProducts.length}</b>
-                <small>منتجات تحتاج إعادة تعبئة</small>
+                <small>{t("lowStockDesc")}</small>
               </div>
             </div>
 
@@ -3081,7 +3225,7 @@ return (
                 <div className="panel-head">
                   <div>
                     <span>Sales Trend</span>
-                    <h2>مبيعات آخر 7 أيام</h2>
+                    <h2>{t("salesLast7Days")}</h2>
                   </div>
                 </div>
                 <div className="reports-bars">
@@ -3099,7 +3243,7 @@ return (
                 <div className="panel-head">
                   <div>
                     <span>Order Status</span>
-                    <h2>حالة الطلبات</h2>
+                    <h2>{t("orderStatus")}</h2>
                   </div>
                 </div>
                 <div className="reports-status-list">
@@ -3119,7 +3263,7 @@ return (
                 <div className="panel-head">
                   <div>
                     <span>Best Sellers</span>
-                    <h2>الأكثر مبيعاً</h2>
+                    <h2>{t("bestSelling")}</h2>
                   </div>
                 </div>
                 <div className="reports-list">
@@ -3129,7 +3273,7 @@ return (
                       <div><b>{product.name}</b><span>{product.qty} قطعة مباعة</span></div>
                       <em>{formatPrice(product.value)} ر.س</em>
                     </div>
-                  )) : <div className="dashboard-empty">لا توجد مبيعات بعد</div>}
+                  )) : <div className="dashboard-empty">{t("noSalesYet")}</div>}
                 </div>
               </div>
 
@@ -3137,7 +3281,7 @@ return (
                 <div className="panel-head">
                   <div>
                     <span>Top Cities</span>
-                    <h2>المدن الأكثر طلباً</h2>
+                    <h2>{t("topCities")}</h2>
                   </div>
                 </div>
                 <div className="reports-list">
@@ -3146,7 +3290,7 @@ return (
                       <strong>•</strong>
                       <div><b>{city}</b><span>{count} طلب</span></div>
                     </div>
-                  )) : <div className="dashboard-empty">لا توجد بيانات مدن بعد</div>}
+                  )) : <div className="dashboard-empty">{t("noCityData")}</div>}
                 </div>
               </div>
 
@@ -3154,14 +3298,14 @@ return (
                 <div className="panel-head">
                   <div>
                     <span>Admin Alerts</span>
-                    <h2>تنبيهات مهمة</h2>
+                    <h2>{t("importantAlerts")}</h2>
                   </div>
                 </div>
                 <div className="reports-alert-list">
-                  <div><b>{pendingOrdersCount}</b><span>طلبات تحتاج متابعة</span></div>
-                  <div><b>{lowStockProducts.length}</b><span>منتجات منخفضة المخزون</span></div>
-                  <div><b>{newCustomersCount}</b><span>عملاء جدد خلال الأسبوع</span></div>
-                  <div><b>{usedCouponsCount}</b><span>استخدامات الكوبونات</span></div>
+                  <div><b>{pendingOrdersCount}</b><span>{t("ordersNeedFollow")}</span></div>
+                  <div><b>{lowStockProducts.length}</b><span>{t("lowStockProducts")}</span></div>
+                  <div><b>{newCustomersCount}</b><span>{t("newCustomersWeek")}</span></div>
+                  <div><b>{usedCouponsCount}</b><span>{t("couponUses")}</span></div>
                 </div>
               </div>
             </div>
@@ -3182,7 +3326,7 @@ return (
                     <em>{formatPrice(order.total)} ر.س</em>
                   </div>
                 ))}
-                {dashboardOrders.length === 0 && <div className="dashboard-empty">لا توجد طلبات حتى الآن</div>}
+                {dashboardOrders.length === 0 && <div className="dashboard-empty">{t("noOrdersYet")}</div>}
               </div>
             </div>
           </section>
@@ -3193,12 +3337,12 @@ return (
             <div className="admin-card coupons-admin-hero">
               <div>
                 <span>Coupons</span>
-                <h2>إدارة الكوبونات</h2>
-                <p>أنشئ كوبونات خصم بنسبة مئوية. كل كوبون مخصص للاستخدام مرة واحدة لكل عميل.</p>
+                <h2>{t("manageCoupons")}</h2>
+                <p>{t("couponIntro")}</p>
               </div>
               <div className="coupon-admin-stat">
                 <b>{coupons.length}</b>
-                <small>كوبون</small>
+                <small>{t("coupon")}</small>
               </div>
             </div>
 
@@ -3207,7 +3351,7 @@ return (
                 <div className="pro-card-head">
                   <div>
                     <span>Create Coupon</span>
-                    <h2>إضافة كوبون</h2>
+                    <h2>{t("addCoupon")}</h2>
                   </div>
                 </div>
 
@@ -3234,10 +3378,10 @@ return (
 
                   <label className="feature-toggle">
                     <input name="active" type="checkbox" defaultChecked />
-                    <span>كوبون مفعل</span>
+                    <span>{t("activeCoupon")}</span>
                   </label>
 
-                  <button className="admin-primary">حفظ الكوبون</button>
+                  <button className="admin-primary">{t("saveCoupon")}</button>
                 </form>
               </div>
 
@@ -3245,7 +3389,7 @@ return (
                 <div className="pro-card-head">
                   <div>
                     <span>Coupons List</span>
-                    <h2>{t("coupons")}</h2>
+                    <h2>الكوبونات</h2>
                   </div>
                   <b className="products-count">{coupons.length} كوبون</b>
                 </div>
@@ -3256,7 +3400,7 @@ return (
                     return (
                       <div className={`admin-coupon-card ${coupon.active ? "active" : "disabled"} ${expired ? "expired" : ""}`} key={coupon.id}>
                         <div>
-                          <span>كود الخصم</span>
+                          <span>{t("discountCode")}</span>
                           <h3>{coupon.code}</h3>
                           <p>خصم {coupon.percent}% • استخدام مرة واحدة لكل عميل</p>
                           <small>تم استخدامه: {Object.keys(coupon.usedBy || {}).length} مرة</small>
@@ -3276,7 +3420,7 @@ return (
                   })}
 
                   {coupons.length === 0 && (
-                    <div className="dashboard-empty">لا توجد كوبونات بعد</div>
+                    <div className="dashboard-empty">{t("noCoupons")}</div>
                   )}
                 </div>
               </div>
@@ -3288,13 +3432,13 @@ return (
         {tab === "identity" && (
           <section className="admin-grid">
             <div className="admin-card">
-              <h2>ألوان جاهزة</h2>
+              <h2>{t("readyColors")}</h2>
               <div className="palette-grid">
                 {palettes.map(p => <button key={p.name} onClick={()=>setDraftSettings(s=>({...s,...p}))}><span>{p.name}</span><i style={{background:p.primaryColor}}/><i style={{background:p.accentColor}}/><i style={{background:p.backgroundColor}}/></button>)}
               </div>
             </div>
             <div className="admin-card">
-              <h2>تعديل هوية المتجر</h2>
+              <h2>{t("editIdentity")}</h2>
               <Control label="اسم المتجر"><input value={draftSettings.storeName} onChange={e=>updateDraft("storeName",e.target.value)} /></Control>
               <Control label="الوصف القصير"><input value={draftSettings.tagline} onChange={e=>updateDraft("tagline",e.target.value)} /></Control>
               <Control label="الخط"><select value={draftSettings.fontFamily} onChange={e=>updateDraft("fontFamily",e.target.value)}><option>Cairo</option><option>Tajawal</option></select></Control>
@@ -3303,9 +3447,9 @@ return (
               <Control label="لون الخلفية"><input type="color" value={draftSettings.backgroundColor} onChange={e=>updateDraft("backgroundColor",e.target.value)} /></Control>
             </div>
             <div className="admin-card">
-              <h2>الشعار</h2>
+              <h2>{t("logo")}</h2>
               <Control label="رابط الشعار"><input value={draftSettings.logo} onChange={e=>updateDraft("logo",e.target.value)} /></Control>
-              <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control><p className="admin-help-text">يفضل رفع شعار PNG أو JPG بحجم صغير. سيتم ضغطه تلقائيًا قبل الحفظ.</p>
+              <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control><p className="admin-help-text">{t("logoHint")}</p>
               {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} alt="معاينة الشعار" loading="lazy" decoding="async" />}
             </div>
           </section>
@@ -3317,8 +3461,8 @@ return (
               <div className="products-command-main">
                 <div className="products-command-title">
                   <span className="eyebrow">Products workspace</span>
-                  <h2>إدارة المنتجات</h2>
-                  <p>أضف، استورد، وابحث عن المنتجات من نفس المكان بدون نماذج مفتوحة داخل الصفحة.</p>
+                  <h2>{t("productManagement")}</h2>
+                  <p>{t("productIntro")}</p>
                 </div>
 
                 <div className="products-command-actions">
@@ -3337,20 +3481,20 @@ return (
 
               <div className="products-command-stats">
                 <div><span>{t("allProducts")}</span><b>{products.length}</b></div>
-                <div><span>الظاهرة</span><b>{activeProductsCount}</b></div>
-                <div><span>منخفضة المخزون</span><b>{lowStockProducts.length}</b></div>
-                <div><span>الأقسام</span><b>{Math.max(adminProductCategories.length - 1, 0)}</b></div>
+                <div><span>{t("visibleProducts")}</span><b>{activeProductsCount}</b></div>
+                <div><span>{t("lowStockOnly")}</span><b>{lowStockProducts.length}</b></div>
+                <div><span>{t("categories")}</span><b>{Math.max(adminProductCategories.length - 1, 0)}</b></div>
               </div>
 
               {pendingImport.length > 0 && (
                 <div className="pending-import-box command-import-preview">
                   <div className="pending-head">
                     <div>
-                      <b>معاينة المنتجات المستوردة</b>
+                      <b>{t("importedPreview")}</b>
                       <span>{pendingImport.length} منتج جاهز للحفظ</span>
                     </div>
                     <div className="pending-actions">
-                      <button className="admin-secondary" type="button" onClick={clearPendingImport}>إلغاء الاستيراد</button>
+                      <button className="admin-secondary" type="button" onClick={clearPendingImport}>{t("cancelImport")}</button>
                       <button className="admin-primary" type="button" onClick={savePendingImport}>حفظ المنتجات المستوردة</button>
                     </div>
                   </div>
@@ -3416,7 +3560,7 @@ return (
                         <div><span>إجمالي المخزون</span><b>{productOptions.reduce((sum, o) => sum + Number(o.stock || 0), 0)}</b></div>
                       </div>
                       <div className="option-preview-table">
-                        <div className="option-preview-head"><span>اللون</span><span>المقاس</span><span>السعر</span><span>بعد الخصم</span><span>المخزون</span><span>SKU</span></div>
+                        <div className="option-preview-head"><span>اللون</span><span>المقاس</span><span>السعر</span><span>بعد الخصم</span><span>{t("inventory")}</span><span>SKU</span></div>
                         {productOptions.length ? productOptions.map((option, index) => (
                           <div className="option-preview-row" key={`preview-${index}`}>
                             <span>{option.color || "—"}</span>
@@ -3643,7 +3787,7 @@ return (
                       </div>
                     </div>
                   )) : (
-                    <p>لا توجد مبيعات بعد</p>
+                    <p>{t("noSalesYet")}</p>
                   )}
                 </div>
               </div>
@@ -3660,7 +3804,7 @@ return (
 
                 <select value={productStatusFilter} onChange={e => setProductStatusFilter(e.target.value)}>
                   <option value="all">{t("allProducts")}</option>
-                  <option value="active">الظاهرة</option>
+                  <option value="active">{t("visibleProducts")}</option>
                   <option value="hidden">المخفية</option>
                   <option value="featured">المميزة</option>
                   <option value="out">نفد المخزون</option>
@@ -3759,7 +3903,7 @@ return (
                         </label>
 
                         <label>
-                          <span>المخزون</span>
+                          <span>{t("inventory")}</span>
                           <input
                             type="number"
                             defaultValue={p.stock || 0}
@@ -4137,7 +4281,7 @@ return (
             <div className="pro-card-head">
               <div>
                 <span>Store Settings</span>
-                <h2>{t("settings")}</h2>
+                <h2>الإعدادات</h2>
                 <p>إعدادات المتجر العامة وطرق التشغيل ستضاف هنا.</p>
               </div>
             </div>
@@ -4183,7 +4327,7 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
         <div className="live-modal-head">
           <div>
             <span>Live Visitors</span>
-            <h2>{t("liveVisitors")}</h2>
+            <h2>الزوار المباشرون</h2>
             <p>متابعة الزوار النشطين خلال آخر دقيقة، بدون تخزين بيانات شخصية حساسة.</p>
           </div>
           <button type="button" onClick={onClose}><X size={18} /></button>
@@ -4517,7 +4661,7 @@ function OrdersPanel({ orders, onNotice }) {
 
         <div className="orders-pro-stats">
           <div><b>{totals.count}</b><small>طلب</small></div>
-          <div><b>{formatPrice(totals.value)}</b><small>إجمالي المبيعات</small></div>
+          <div><b>{formatPrice(totals.value)}</b><small>{t("totalSales")}</small></div>
           <div><b>{totals.new || 0}</b><small>طلبات جديدة</small></div>
         </div>
       </div>
@@ -4729,18 +4873,34 @@ function Control({label, children}) {
 function Stat({label, value}) {
   return <div className="stat"><span>{label}</span><b>{value}</b></div>;
 }
-function titleFor(tab) {
-  return {
-    dashboard:"الرئيسية",
-    reports:"التقارير",
-    identity:"هوية المتجر",
-    products:"إدارة المنتجات",
-    customers:"العملاء",
-    orders:"الطلبات",
-    coupons:"الكوبونات",
-    users:"المستخدمين",
-    settings:"الإعدادات",
-    notifications:"الإشعارات",
-    homepage:"ثيم المتجر"
-  }[tab];
+function titleFor(tab, lang = "ar") {
+  const titles = {
+    ar: {
+      dashboard:"الرئيسية",
+      reports:"التقارير",
+      identity:"هوية المتجر",
+      products:"إدارة المنتجات",
+      customers:"العملاء",
+      orders:"الطلبات",
+      coupons:"الكوبونات",
+      users:"المستخدمين",
+      settings:"الإعدادات",
+      notifications:"الإشعارات",
+      homepage:"ثيم المتجر"
+    },
+    en: {
+      dashboard:"Home",
+      reports:"Reports",
+      identity:"Store identity",
+      products:"Product management",
+      customers:"Customers",
+      orders:"Orders",
+      coupons:"Coupons",
+      users:"Users",
+      settings:"Settings",
+      notifications:"Notifications",
+      homepage:"Store theme"
+    }
+  };
+  return (titles[lang] || titles.ar)[tab] || tab;
 }
