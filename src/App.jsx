@@ -1318,7 +1318,7 @@ function HeroStyle() {
         overflow: hidden;
         background: rgba(255,255,255,.72);
         padding: 14px;
-        box-shadow: 0 0px 0px rgba(15,61,46,.14);
+        box-shadow: 0 28px 70px rgba(15,61,46,.14);
         border: 1px solid rgba(194,169,104,.26);
         min-height: 420px;
       }

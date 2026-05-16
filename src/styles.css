@@ -10360,3 +10360,93 @@ input:focus,select:focus,textarea:focus{
     grid-template-columns:1fr !important;
   }
 }
+
+/* ===== Sidebar compact fix v4 ===== */
+.admin{
+  grid-template-columns:220px minmax(0,1fr) !important;
+}
+
+.admin-sidebar{
+  width:220px !important;
+  max-width:220px !important;
+  padding:16px 10px !important;
+}
+
+.admin-brand{
+  min-height:58px !important;
+  padding:10px !important;
+  margin-bottom:12px !important;
+  border-radius:18px !important;
+  gap:8px !important;
+}
+
+.admin-brand-logo,
+.admin-brand img{
+  width:36px !important;
+  height:36px !important;
+  border-radius:13px !important;
+}
+
+.admin-brand b{
+  font-size:13px !important;
+}
+
+.admin-brand span{
+  font-size:10px !important;
+}
+
+.admin-sidebar button{
+  min-height:38px !important;
+  padding:8px 10px !important;
+  margin:2px 0 !important;
+  border-radius:13px !important;
+  gap:8px !important;
+  font-size:13px !important;
+}
+
+.admin-sidebar button svg{
+  width:16px !important;
+  height:16px !important;
+}
+
+.admin-submenu{
+  margin:4px 10px 6px 0 !important;
+  padding:6px !important;
+  border-radius:14px !important;
+}
+
+.admin-submenu button{
+  min-height:32px !important;
+  font-size:12px !important;
+}
+
+.admin-sidebar-card{
+  margin-top:12px !important;
+  padding:12px !important;
+  border-radius:18px !important;
+}
+
+.admin-sidebar-card b{
+  font-size:26px !important;
+}
+
+.side-bottom{
+  margin-top:10px !important;
+  padding-top:10px !important;
+}
+
+.admin-main{
+  padding:20px 22px 38px !important;
+  max-width:none !important;
+  margin:0 !important;
+}
+
+@media (max-width:1100px){
+  .admin{
+    grid-template-columns:1fr !important;
+  }
+  .admin-sidebar{
+    width:auto !important;
+    max-width:none !important;
+  }
+}
