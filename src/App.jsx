@@ -3879,44 +3879,7 @@ return (
                         {p.sku && <span>SKU: {p.sku}</span>}
                       </div>
 
-                      <div className="quick-product-edit">
-                        <label>
-                          <span>السعر</span>
-                          <input
-                            type="number"
-                            defaultValue={p.price || 0}
-                            onBlur={e => quickUpdateProduct(p.id, { price: Number(e.target.value || 0), updatedAt: serverTimestamp() })}
-                          />
-                        </label>
-
-                        <label>
-                          <span>{t("inventory")}</span>
-                          <input
-                            type="number"
-                            defaultValue={p.stock || 0}
-                            onBlur={e => quickUpdateProduct(p.id, { stock: Number(e.target.value || 0), updatedAt: serverTimestamp() })}
-                          />
-                        </label>
-
-                        <label>
-                          <span>القسم</span>
-                          <input
-                            defaultValue={p.category || ""}
-                            onBlur={e => quickUpdateProduct(p.id, { category: e.target.value.trim(), updatedAt: serverTimestamp() })}
-                          />
-                        </label>
-
-                        <label>
-                          <span>الحالة</span>
-                          <select
-                            defaultValue={p.status || "active"}
-                            onChange={e => quickUpdateProduct(p.id, { status: e.target.value, updatedAt: serverTimestamp() })}
-                          >
-                            <option value="active">{t("visible")}</option>
-                            <option value="hidden">{t("hidden")}</option>
-                          </select>
-                        </label>
-                      </div>
+                      
 
                       {Array.isArray(p.options) && p.options.length > 0 && (
                         <div className="admin-product-options-list">

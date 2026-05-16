@@ -11328,3 +11328,38 @@ button.product-flat-top-btn:hover svg{
 .admin-main .admin-product-cards > *{
   min-height:0 !important;
 }
+
+
+/* ===== Remove quick edit card inside product cards =====
+   Removes the internal mini card for price, stock, status, and category.
+*/
+.admin-main .quick-product-edit,
+.admin-main .product-quick-edit,
+.admin-main .admin-product-quick-edit,
+.admin-main .product-card .quick-edit,
+.admin-main .admin-product-card .quick-edit,
+.admin-main .product-card .quick-product-edit,
+.admin-main .admin-product-card .quick-product-edit{
+  display:none !important;
+}
+
+/* If the quick edit block uses generic form/card classes inside product card */
+.admin-main .admin-product-card .product-form-card,
+.admin-main .product-card .product-form-card,
+.admin-main .admin-product-card .pro-form-section,
+.admin-main .product-card .pro-form-section,
+.admin-main .admin-product-card .product-six-card,
+.admin-main .product-card .product-six-card{
+  display:none !important;
+}
+
+/* Collapse any extra spacing left after removing the quick edit card */
+.admin-main .admin-product-card,
+.admin-main .product-card{
+  gap:0 !important;
+}
+
+.admin-main .admin-product-info,
+.admin-main .product-body{
+  padding-bottom:8px !important;
+}
