@@ -2861,7 +2861,8 @@ return (
       </aside>
 
       <main className="admin-main">
-        <header className="admin-top modern-admin-top">
+        {tab === "dashboard" && (
+<header className="admin-top modern-admin-top">
           <div className="modern-admin-title">
             <span>{t("dashboard")}</span>
             <h1>{titleFor(tab, adminLanguage)}</h1>
@@ -2919,6 +2920,7 @@ return (
             </div>
           </div>
         </header>
+)}
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "homepage") && (
           <div className="admin-save-bar">

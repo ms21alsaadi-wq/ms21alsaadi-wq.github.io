@@ -10796,3 +10796,18 @@ html, body, #root {
 .admin-main .dashboard-pro-page{
   gap:14px !important;
 }
+
+
+/* ===== Show admin top header only on dashboard ===== */
+.admin-main > .admin-top.modern-admin-top{
+  margin-bottom:18px !important;
+}
+
+/* When header is hidden on other tabs, keep content close to top */
+.admin-main > .admin-notice,
+.admin-main > .product-admin-workspace,
+.admin-main > .admin-card,
+.admin-main > .orders-shell,
+.admin-main > .reports-shell{
+  margin-top:0 !important;
+}
