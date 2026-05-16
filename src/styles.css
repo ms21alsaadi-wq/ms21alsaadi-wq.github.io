@@ -10990,3 +10990,37 @@ html, body, #root {
   color:#ffffff !important;
   stroke:#ffffff !important;
 }
+
+
+/* ===== Product top action buttons - guaranteed direct class ===== */
+.product-flat-top-btn,
+label.product-flat-top-btn,
+button.product-flat-top-btn{
+  background:#ffffff !important;
+  background-image:none !important;
+  color:#0f4d36 !important;
+  border:1px solid rgba(15,77,54,.16) !important;
+  box-shadow:none !important;
+  filter:none !important;
+  text-shadow:none !important;
+  transform:none !important;
+}
+
+.product-flat-top-btn:hover,
+label.product-flat-top-btn:hover,
+button.product-flat-top-btn:hover{
+  background:#0f4d36 !important;
+  background-image:none !important;
+  color:#ffffff !important;
+  border-color:#0f4d36 !important;
+  box-shadow:none !important;
+  filter:none !important;
+  transform:none !important;
+}
+
+.product-flat-top-btn:hover svg,
+label.product-flat-top-btn:hover svg,
+button.product-flat-top-btn:hover svg{
+  color:#ffffff !important;
+  stroke:#ffffff !important;
+}

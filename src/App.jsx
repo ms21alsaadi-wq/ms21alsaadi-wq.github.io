@@ -3453,13 +3453,13 @@ return (
                 </div>
 
                 <div className="products-command-actions">
-                  <button className="admin-primary command-primary" type="button" onClick={() => openProductEditor(null)}>
+                  <button className="admin-primary command-primary product-flat-top-btn" type="button" onClick={() => openProductEditor(null)}>
                     <Plus size={18}/> منتج جديد
                   </button>
-                  <button className="admin-secondary command-secondary" type="button" onClick={downloadProductsTemplate}>
+                  <button className="admin-secondary command-secondary product-flat-top-btn" type="button" onClick={downloadProductsTemplate}>
                     <Download size={16}/> قالب Excel
                   </button>
-                  <label className="excel-upload-btn command-upload">
+                  <label className="excel-upload-btn command-upload product-flat-top-btn">
                     <Download size={16}/> رفع Excel
                     <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
                   </label>
