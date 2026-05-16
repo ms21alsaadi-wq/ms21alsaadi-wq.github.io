@@ -10517,21 +10517,27 @@ html, body, #root {
 }
 
 
-/* REAL sidebar spacing fix */
-.main-content,
-.dashboard-content,
-.admin-content,
-.dashboard-wrapper{
-  margin-right:18px !important;
-  width:calc(100% - 18px) !important;
+/* ===== Final actual sidebar gap fix =====
+   The real layout uses fixed .admin-sidebar width 220px.
+   Add 24px breathing gap by moving .admin-main to 244px.
+*/
+@media (min-width: 1101px){
+  .admin-sidebar{
+    width:220px !important;
+    max-width:220px !important;
+  }
+
+  .admin-main{
+    width:calc(100% - 244px) !important;
+    margin:0 244px 0 0 !important;
+    padding:20px 22px 38px !important;
+    box-sizing:border-box !important;
+  }
 }
 
-@media (max-width: 900px){
-  .main-content,
-  .dashboard-content,
-  .admin-content,
-  .dashboard-wrapper{
-    margin-right:0 !important;
+@media (max-width: 1100px){
+  .admin-main{
     width:100% !important;
+    margin:0 !important;
   }
 }
