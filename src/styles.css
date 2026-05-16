@@ -10811,3 +10811,83 @@ html, body, #root {
 .admin-main > .reports-shell{
   margin-top:0 !important;
 }
+
+
+/* ===== Product workspace top buttons: flat unified style ===== */
+.product-admin-workspace .products-action-bar button,
+.product-admin-workspace .product-actions button,
+.product-admin-workspace .product-toolbar button,
+.product-admin-workspace .product-workspace-actions button,
+.product-admin-workspace .excel-actions button,
+.product-admin-workspace button.import-btn,
+.product-admin-workspace button.template-btn,
+.product-admin-workspace button.add-product-btn,
+.product-admin-workspace .admin-primary,
+.product-admin-workspace .admin-secondary{
+  background:#ffffff !important;
+  color:#0f4d36 !important;
+  border:1px solid rgba(15, 77, 54, .14) !important;
+  box-shadow:none !important;
+  filter:none !important;
+  transform:none !important;
+  transition:background .18s ease, color .18s ease, border-color .18s ease !important;
+}
+
+.product-admin-workspace .products-action-bar button:hover,
+.product-admin-workspace .product-actions button:hover,
+.product-admin-workspace .product-toolbar button:hover,
+.product-admin-workspace .product-workspace-actions button:hover,
+.product-admin-workspace .excel-actions button:hover,
+.product-admin-workspace button.import-btn:hover,
+.product-admin-workspace button.template-btn:hover,
+.product-admin-workspace button.add-product-btn:hover,
+.product-admin-workspace .admin-primary:hover,
+.product-admin-workspace .admin-secondary:hover{
+  background:#0f4d36 !important;
+  color:#ffffff !important;
+  border-color:#0f4d36 !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+
+.product-admin-workspace .products-action-bar button svg,
+.product-admin-workspace .product-actions button svg,
+.product-admin-workspace .product-toolbar button svg,
+.product-admin-workspace .product-workspace-actions button svg,
+.product-admin-workspace .excel-actions button svg,
+.product-admin-workspace button.import-btn svg,
+.product-admin-workspace button.template-btn svg,
+.product-admin-workspace button.add-product-btn svg,
+.product-admin-workspace .admin-primary svg,
+.product-admin-workspace .admin-secondary svg{
+  transition:color .18s ease, stroke .18s ease !important;
+}
+
+.product-admin-workspace .products-action-bar button:hover svg,
+.product-admin-workspace .product-actions button:hover svg,
+.product-admin-workspace .product-toolbar button:hover svg,
+.product-admin-workspace .product-workspace-actions button:hover svg,
+.product-admin-workspace .excel-actions button:hover svg,
+.product-admin-workspace button.import-btn:hover svg,
+.product-admin-workspace button.template-btn:hover svg,
+.product-admin-workspace button.add-product-btn:hover svg,
+.product-admin-workspace .admin-primary:hover svg,
+.product-admin-workspace .admin-secondary:hover svg{
+  color:#ffffff !important;
+  stroke:#ffffff !important;
+}
+
+/* Direct fallback for the three top buttons if they use generic button classes */
+.product-admin-workspace > .admin-card:first-child button{
+  background:#ffffff !important;
+  color:#0f4d36 !important;
+  border:1px solid rgba(15, 77, 54, .14) !important;
+  box-shadow:none !important;
+}
+
+.product-admin-workspace > .admin-card:first-child button:hover{
+  background:#0f4d36 !important;
+  color:#ffffff !important;
+  border-color:#0f4d36 !important;
+  box-shadow:none !important;
+}
