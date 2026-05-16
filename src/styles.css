@@ -10732,3 +10732,49 @@ html, body, #root {
     min-width:44px !important;
   }
 }
+
+
+/* ===== Admin i18n direction polish ===== */
+.modern-admin-shell.admin-lang-en,
+.modern-admin-shell.admin-lang-en *{
+  letter-spacing:0 !important;
+}
+
+.modern-admin-shell.admin-lang-en{
+  direction:ltr !important;
+}
+
+.modern-admin-shell.admin-lang-en .admin-sidebar{
+  right:auto !important;
+  left:0 !important;
+}
+
+@media (min-width: 1101px){
+  .modern-admin-shell.admin-lang-en .admin-main{
+    margin:0 0 0 244px !important;
+    width:calc(100% - 244px) !important;
+  }
+}
+
+.modern-admin-shell.admin-lang-en .admin-language-menu{
+  left:auto !important;
+  right:0 !important;
+  text-align:left !important;
+}
+
+.modern-admin-shell.admin-lang-en .admin-language-menu button{
+  text-align:left !important;
+}
+
+.modern-admin-shell.admin-lang-en .modern-admin-actions{
+  direction:ltr !important;
+}
+
+.modern-admin-shell.admin-lang-en .admin-sidebar nav,
+.modern-admin-shell.admin-lang-en .admin-sidebar .sidebar-nav{
+  direction:ltr !important;
+}
+
+.modern-admin-shell.admin-lang-en .admin-main{
+  direction:ltr !important;
+}

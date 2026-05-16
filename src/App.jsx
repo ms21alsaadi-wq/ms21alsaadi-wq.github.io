@@ -1599,7 +1599,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
             <button className={tab === "profile" ? "active" : ""} onClick={() => setTab("profile")}>بياناتي</button>
             <button className={tab === "orders" ? "active" : ""} onClick={() => setTab("orders")}>طلباتي</button>
             <button className={tab === "appearance" ? "active" : ""} onClick={() => setTab("appearance")}>المظهر</button>
-            <button className={tab === "coupons" ? "active" : ""} onClick={() => setTab("coupons")}>الكوبونات</button>
+            <button className={tab === "coupons" ? "active" : ""} onClick={() => setTab("coupons")}>{t("coupons")}</button>
             <button className={tab === "wallet" ? "active" : ""} onClick={() => setTab("wallet")}>المحفظة</button>
           </div>
 
@@ -1703,7 +1703,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
               <section className="account-tab-panel">
                 <div className="account-section-title">
                   <span>Coupons</span>
-                  <h2>الكوبونات</h2>
+                  <h2>{t("coupons")}</h2>
                   <p>كل الكوبونات المتاحة والمنتهية تظهر هنا بوضوح.</p>
                 </div>
 
@@ -1783,6 +1783,101 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [themeMenuOpen, setThemeMenuOpen] = useState(true);
   const [adminLanguage, setAdminLanguage] = useState(() => localStorage.getItem("adminLanguage") || "ar");
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+
+  const adminText = {
+    ar: {
+      dashboard: "لوحة التحكم",
+      dashboardSubtitle: "نظرة عامة على أداء المتجر اليوم",
+      products: "المنتجات",
+      orders: "الطلبات",
+      customers: "العملاء",
+      coupons: "الكوبونات",
+      abandonedCarts: "السلات المتروكة",
+      liveVisitors: "الزوار المباشرون",
+      themeSettings: "تخصيص الواجهة",
+      settings: "الإعدادات",
+      previewStore: "معاينة المتجر",
+      adminPanel: "لوحة الإدارة",
+      language: "اللغة",
+      arabic: "العربية",
+      english: "English",
+      currentAdminLanguage: "لغة لوحة التحكم الحالية",
+      adminPanelLanguage: "Admin panel language",
+      totalSales: "إجمالي المبيعات",
+      ordersCount: "عدد الطلبات",
+      productsCount: "عدد المنتجات",
+      customersCount: "عدد العملاء",
+      recentOrders: "آخر الطلبات",
+      topProducts: "أفضل المنتجات",
+      salesFunnel: "مسار المبيعات",
+      productManagement: "إدارة المنتجات",
+      addProduct: "إضافة منتج",
+      importExcel: "استيراد Excel",
+      searchProducts: "البحث في المنتجات",
+      filter: "فلترة",
+      allProducts: "كل المنتجات",
+      visible: "ظاهر",
+      hidden: "مخفي",
+      edit: "تعديل",
+      delete: "حذف",
+      save: "حفظ",
+      cancel: "إلغاء",
+      saveDraft: "حفظ كمسودة",
+      publish: "نشر المنتج",
+      productInfo: "المعلومات",
+      pricingStock: "الأسعار والمخزون",
+      images: "الصور",
+      options: "الخيارات",
+      seo: "SEO"
+    },
+    en: {
+      dashboard: "Dashboard",
+      dashboardSubtitle: "A quick overview of your store performance today",
+      products: "Products",
+      orders: "Orders",
+      customers: "Customers",
+      coupons: "Coupons",
+      abandonedCarts: "Abandoned carts",
+      liveVisitors: "Live visitors",
+      themeSettings: "Theme customization",
+      settings: "Settings",
+      previewStore: "Preview store",
+      adminPanel: "Admin panel",
+      language: "Language",
+      arabic: "Arabic",
+      english: "English",
+      currentAdminLanguage: "Current admin panel language",
+      adminPanelLanguage: "Admin panel language",
+      totalSales: "Total sales",
+      ordersCount: "Orders",
+      productsCount: "Products",
+      customersCount: "Customers",
+      recentOrders: "Recent orders",
+      topProducts: "Top products",
+      salesFunnel: "Sales funnel",
+      productManagement: "Product management",
+      addProduct: "Add product",
+      importExcel: "Import Excel",
+      searchProducts: "Search products",
+      filter: "Filter",
+      allProducts: "All products",
+      visible: "Visible",
+      hidden: "Hidden",
+      edit: "Edit",
+      delete: "Delete",
+      save: "Save",
+      cancel: "Cancel",
+      saveDraft: "Save draft",
+      publish: "Publish product",
+      productInfo: "Info",
+      pricingStock: "Pricing & stock",
+      images: "Images",
+      options: "Options",
+      seo: "SEO"
+    }
+  };
+
+  const t = (key) => adminText[adminLanguage]?.[key] || adminText.ar[key] || key;
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
@@ -2624,7 +2719,7 @@ return (
       <main className="admin-main">
         <header className="admin-top modern-admin-top">
           <div className="modern-admin-title">
-            <span>لوحة التحكم</span>
+            <span>{t("dashboard")}</span>
             <h1>{titleFor(tab)}</h1>
           </div>
           <div className="modern-admin-actions">
@@ -2633,10 +2728,10 @@ return (
                 type="button"
                 className="modern-admin-icon-btn admin-language-trigger"
                 onClick={() => setLanguageMenuOpen((open) => !open)}
-                title="لغة لوحة التحكم"
+                title={t("language")}
               >
                 <Languages size={18}/>
-                <span>{adminLanguage === "ar" ? "العربية" : "English"}</span>
+                <span>{adminLanguage === "ar" ? t("arabic") : t("english")}</span>
               </button>
               {languageMenuOpen && (
                 <div className="admin-language-menu">
@@ -2647,8 +2742,8 @@ return (
                   >
                     <span>ع</span>
                     <div>
-                      <b>العربية</b>
-                      <small>لغة لوحة التحكم الحالية</small>
+                      <b>{t("arabic")}</b>
+                      <small>{t("currentAdminLanguage")}</small>
                     </div>
                   </button>
                   <button
@@ -2658,14 +2753,14 @@ return (
                   >
                     <span>EN</span>
                     <div>
-                      <b>English</b>
-                      <small>Admin panel language</small>
+                      <b>{t("english")}</b>
+                      <small>{t("adminPanelLanguage")}</small>
                     </div>
                   </button>
                 </div>
               )}
             </div>
-            <button type="button" className="modern-admin-icon-btn" onClick={() => go("/")} title="معاينة المتجر">
+            <button type="button" className="modern-admin-icon-btn" onClick={() => go("/")} title={t("previewStore")}>
               <ExternalLink size={18}/>
               <span>معاينة</span>
             </button>
@@ -2699,7 +2794,7 @@ return (
             <div className="admin-card dashboard-hero">
               <div>
                 <span>Store Overview</span>
-                <h2>Dashboard</h2>
+                <h2>{t("dashboard")}</h2>
                 <p>نظرة سريعة على أداء متجر GREEN DIXAM والطلبات والمبيعات.</p>
               </div>
               <div className="dashboard-hero-actions">
@@ -2757,7 +2852,7 @@ return (
             <div className="admin-card funnel-panel">
               <div className="panel-head">
                 <div>
-                  <span>Sales Funnel</span>
+                  <span>{t("salesFunnel")}</span>
                   <h2>مسار التحويل</h2>
                 </div>
               </div>
@@ -2913,9 +3008,9 @@ return (
                 </div>
 
                 <div className="quick-numbers">
-                  <div><span>المنتجات</span><b>{products.length}</b></div>
-                  <div><span>العملاء</span><b>{customers.length}</b></div>
-                  <div><span>الطلبات</span><b>{orders.length}</b></div>
+                  <div><span>{t("products")}</span><b>{products.length}</b></div>
+                  <div><span>{t("customers")}</span><b>{customers.length}</b></div>
+                  <div><span>{t("orders")}</span><b>{orders.length}</b></div>
                   <div><span>المخزون</span><b>{products.reduce((sum,p)=>sum + Number(p.stock || 0), 0)}</b></div>
                 </div>
               </div>
@@ -3150,7 +3245,7 @@ return (
                 <div className="pro-card-head">
                   <div>
                     <span>Coupons List</span>
-                    <h2>الكوبونات</h2>
+                    <h2>{t("coupons")}</h2>
                   </div>
                   <b className="products-count">{coupons.length} كوبون</b>
                 </div>
@@ -3241,7 +3336,7 @@ return (
               </div>
 
               <div className="products-command-stats">
-                <div><span>كل المنتجات</span><b>{products.length}</b></div>
+                <div><span>{t("allProducts")}</span><b>{products.length}</b></div>
                 <div><span>الظاهرة</span><b>{activeProductsCount}</b></div>
                 <div><span>منخفضة المخزون</span><b>{lowStockProducts.length}</b></div>
                 <div><span>الأقسام</span><b>{Math.max(adminProductCategories.length - 1, 0)}</b></div>
@@ -3396,7 +3491,7 @@ return (
                       <Control label="حالة المنتج">
                         <select name="status" defaultValue={editing?.status || "active"}>
                           <option value="active">ظاهر في المتجر</option>
-                          <option value="hidden">مخفي</option>
+                          <option value="hidden">{t("hidden")}</option>
                         </select>
                       </Control>
                       <Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" min="0" defaultValue={editing?.rating || 4.8} /></Control>
@@ -3469,7 +3564,7 @@ return (
                           <img src={img} alt={`gallery-${index}`} loading="lazy" decoding="async" />
                           <div className="gallery-actions">
                             <button type="button" onClick={() => makeGalleryImagePrimary(img)}>أساسية</button>
-                            <button type="button" className="danger" onClick={() => removeGalleryImage(index)}>حذف</button>
+                            <button type="button" className="danger" onClick={() => removeGalleryImage(index)}>{t("delete")}</button>
                           </div>
                         </div>
                       ))}
@@ -3502,7 +3597,7 @@ return (
             </div>
 
               <div className="product-modal-footer">
-                <button type="button" className="admin-secondary" onClick={resetProductEditor}>إلغاء</button>
+                <button type="button" className="admin-secondary" onClick={resetProductEditor}>{t("cancel")}</button>
                 <div className="product-modal-footer-actions">
                   <button type="button" className="admin-secondary" onClick={() => setProductFormTab("info")}>مراجعة المعلومات</button>
                   <button type="submit" form="product-editor-form" className="admin-primary"><Save size={16}/> {editing ? "حفظ التعديل" : "حفظ وإضافة المنتج"}</button>
@@ -3564,7 +3659,7 @@ return (
                 </div>
 
                 <select value={productStatusFilter} onChange={e => setProductStatusFilter(e.target.value)}>
-                  <option value="all">كل المنتجات</option>
+                  <option value="all">{t("allProducts")}</option>
                   <option value="active">الظاهرة</option>
                   <option value="hidden">المخفية</option>
                   <option value="featured">المميزة</option>
@@ -3686,8 +3781,8 @@ return (
                             defaultValue={p.status || "active"}
                             onChange={e => quickUpdateProduct(p.id, { status: e.target.value, updatedAt: serverTimestamp() })}
                           >
-                            <option value="active">ظاهر</option>
-                            <option value="hidden">مخفي</option>
+                            <option value="active">{t("visible")}</option>
+                            <option value="hidden">{t("hidden")}</option>
                           </select>
                         </label>
                       </div>
@@ -4042,7 +4137,7 @@ return (
             <div className="pro-card-head">
               <div>
                 <span>Store Settings</span>
-                <h2>الإعدادات</h2>
+                <h2>{t("settings")}</h2>
                 <p>إعدادات المتجر العامة وطرق التشغيل ستضاف هنا.</p>
               </div>
             </div>
@@ -4088,7 +4183,7 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
         <div className="live-modal-head">
           <div>
             <span>Live Visitors</span>
-            <h2>الزوار المباشرون</h2>
+            <h2>{t("liveVisitors")}</h2>
             <p>متابعة الزوار النشطين خلال آخر دقيقة، بدون تخزين بيانات شخصية حساسة.</p>
           </div>
           <button type="button" onClick={onClose}><X size={18} /></button>
@@ -4599,7 +4694,7 @@ function OrdersPanel({ orders, onNotice }) {
             </div>
 
             <div className="order-modal-products">
-              <h3>المنتجات</h3>
+              <h3>{t("products")}</h3>
               {(selectedOrder.items || []).length ? (
                 (selectedOrder.items || []).map((item, i) => (
                   <div className="order-modal-item" key={i}>
