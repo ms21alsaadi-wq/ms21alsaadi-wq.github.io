@@ -11139,3 +11139,192 @@ button.product-flat-top-btn:hover svg{
     grid-template-columns:1fr !important;
   }
 }
+
+
+/* ===== Clean compact product cards =====
+   Removes visual duplication/empty blocks inside product cards after compact 5-column layout.
+*/
+.admin-main .admin-product-card,
+.admin-main .product-card,
+.admin-main .product{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:0 !important;
+  padding:0 !important;
+  background:#fff !important;
+  border:1px solid rgba(15,77,54,.10) !important;
+  box-shadow:none !important;
+  min-height:auto !important;
+}
+
+/* Hide duplicated/old helper rows inside product cards */
+.admin-main .admin-product-options-list,
+.admin-main .product-card-help,
+.admin-main .product-card-note,
+.admin-main .product-live-preview,
+.admin-main .live-product-preview,
+.admin-main .live-product-preview-body,
+.admin-main .product-select-check,
+.admin-main .product-drag-handle,
+.admin-main .admin-product-badges:empty,
+.admin-main .admin-product-meta:empty,
+.admin-main .product-meta:empty,
+.admin-main .product-foot:empty{
+  display:none !important;
+}
+
+/* Prevent duplicated top/header sections from reserving space */
+.admin-main .admin-product-card .pro-card-head,
+.admin-main .admin-product-card .product-top,
+.admin-main .product-card .pro-card-head,
+.admin-main .product-card .product-top{
+  min-height:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+/* Product image area */
+.admin-main .admin-product-thumb,
+.admin-main .product-img,
+.admin-main .product-image{
+  width:100% !important;
+  height:128px !important;
+  min-height:128px !important;
+  max-height:128px !important;
+  border-radius:0 !important;
+  margin:0 !important;
+  background:#f5f7f3 !important;
+}
+
+.admin-main .admin-product-thumb img,
+.admin-main .product-img img,
+.admin-main .product-image img,
+.admin-main .product-card > img,
+.admin-main .product > img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  display:block !important;
+}
+
+/* Main content */
+.admin-main .admin-product-info,
+.admin-main .product-body{
+  padding:10px 10px 8px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:7px !important;
+  flex:1 1 auto !important;
+}
+
+.admin-main .admin-product-info h3,
+.admin-main .product-body h3,
+.admin-main .product-title{
+  font-size:13.5px !important;
+  line-height:1.35 !important;
+  font-weight:800 !important;
+  margin:0 !important;
+  color:#173b2b !important;
+  display:-webkit-box !important;
+  -webkit-line-clamp:2 !important;
+  -webkit-box-orient:vertical !important;
+  overflow:hidden !important;
+  min-height:36px !important;
+}
+
+/* Meta lines compact */
+.admin-main .admin-product-meta,
+.admin-main .product-meta{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  align-items:center !important;
+  gap:5px !important;
+  margin:0 !important;
+  padding:0 !important;
+  font-size:11.5px !important;
+  line-height:1.2 !important;
+  color:#607268 !important;
+}
+
+.admin-main .admin-product-meta span,
+.admin-main .product-meta span,
+.admin-main .admin-product-badges span{
+  padding:4px 7px !important;
+  border-radius:999px !important;
+  background:#f4f8f3 !important;
+  border:1px solid rgba(15,77,54,.08) !important;
+  white-space:nowrap !important;
+}
+
+/* Badges */
+.admin-main .admin-product-badges{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:5px !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+
+/* Price / footer section */
+.admin-main .product-foot,
+.admin-main .admin-product-actions{
+  margin-top:auto !important;
+  padding:8px 10px 10px !important;
+  border-top:1px solid rgba(15,77,54,.08) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:6px !important;
+  background:#fff !important;
+}
+
+/* If actions are inside the info block, keep them compact */
+.admin-main .admin-product-info .admin-product-actions,
+.admin-main .product-body .product-foot,
+.admin-main .product-body .product-actions{
+  padding:8px 0 0 !important;
+  border-top:1px solid rgba(15,77,54,.08) !important;
+}
+
+/* Action buttons */
+.admin-main .admin-product-actions button,
+.admin-main .product-actions button,
+.admin-main .product-foot button{
+  height:30px !important;
+  min-width:30px !important;
+  padding:0 8px !important;
+  border-radius:9px !important;
+  box-shadow:none !important;
+  font-size:12px !important;
+}
+
+/* Remove repeated text blocks often created by old card layout */
+.admin-main .admin-product-card p:empty,
+.admin-main .product-card p:empty,
+.admin-main .product p:empty{
+  display:none !important;
+}
+
+/* Compact grid spacing override */
+.admin-main .products-grid,
+.admin-main .admin-product-cards,
+.admin-main .products-grid.store-page-products{
+  gap:12px !important;
+}
+
+/* Slightly smaller image when 5 columns are active */
+@media (min-width: 1201px){
+  .admin-main .admin-product-thumb,
+  .admin-main .product-img,
+  .admin-main .product-image{
+    height:118px !important;
+    min-height:118px !important;
+    max-height:118px !important;
+  }
+}
+
+/* Rows of cards should not stretch because of old min-height */
+.admin-main .products-grid > *,
+.admin-main .admin-product-cards > *{
+  min-height:0 !important;
+}
