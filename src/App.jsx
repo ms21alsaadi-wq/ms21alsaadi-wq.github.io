@@ -3177,48 +3177,37 @@ return (
 
         {tab === "products" && (
           <section className="admin-products-stacked">
-            <div className="admin-card products-top-combo-card">
-              <div className="products-top-combo">
-                <div className="top-combo-panel add-product-panel">
-                  <div className="combo-title-line">
-                    <span className="combo-icon"><PackagePlus size={18}/></span>
-                    <div>
-                      <h2>إضافة منتج جديد</h2>
-                      <p>أضف منتج جديد بشكل يدوي</p>
-                    </div>
-                  </div>
-                  <button className="admin-primary combo-main-btn" type="button" onClick={() => openProductEditor(null)}>
-                    <Plus size={17}/> منتج جديد
-                  </button>
-                  <small className="combo-note">سيفتح نموذج الإضافة داخل نافذة مرتبة</small>
+            <div className="admin-products-command-center">
+              <div className="products-command-main">
+                <div className="products-command-title">
+                  <span className="eyebrow">Products workspace</span>
+                  <h2>إدارة المنتجات</h2>
+                  <p>أضف، استورد، وابحث عن المنتجات من نفس المكان بدون نماذج مفتوحة داخل الصفحة.</p>
                 </div>
 
-                <div className="combo-divider" />
-
-                <div className="top-combo-panel excel-product-panel">
-                  <div className="combo-title-line">
-                    <span className="combo-icon excel"><Download size={18}/></span>
-                    <div>
-                      <h2>إضافة منتجات عبر Excel</h2>
-                      <p>حمّل ملف Excel يحتوي على المنتجات وسيتم استيرادها</p>
-                    </div>
-                  </div>
-                  <div className="excel-wide-actions combo-excel-actions">
-                    <button className="admin-secondary" type="button" onClick={downloadProductsTemplate}><Download size={16}/> تحميل قالب Excel</button>
-                    <label className="excel-upload-btn">
-                      <Download size={16}/> رفع ملف Excel
-                      <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
-                    </label>
-                  </div>
-                  <div className="combo-meta-row">
-                    <span>صيغة الملفات المدعومة: xls, xlsx.</span>
-                    <span>لمعرفة طريقة التعبئة، حمل القالب المرفق.</span>
-                  </div>
+                <div className="products-command-actions">
+                  <button className="admin-primary command-primary" type="button" onClick={() => openProductEditor(null)}>
+                    <Plus size={18}/> منتج جديد
+                  </button>
+                  <button className="admin-secondary command-secondary" type="button" onClick={downloadProductsTemplate}>
+                    <Download size={16}/> قالب Excel
+                  </button>
+                  <label className="excel-upload-btn command-upload">
+                    <Download size={16}/> رفع Excel
+                    <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
+                  </label>
                 </div>
               </div>
 
+              <div className="products-command-stats">
+                <div><span>كل المنتجات</span><b>{products.length}</b></div>
+                <div><span>الظاهرة</span><b>{activeProductsCount}</b></div>
+                <div><span>منخفضة المخزون</span><b>{lowStockProducts.length}</b></div>
+                <div><span>الأقسام</span><b>{Math.max(adminProductCategories.length - 1, 0)}</b></div>
+              </div>
+
               {pendingImport.length > 0 && (
-                <div className="pending-import-box">
+                <div className="pending-import-box command-import-preview">
                   <div className="pending-head">
                     <div>
                       <b>معاينة المنتجات المستوردة</b>
