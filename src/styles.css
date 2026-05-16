@@ -11164,7 +11164,6 @@ button.product-flat-top-btn:hover svg{
 .admin-main .product-live-preview,
 .admin-main .live-product-preview,
 .admin-main .live-product-preview-body,
-.admin-main .product-select-check,
 .admin-main .product-drag-handle,
 .admin-main .admin-product-badges:empty,
 .admin-main .admin-product-meta:empty,
@@ -11522,5 +11521,173 @@ button.product-flat-top-btn:hover svg{
   .admin-main .admin-product-cards.products-view-cards,
   .admin-main .products-grid.products-view-cards{
     grid-template-columns:1fr !important;
+  }
+}
+
+
+/* ===== Product card selection + compact rows fix ===== */
+
+/* Bring back product selection square inside cards */
+.admin-main .admin-product-card .product-select-check,
+.admin-main .product-card .product-select-check,
+.admin-main .product .product-select-check{
+  display:flex !important;
+  position:absolute !important;
+  top:9px !important;
+  inset-inline-start:9px !important;
+  width:28px !important;
+  height:28px !important;
+  border-radius:9px !important;
+  background:rgba(255,255,255,.94) !important;
+  border:1px solid rgba(15,77,54,.18) !important;
+  box-shadow:0 6px 18px rgba(15,77,54,.10) !important;
+  align-items:center !important;
+  justify-content:center !important;
+  z-index:8 !important;
+  cursor:pointer !important;
+}
+
+/* Make product cards a positioning context for the checkbox */
+.admin-main .admin-product-card,
+.admin-main .product-card,
+.admin-main .product{
+  position:relative !important;
+}
+
+/* Any native checkbox in product cards */
+.admin-main .admin-product-card input[type="checkbox"],
+.admin-main .product-card input[type="checkbox"],
+.admin-main .product input[type="checkbox"]{
+  width:16px !important;
+  height:16px !important;
+  accent-color:#0f4d36 !important;
+  cursor:pointer !important;
+}
+
+/* If selection check is icon/button based */
+.admin-main .product-select-check svg{
+  width:16px !important;
+  height:16px !important;
+  color:#0f4d36 !important;
+  stroke:#0f4d36 !important;
+}
+
+/* Keep the checkbox visible in rows mode but make it smaller */
+.admin-main .products-view-rows .product-select-check{
+  top:50% !important;
+  transform:translateY(-50%) !important;
+  inset-inline-start:8px !important;
+  width:24px !important;
+  height:24px !important;
+  border-radius:8px !important;
+}
+
+/* Compact rows more */
+.admin-main .admin-product-cards.products-view-rows,
+.admin-main .products-grid.products-view-rows{
+  gap:7px !important;
+}
+
+.admin-main .products-view-rows .admin-product-card,
+.admin-main .products-view-rows .product-card,
+.admin-main .products-view-rows .product{
+  grid-template-columns:68px minmax(180px, 1fr) auto !important;
+  min-height:76px !important;
+  padding:7px 9px 7px 40px !important;
+  gap:10px !important;
+  border-radius:14px !important;
+}
+
+.admin-main .products-view-rows .admin-product-thumb,
+.admin-main .products-view-rows .product-img,
+.admin-main .products-view-rows .product-image{
+  width:68px !important;
+  height:58px !important;
+  min-width:68px !important;
+  min-height:58px !important;
+  max-height:58px !important;
+  border-radius:11px !important;
+}
+
+.admin-main .products-view-rows .admin-product-info,
+.admin-main .products-view-rows .product-body{
+  gap:4px !important;
+}
+
+.admin-main .products-view-rows .admin-product-info h3,
+.admin-main .products-view-rows .product-body h3,
+.admin-main .products-view-rows .product-title{
+  font-size:13.5px !important;
+  line-height:1.25 !important;
+}
+
+.admin-main .products-view-rows .admin-product-meta,
+.admin-main .products-view-rows .product-meta,
+.admin-main .products-view-rows .admin-product-badges{
+  gap:4px !important;
+  font-size:11px !important;
+}
+
+.admin-main .products-view-rows .admin-product-meta span,
+.admin-main .products-view-rows .product-meta span,
+.admin-main .products-view-rows .admin-product-badges span{
+  padding:3px 6px !important;
+  font-size:11px !important;
+}
+
+.admin-main .products-view-rows .admin-product-actions,
+.admin-main .products-view-rows .product-actions,
+.admin-main .products-view-rows .product-foot{
+  gap:5px !important;
+}
+
+.admin-main .products-view-rows .admin-product-actions button,
+.admin-main .products-view-rows .product-actions button,
+.admin-main .products-view-rows .product-foot button{
+  height:28px !important;
+  min-width:28px !important;
+  padding:0 7px !important;
+  border-radius:8px !important;
+  font-size:11px !important;
+}
+
+/* Compact row image should not use card mode image heights */
+.admin-main .products-view-rows .admin-product-thumb img,
+.admin-main .products-view-rows .product-img img,
+.admin-main .products-view-rows .product-image img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+
+/* In cards mode, keep select checkbox clean */
+.admin-main .products-view-cards .product-select-check{
+  top:8px !important;
+  inset-inline-start:8px !important;
+}
+
+/* Avoid old hide rule from previous compact CSS */
+.admin-main .product-select-check{
+  visibility:visible !important;
+  opacity:1 !important;
+}
+
+@media (max-width: 850px){
+  .admin-main .products-view-rows .admin-product-card,
+  .admin-main .products-view-rows .product-card,
+  .admin-main .products-view-rows .product{
+    grid-template-columns:58px minmax(0, 1fr) !important;
+    padding:7px 8px 7px 36px !important;
+    min-height:70px !important;
+  }
+
+  .admin-main .products-view-rows .admin-product-thumb,
+  .admin-main .products-view-rows .product-img,
+  .admin-main .products-view-rows .product-image{
+    width:58px !important;
+    height:52px !important;
+    min-width:58px !important;
+    min-height:52px !important;
+    max-height:52px !important;
   }
 }
