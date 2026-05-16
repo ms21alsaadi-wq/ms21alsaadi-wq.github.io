@@ -3,7 +3,7 @@ import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
   Save, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock
+  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock, Languages
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -1781,6 +1781,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [tab, setTab] = useState("dashboard");
   const [openSection, setOpenSection] = useState(null);
   const [themeMenuOpen, setThemeMenuOpen] = useState(true);
+  const [adminLanguage, setAdminLanguage] = useState(() => localStorage.getItem("adminLanguage") || "ar");
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
@@ -2560,10 +2562,12 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   ];
 
   const selectedThemeSection = themeSections.find(section => section.id === openSection);
-  const goToThemeSection = (sectionId) => {
-    setTab("homepage");
-    setOpenSection(sectionId);
-    setThemeMenuOpen(true);
+  const changeAdminLanguage = (language) => {
+    setAdminLanguage(language);
+    localStorage.setItem("adminLanguage", language);
+    setLanguageMenuOpen(false);
+    setNotice(language === "ar" ? "تم اختيار اللغة العربية" : "English language selected");
+    setTimeout(() => setNotice(""), 1800);
   };
 
 return (
@@ -2624,6 +2628,43 @@ return (
             <h1>{titleFor(tab)}</h1>
           </div>
           <div className="modern-admin-actions">
+            <div className="admin-language-switcher">
+              <button
+                type="button"
+                className="modern-admin-icon-btn admin-language-trigger"
+                onClick={() => setLanguageMenuOpen((open) => !open)}
+                title="لغة لوحة التحكم"
+              >
+                <Languages size={18}/>
+                <span>{adminLanguage === "ar" ? "العربية" : "English"}</span>
+              </button>
+              {languageMenuOpen && (
+                <div className="admin-language-menu">
+                  <button
+                    type="button"
+                    className={adminLanguage === "ar" ? "active" : ""}
+                    onClick={() => changeAdminLanguage("ar")}
+                  >
+                    <span>ع</span>
+                    <div>
+                      <b>العربية</b>
+                      <small>لغة لوحة التحكم الحالية</small>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    className={adminLanguage === "en" ? "active" : ""}
+                    onClick={() => changeAdminLanguage("en")}
+                  >
+                    <span>EN</span>
+                    <div>
+                      <b>English</b>
+                      <small>Admin panel language</small>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
             <button type="button" className="modern-admin-icon-btn" onClick={() => go("/")} title="معاينة المتجر">
               <ExternalLink size={18}/>
               <span>معاينة</span>
