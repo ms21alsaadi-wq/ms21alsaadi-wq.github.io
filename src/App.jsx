@@ -4286,7 +4286,7 @@ return (
         )}
 
         {tab === "customers" && <CustomersPanel customers={customers} orders={orders} />}
-        {tab === "orders" && <OrdersPanel orders={orders} onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }} />}
+        {tab === "orders" && <OrdersPanel orders={orders} t={t} onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }} />}
       </main>
     </div>
   );
@@ -4514,7 +4514,7 @@ function CustomersPanel({ customers, orders }) {
   );
 }
 
-function OrdersPanel({ orders, onNotice }) {
+function OrdersPanel({ orders, onNotice, t = (key) => key }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [search, setSearch] = useState("");
