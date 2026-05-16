@@ -2935,7 +2935,13 @@ return (
 
         {tab === "dashboard" && (
           <section className="dashboard-pro-page">
-<div className="dashboard-hero-actions">
+            <div className="admin-card dashboard-hero">
+              <div>
+                <span>Store Overview</span>
+                <h2>Dashboard</h2>
+                <p>{t("dashboardIntro")}</p>
+              </div>
+              <div className="dashboard-hero-actions">
                 <div className="dashboard-hero-badge">
                   <b>{formatOrderDate(new Date())}</b>
                   <small>{t("lastUpdate")}</small>
