@@ -10783,3 +10783,33 @@ html, body, #root {
 .admin.admin-lang-ar .admin-main{
   direction:rtl !important;
 }
+
+
+/* ===== Remove duplicated dashboard overview hero ===== */
+.admin-main .dashboard-hero,
+.admin-main .dashboard-overview,
+.admin-main .store-overview-card,
+.admin-main .overview-hero,
+.admin-main .dashboard-intro-card{
+  display:none !important;
+}
+
+/* Hide the duplicated Store Overview / Dashboard intro block if it uses generic admin card styling */
+.admin-main .admin-card:has(.store-overview),
+.admin-main .admin-card:has(.dashboard-intro),
+.admin-main .admin-card:has(.overview-actions){
+  display:none !important;
+}
+
+/* Pull dashboard stats closer to the top after removing intro card */
+.admin-main .dashboard-grid,
+.admin-main .stats-grid,
+.admin-main .metrics-grid{
+  margin-top:10px !important;
+}
+
+/* Compact dashboard vertical spacing */
+.admin-main .dashboard-page,
+.admin-main .dashboard-content{
+  gap:14px !important;
+}
