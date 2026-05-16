@@ -3,7 +3,7 @@ import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
   Save, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock, Languages
+  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock, Languages, Grid3X3, Rows3
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -971,7 +971,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       </section>
 <section id="products" className="container product-section">
         <div className="section-title"><span>Rare Catalogue</span><h2>{settings.homeProductsTitle || "نباتات نادرة ومنتجات فاخرة مختارة بعناية"}</h2><p className="home-section-desc">{settings.homeProductsDesc || "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}</p></div>
-        <div className="products-grid">
+        <div className={`products-grid ${productsViewMode === "rows" ? "products-view-rows" : "products-view-cards"}`}>
           {filtered.map(p => {
             const sizes = sizesArray(p.sizes);
             return (
@@ -1783,6 +1783,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [themeMenuOpen, setThemeMenuOpen] = useState(true);
   const [adminLanguage, setAdminLanguage] = useState(() => localStorage.getItem("adminLanguage") || "ar");
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const [productsViewMode, setProductsViewMode] = useState(() => localStorage.getItem("productsViewMode") || "cards");
 
   const adminI18n = {
     ar: {
@@ -2809,6 +2810,11 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setTimeout(() => setNotice(""), 1800);
   };
 
+  const changeProductsViewMode = (mode) => {
+    setProductsViewMode(mode);
+    localStorage.setItem("productsViewMode", mode);
+  };
+
 return (
     <div className={`admin admin-lang-${adminLanguage}`} dir={adminLanguage === "ar" ? "rtl" : "ltr"}>
       <aside className="admin-sidebar">
@@ -3453,6 +3459,27 @@ return (
                 </div>
 
                 <div className="products-command-actions">
+            <div className="products-view-mode-toggle" aria-label="طريقة عرض المنتجات">
+              <button
+                type="button"
+                className={productsViewMode === "cards" ? "active" : ""}
+                onClick={() => changeProductsViewMode("cards")}
+                title="عرض الكروت"
+              >
+                <Grid3X3 size={16}/>
+                <span>كروت</span>
+              </button>
+              <button
+                type="button"
+                className={productsViewMode === "rows" ? "active" : ""}
+                onClick={() => changeProductsViewMode("rows")}
+                title="عرض الصفوف"
+              >
+                <Rows3 size={16}/>
+                <span>صفوف</span>
+              </button>
+            </div>
+
                   <button className="admin-primary command-primary product-flat-top-btn" type="button" onClick={() => openProductEditor(null)}>
                     <Plus size={18}/> منتج جديد
                   </button>
@@ -3834,7 +3861,7 @@ return (
                 </div>
               )}
 
-              <div className="admin-product-cards">
+              <div className={`admin-product-cards ${productsViewMode === "rows" ? "products-view-rows" : "products-view-cards"}`}>
                 {filteredAdminProducts.map(p => (
                   <div
                     className={`admin-product-card ${selectedProducts.includes(p.id) ? "selected" : ""} ${draggedProductId === p.id ? "dragging" : ""}`}
