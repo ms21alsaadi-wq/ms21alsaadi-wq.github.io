@@ -10785,33 +10785,14 @@ html, body, #root {
 }
 
 
-/* ===== Safe hide duplicated dashboard overview block =====
-   Hides the large repeated dashboard overview card without editing JSX structure.
+/* ===== Dashboard hero removed from JSX =====
+   The duplicated overview card was removed from App.jsx.
+   This only tightens spacing after the removal.
 */
-.admin-main .dashboard-overview-card,
-.admin-main .dashboard-hero-card,
-.admin-main .store-overview-card,
-.admin-main .overview-card,
-.admin-main .dashboard-intro-card{
-  display:none !important;
+.admin-main .admin-health-grid{
+  margin-top:0 !important;
 }
 
-/* Fallback for the duplicated hero card used in this admin build */
-.admin-main .admin-hero-card{
-  display:none !important;
-}
-
-/* Bring stats closer after hiding duplicated overview */
-.admin-main .admin-health-grid,
-.admin-main .dashboard-grid,
-.admin-main .stats-grid,
-.admin-main .metrics-grid{
-  margin-top:12px !important;
-}
-
-/* Avoid excessive vertical gap after removing hero */
-.admin-main .admin-dashboard,
-.admin-main .dashboard-page,
-.admin-main .dashboard-content{
+.admin-main .dashboard-pro-page{
   gap:14px !important;
 }

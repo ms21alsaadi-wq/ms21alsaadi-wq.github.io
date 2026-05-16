@@ -2935,21 +2935,6 @@ return (
 
         {tab === "dashboard" && (
           <section className="dashboard-pro-page">
-            <div className="admin-card dashboard-hero">
-              <div>
-                <span>Store Overview</span>
-                <h2>Dashboard</h2>
-                <p>{t("dashboardIntro")}</p>
-              </div>
-              <div className="dashboard-hero-actions">
-                <div className="dashboard-hero-badge">
-                  <b>{formatOrderDate(new Date())}</b>
-                  <small>{t("lastUpdate")}</small>
-                </div>
-                <button type="button" className="preview-store-btn" onClick={() => go("/")}>{t("previewStore")}</button>
-              </div>
-            </div>
-
             <div className="admin-health-grid">
               {adminHealthCards.map(card => (
                 <div className={`admin-health-card ${card.tone}`} key={card.label}>
