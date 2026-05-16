@@ -10517,15 +10517,21 @@ html, body, #root {
 }
 
 
-/* Sidebar spacing fix */
-.admin-shell,
-.dashboard-shell,
-.modern-admin-layout{
-  gap:24px !important;
+/* REAL sidebar spacing fix */
+.main-content,
+.dashboard-content,
+.admin-content,
+.dashboard-wrapper{
+  margin-right:18px !important;
+  width:calc(100% - 18px) !important;
 }
 
-.admin-main,
-.dashboard-main,
-.main-content{
-  padding-right:24px !important;
+@media (max-width: 900px){
+  .main-content,
+  .dashboard-content,
+  .admin-content,
+  .dashboard-wrapper{
+    margin-right:0 !important;
+    width:100% !important;
+  }
 }
