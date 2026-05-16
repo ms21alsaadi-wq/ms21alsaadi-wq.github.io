@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap");
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap');
 
 * {
@@ -10540,4 +10541,94 @@ html, body, #root {
     width:100% !important;
     margin:0 !important;
   }
+}
+
+
+/* ===== Unified Admin Font ===== */
+:root{
+  --admin-font-family: "Tajawal", "IBM Plex Sans Arabic", "Cairo", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Apply only to admin dashboard area */
+.admin-shell,
+.admin-shell *,
+.admin-sidebar,
+.admin-sidebar *,
+.admin-main,
+.admin-main *,
+.admin-card,
+.admin-card *,
+.admin-modal,
+.admin-modal *,
+.product-modal,
+.product-modal *,
+.dashboard-card,
+.dashboard-card *,
+.products-page,
+.products-page *,
+.orders-page,
+.orders-page *,
+.customers-page,
+.customers-page *{
+  font-family: var(--admin-font-family) !important;
+  letter-spacing: 0 !important;
+}
+
+/* Make form controls match the dashboard font */
+.admin-shell input,
+.admin-shell textarea,
+.admin-shell select,
+.admin-shell button,
+.admin-main input,
+.admin-main textarea,
+.admin-main select,
+.admin-main button,
+.admin-sidebar button,
+.admin-sidebar input,
+.product-modal input,
+.product-modal textarea,
+.product-modal select,
+.product-modal button{
+  font-family: var(--admin-font-family) !important;
+}
+
+/* Better Arabic readability in admin */
+.admin-main,
+.admin-sidebar,
+.admin-modal,
+.product-modal{
+  font-feature-settings: "kern";
+  text-rendering: optimizeLegibility;
+}
+
+/* Normalize headings and labels */
+.admin-main h1,
+.admin-main h2,
+.admin-main h3,
+.admin-main h4,
+.admin-sidebar h1,
+.admin-sidebar h2,
+.admin-sidebar h3,
+.product-modal h1,
+.product-modal h2,
+.product-modal h3{
+  font-family: var(--admin-font-family) !important;
+  font-weight: 800 !important;
+}
+
+.admin-main label,
+.product-modal label,
+.admin-main .muted,
+.admin-main p,
+.admin-main span,
+.admin-main small{
+  font-family: var(--admin-font-family) !important;
+}
+
+/* Keep numbers clean inside stat cards */
+.admin-main .stat-value,
+.admin-main .metric-value,
+.admin-main .dashboard-number{
+  font-family: var(--admin-font-family) !important;
+  font-weight: 800 !important;
 }
