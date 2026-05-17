@@ -12331,3 +12331,23 @@ button.product-flat-top-btn:hover svg{
   transform: none !important;
   margin: 0 !important;
 }
+
+
+/* ===== FIX: keep category badge normal, lower product name to its level ===== */
+/* نلغي رفع الشارة السابق ونخلي اسم المنتج ينزل لمستوى الشارة */
+.admin-main .products-view-rows .products-row-category-fixed,
+.admin-main .products-view-rows .products-row-category,
+.admin-main .products-view-rows .admin-product-badges{
+  transform:none !important;
+}
+
+.admin-main .products-view-rows .products-row-category-fixed span,
+.admin-main .products-view-rows .products-row-category span,
+.admin-main .products-view-rows .admin-product-badges span{
+  transform:none !important;
+}
+
+/* نزول اسم المنتج فقط داخل الصفوف */
+.admin-main .products-view-rows .admin-product-info h3{
+  transform:translateY(20px) !important;
+}
