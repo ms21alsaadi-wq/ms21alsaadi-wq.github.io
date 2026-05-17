@@ -12194,3 +12194,16 @@ button.product-flat-top-btn:hover svg{
   align-self:center !important;
   transform:none !important;
 }
+
+
+/* ===== Rows: raise category badge slightly ===== */
+/* رفع شارة القسم فقط داخل عرض الصفوف */
+.admin-main .products-view-rows .admin-product-badges,
+.admin-main .products-view-rows .products-row-category{
+  transform:translateY(-4px) !important;
+}
+
+.admin-main .products-view-rows .admin-product-badges span,
+.admin-main .products-view-rows .products-row-category span{
+  transform:none !important;
+}
