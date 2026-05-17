@@ -12212,5 +12212,11 @@ button.product-flat-top-btn:hover svg{
 /* ===== Rows: lower product name to match category badge ===== */
 /* ينزل اسم المنتج داخل عرض الصفوف فقط حتى يكون على نفس مستوى شارة القسم */
 .admin-main .products-view-rows .admin-product-info h3{
-  transform: translateY(8px) !important;
+  transform: translateY(14px) !important;
+}
+
+
+/* ===== Rows: lower product name more ===== */
+.admin-main .products-view-rows .admin-product-info h3{
+  transform: translateY(14px) !important;
 }
