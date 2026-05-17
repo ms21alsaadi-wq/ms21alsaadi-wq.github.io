@@ -12098,5 +12098,80 @@ button.product-flat-top-btn:hover svg{
 }
 
 .admin-main .products-view-rows .admin-product-info h3{
-  transform:translateY(18px) !important;
+  transform:translateY(14px) !important;
+}
+
+
+/* ===== FIX: product header aligns with product name, category under category column ===== */
+/* في عرض الصفوف: اسم المنتج تحت عمود المنتج، وشارة القسم تحت عمود القسم */
+.admin-main .products-view-rows .admin-product-info > div:first-child{
+  grid-column:3 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  height:100% !important;
+  padding:0 12px !important;
+  min-width:0 !important;
+}
+
+/* اسم المنتج داخل عمود المنتج فقط */
+.admin-main .products-view-rows .admin-product-info h3{
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  line-height:1.15 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  transform:translateY(14px) !important;
+  text-align:right !important;
+}
+
+/* شارة القسم ترجع تحت عمود القسم وليس تحت المنتج */
+.admin-main .products-view-rows .admin-product-badges{
+  grid-column:4 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  height:100% !important;
+  padding:0 8px !important;
+  margin:0 !important;
+  transform:none !important;
+  overflow:hidden !important;
+}
+
+/* اعرض أول شارة فقط كقسم */
+.admin-main .products-view-rows .admin-product-badges span{
+  max-width:100% !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  margin:0 !important;
+  line-height:1 !important;
+}
+
+.admin-main .products-view-rows .admin-product-badges span:nth-child(n+2){
+  display:none !important;
+}
+
+/* لو موجودة خلية القسم المستقلة، خليها هي كمان في عمود القسم */
+.admin-main .products-view-rows .products-row-category{
+  grid-column:4 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  height:100% !important;
+  padding:0 8px !important;
+  margin:0 !important;
+  transform:none !important;
+}
+
+/* اجعل عنوان المنتج فوق اسم المنتج بصريًا */
+.admin-main .products-view-rows .products-excel-header span:nth-child(3){
+  justify-content:center !important;
+}
+
+/* اجعل عنوان القسم فوق الشارة */
+.admin-main .products-view-rows .products-excel-header span:nth-child(4){
+  justify-content:center !important;
 }
