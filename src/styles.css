@@ -12098,3 +12098,28 @@ button.product-flat-top-btn:hover svg{
   align-items:center !important;
   justify-content:center !important;
 }
+
+
+/* ===== Rows: precise product/category baseline alignment ===== */
+/* رفع شارة القسم قليلًا حتى تكون على نفس خط اسم المنتج داخل الصفوف فقط */
+.admin-main .products-view-rows .admin-product-badges,
+.admin-main .products-view-rows .products-row-category{
+  align-items:center !important;
+  justify-content:center !important;
+  transform:translateY(-6px) !important;
+}
+
+/* منع الشارة من إضافة ارتفاع أو نزول داخل الخلية */
+.admin-main .products-view-rows .admin-product-badges span,
+.admin-main .products-view-rows .products-row-category span{
+  line-height:1 !important;
+  margin:0 !important;
+  transform:none !important;
+}
+
+/* تثبيت اسم المنتج في مكانه الحالي */
+.admin-main .products-view-rows .admin-product-info h3{
+  transform:none !important;
+  line-height:1.15 !important;
+  margin:0 !important;
+}
