@@ -12033,12 +12033,3 @@ button.product-flat-top-btn:hover svg{
 .admin-main .products-view-rows .product-drag-handle{
   display:none !important;
 }
-
-
-/* ===== Bigger product name in rows only ===== */
-.admin-main .products-view-rows .admin-product-info h3{
-  font-size:15px !important;
-  line-height:1.25 !important;
-  font-weight:900 !important;
-  color:#173b2b !important;
-}
