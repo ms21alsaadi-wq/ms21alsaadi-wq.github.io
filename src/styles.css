@@ -11528,7 +11528,7 @@ button.product-flat-top-btn:hover svg{
   line-height:1.50 !important;
   margin:0 !important;
   min-height:0 !important;
-  -webkit-line-clamp:5 !important;
+  -webkit-line-clamp:0 !important;
 }
 
 .admin-main .products-view-rows .admin-product-info p,
