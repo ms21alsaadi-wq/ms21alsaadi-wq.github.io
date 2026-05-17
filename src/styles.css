@@ -12033,3 +12033,68 @@ button.product-flat-top-btn:hover svg{
 .admin-main .products-view-rows .product-drag-handle{
   display:none !important;
 }
+
+
+/* ===== Rows: align product name and category on same horizontal level ===== */
+/* هذا التعديل يخص عرض الصفوف فقط: اسم المنتج والقسم يكونان في نفس المستوى الأفقي */
+.admin-main .products-view-rows .admin-product-card{
+  align-items:center !important;
+}
+
+/* خلية اسم المنتج */
+.admin-main .products-view-rows .admin-product-info > div:first-child{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+}
+
+/* اسم المنتج نفسه بدون نزول أو ارتفاع زائد */
+.admin-main .products-view-rows .admin-product-info h3{
+  margin:0 !important;
+  padding:0 !important;
+  line-height:1.15 !important;
+  transform:none !important;
+  display:block !important;
+}
+
+/* خلية القسم تكون في منتصف الصف بنفس مستوى الاسم */
+.admin-main .products-view-rows .admin-product-badges{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  margin:0 !important;
+}
+
+/* شارة القسم بدون نزول */
+.admin-main .products-view-rows .admin-product-badges span{
+  margin:0 !important;
+  line-height:1 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+/* لو كانت النسخة تستخدم خلية قسم مستقلة */
+.admin-main .products-view-rows .products-row-category{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  margin:0 !important;
+}
+
+.admin-main .products-view-rows .products-row-category span{
+  margin:0 !important;
+  line-height:1 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
