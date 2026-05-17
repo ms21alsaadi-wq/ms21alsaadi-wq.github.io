@@ -3920,6 +3920,10 @@ return (
                         {p.sku && <span>SKU: {p.sku}</span>}
                       </div>
 
+                      <div className="products-row-category-fixed">
+                        <span>{p.category || "بدون قسم"}</span>
+                      </div>
+
                       
 
                       {Array.isArray(p.options) && p.options.length > 0 && (
