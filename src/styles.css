@@ -12264,67 +12264,98 @@ button.product-flat-top-btn:hover svg{
 }
 
 
-/* ===== Products rows height compact only =====
-   تقليل ارتفاع الصفوف فقط بدون تغيير بنية الأعمدة.
+/* ===== Products rows vertical alignment only =====
+   توحيد مستوى كل محتويات الصف بدون تغيير الأعمدة أو تصغير الصف.
 */
 .admin-main .products-view-rows .admin-product-card{
-  min-height:52px !important;
-  height:52px !important;
   align-items:center !important;
 }
 
-.admin-main .products-view-rows .products-excel-header{
-  min-height:34px !important;
-  height:34px !important;
+/* كل خلية مباشرة داخل الصف تتمركز عموديًا */
+.admin-main .products-view-rows .admin-product-card > *{
+  align-self:stretch !important;
+  display:flex !important;
+  align-items:center !important;
 }
 
+/* الصورة في المنتصف */
 .admin-main .products-view-rows .admin-product-thumb{
-  width:46px !important;
-  height:40px !important;
-  min-width:46px !important;
-  min-height:40px !important;
-  max-height:40px !important;
-  border-radius:9px !important;
+  align-self:center !important;
+  justify-self:center !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
 }
 
+/* خلية اسم المنتج */
+.admin-main .products-view-rows .admin-product-info > div:first-child{
+  height:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  align-items:flex-start !important;
+}
+
+/* اسم المنتج نفسه في مستوى واضح */
 .admin-main .products-view-rows .admin-product-info h3{
-  font-size:12.5px !important;
-  line-height:1.15 !important;
   margin:0 !important;
+  line-height:1.25 !important;
+  display:block !important;
 }
 
-.admin-main .products-view-rows .admin-product-meta span,
-.admin-main .products-view-rows .products-row-category span,
+/* القسم */
+.admin-main .products-view-rows .products-row-category{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+/* السعر والمخزون */
+.admin-main .products-view-rows .admin-product-meta span{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1.2 !important;
+}
+
+/* الحالة والخيارات و SKU */
+.admin-main .products-view-rows .products-row-status,
 .admin-main .products-view-rows .products-row-options,
 .admin-main .products-view-rows .products-row-sku{
-  font-size:10.8px !important;
-  line-height:1 !important;
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1.2 !important;
 }
 
-.admin-main .products-view-rows .row-status{
-  height:21px !important;
-  min-width:48px !important;
-  padding:0 7px !important;
-  font-size:10.5px !important;
+/* أزرار الإجراءات */
+.admin-main .products-view-rows .admin-product-actions{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
 }
 
-.admin-main .products-view-rows .admin-product-actions button{
-  height:25px !important;
-  min-width:25px !important;
-  padding:0 6px !important;
-  border-radius:7px !important;
+/* مربع التحديد في الصف */
+.admin-main .products-view-rows .product-row-select-check{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
 }
 
-.admin-main .products-view-rows .admin-product-actions button svg{
-  width:13px !important;
-  height:13px !important;
-}
-
-.admin-main .products-view-rows .product-row-select-check input{
-  width:14px !important;
-  height:14px !important;
+/* رأس الجدول بنفس منطق المحاذاة */
+.admin-main .products-view-rows .products-excel-header{
+  align-items:center !important;
 }
 
 .admin-main .products-view-rows .products-excel-header span{
-  font-size:10.8px !important;
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1.2 !important;
 }
