@@ -12123,3 +12123,74 @@ button.product-flat-top-btn:hover svg{
   line-height:1.15 !important;
   margin:0 !important;
 }
+
+
+/* ===== Rows: force product name and all row cells to the same visual baseline ===== */
+/* يجعل اسم المنتج والقسم وباقي محتويات الصف على نفس المستوى الأفقي داخل الصفوف فقط */
+.admin-main .products-view-rows .admin-product-card{
+  align-items:center !important;
+}
+
+/* خلية المنتج: نلغي أي تمركز قديم ونحرك الاسم للأسفل قليلًا */
+.admin-main .products-view-rows .admin-product-info > div:first-child{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+}
+
+/* اسم المنتج كان أعلى من باقي الصف، لذلك ننزله قليلًا */
+.admin-main .products-view-rows .admin-product-info h3{
+  margin:0 !important;
+  padding:0 !important;
+  line-height:1 !important;
+  transform:translateY(8px) !important;
+  display:block !important;
+}
+
+/* القسم يرجع بدون رفع مبالغ فيه، ويكون في منتصف الخلية */
+.admin-main .products-view-rows .admin-product-badges,
+.admin-main .products-view-rows .products-row-category{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin:0 !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  transform:none !important;
+}
+
+/* شارة القسم نفسها على نفس مستوى النص */
+.admin-main .products-view-rows .admin-product-badges span,
+.admin-main .products-view-rows .products-row-category span{
+  margin:0 !important;
+  line-height:1 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  transform:none !important;
+}
+
+/* تثبيت باقي الخلايا على نفس مستوى القسم */
+.admin-main .products-view-rows .admin-product-meta span,
+.admin-main .products-view-rows .products-row-status,
+.admin-main .products-view-rows .products-row-options,
+.admin-main .products-view-rows .products-row-sku,
+.admin-main .products-view-rows .admin-product-actions,
+.admin-main .products-view-rows .product-row-select-check{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  transform:none !important;
+  line-height:1 !important;
+}
+
+/* الصورة تبقى وسط الصف */
+.admin-main .products-view-rows .admin-product-thumb{
+  align-self:center !important;
+  transform:none !important;
+}
