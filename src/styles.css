@@ -11808,3 +11808,161 @@ button.product-flat-top-btn:hover svg{
     min-width:1050px !important;
   }
 }
+
+
+/* ===== Products rows better column alignment =====
+   Make every row cell sit exactly under its header.
+   Reduce the empty category space and give actions/SKU/status more room.
+*/
+.admin-main .products-view-rows .products-excel-header,
+.admin-main .products-view-rows .admin-product-card{
+  grid-template-columns:
+    58px      /* تحديد */
+    72px      /* الصورة */
+    minmax(260px, 1.8fr) /* المنتج */
+    115px     /* القسم */
+    105px     /* السعر */
+    105px     /* المخزون */
+    90px      /* الحالة */
+    95px      /* الخيارات */
+    120px     /* SKU */
+    145px     /* إجراءات */
+  !important;
+}
+
+/* Header cells: same padding/alignment as body cells */
+.admin-main .products-view-rows .products-excel-header span{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  height:100% !important;
+  padding:0 8px !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+}
+
+/* Select column */
+.admin-main .products-view-rows .admin-product-actions .product-select-check{
+  margin:0 !important;
+}
+
+.admin-main .products-view-rows .product-select-check{
+  width:26px !important;
+  height:26px !important;
+  min-width:26px !important;
+}
+
+/* Product image column */
+.admin-main .products-view-rows .admin-product-thumb{
+  justify-self:center !important;
+  margin:0 !important;
+}
+
+/* Product name column */
+.admin-main .products-view-rows .admin-product-info > div:first-child{
+  grid-column:3 !important;
+  padding:0 12px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  min-width:0 !important;
+}
+
+.admin-main .products-view-rows .admin-product-info h3{
+  text-align:right !important;
+  width:100% !important;
+}
+
+/* Category column: compact and centered, no huge empty area */
+.admin-main .products-view-rows .admin-product-badges{
+  grid-column:4 !important;
+  padding:0 8px !important;
+  justify-content:center !important;
+  align-items:center !important;
+  overflow:hidden !important;
+}
+
+.admin-main .products-view-rows .admin-product-badges span{
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  justify-content:center !important;
+}
+
+/* Price / stock columns */
+.admin-main .products-view-rows .admin-product-meta span:nth-child(1),
+.admin-main .products-view-rows .admin-product-meta span:nth-child(2){
+  justify-content:center !important;
+  text-align:center !important;
+  padding:0 8px !important;
+}
+
+/* Status / options / SKU columns */
+.admin-main .products-view-rows .products-row-status,
+.admin-main .products-view-rows .products-row-options,
+.admin-main .products-view-rows .products-row-sku{
+  justify-content:center !important;
+  text-align:center !important;
+  padding:0 8px !important;
+}
+
+/* SKU is LTR but still centered inside its cell */
+.admin-main .products-view-rows .products-row-sku{
+  direction:ltr !important;
+  text-align:center !important;
+}
+
+/* Actions column: tighter and centered under header */
+.admin-main .products-view-rows .admin-product-actions{
+  grid-column:10 !important;
+  justify-content:center !important;
+  gap:6px !important;
+  padding:0 8px !important;
+}
+
+/* Put checkbox first within actions visually, but keep it aligned */
+.admin-main .products-view-rows .admin-product-actions .product-select-check{
+  order:-1 !important;
+}
+
+/* Better row height after alignment */
+.admin-main .products-view-rows .admin-product-card{
+  min-height:62px !important;
+}
+
+/* Give the whole table enough room instead of squeezing left */
+@media (min-width: 1201px){
+  .admin-main .admin-product-cards.products-view-rows{
+    overflow-x:hidden !important;
+  }
+}
+
+@media (max-width: 1500px){
+  .admin-main .products-view-rows .products-excel-header,
+  .admin-main .products-view-rows .admin-product-card{
+    grid-template-columns:
+      54px
+      66px
+      minmax(220px, 1.6fr)
+      105px
+      95px
+      95px
+      82px
+      88px
+      105px
+      130px
+    !important;
+  }
+}
+
+@media (max-width: 1200px){
+  .admin-main .admin-product-cards.products-view-rows{
+    overflow-x:auto !important;
+  }
+
+  .admin-main .products-view-rows .products-excel-header,
+  .admin-main .products-view-rows .admin-product-card{
+    min-width:1040px !important;
+  }
+}
