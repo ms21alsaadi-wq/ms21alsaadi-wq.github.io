@@ -3,7 +3,7 @@ import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
   Save, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock, Languages, Grid3X3, Rows3
+  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock, Languages
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -1783,7 +1783,6 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [themeMenuOpen, setThemeMenuOpen] = useState(true);
   const [adminLanguage, setAdminLanguage] = useState(() => localStorage.getItem("adminLanguage") || "ar");
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
-  const [productsViewMode, setProductsViewMode] = useState(() => localStorage.getItem("productsViewMode") || "cards");
 
   const adminI18n = {
     ar: {
@@ -2810,11 +2809,6 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setTimeout(() => setNotice(""), 1800);
   };
 
-  const changeProductsViewMode = (mode) => {
-    setProductsViewMode(mode);
-    localStorage.setItem("productsViewMode", mode);
-  };
-
 return (
     <div className={`admin admin-lang-${adminLanguage}`} dir={adminLanguage === "ar" ? "rtl" : "ltr"}>
       <aside className="admin-sidebar">
@@ -3459,27 +3453,6 @@ return (
                 </div>
 
                 <div className="products-command-actions">
-            <div className="products-view-mode-toggle" aria-label="طريقة عرض المنتجات">
-              <button
-                type="button"
-                className={productsViewMode === "cards" ? "active" : ""}
-                onClick={() => changeProductsViewMode("cards")}
-                title="عرض الكروت"
-              >
-                <Grid3X3 size={16}/>
-                <span>كروت</span>
-              </button>
-              <button
-                type="button"
-                className={productsViewMode === "rows" ? "active" : ""}
-                onClick={() => changeProductsViewMode("rows")}
-                title="عرض الصفوف"
-              >
-                <Rows3 size={16}/>
-                <span>صفوف</span>
-              </button>
-            </div>
-
                   <button className="admin-primary command-primary product-flat-top-btn" type="button" onClick={() => openProductEditor(null)}>
                     <Plus size={18}/> منتج جديد
                   </button>
@@ -3861,21 +3834,7 @@ return (
                 </div>
               )}
 
-              <div className={`admin-product-cards ${productsViewMode === "rows" ? "products-view-rows" : "products-view-cards"}`}>
-                {productsViewMode === "rows" && (
-                  <div className="products-excel-header">
-                    <span>تحديد</span>
-                    <span>الصورة</span>
-                    <span>المنتج</span>
-                    <span>القسم</span>
-                    <span>السعر</span>
-                    <span>المخزون</span>
-                    <span>الحالة</span>
-                    <span>الخيارات</span>
-                    <span>SKU</span>
-                    <span>إجراءات</span>
-                  </div>
-                )}
+              <div className="admin-product-cards">
                 {filteredAdminProducts.map(p => (
                   <div
                     className={`admin-product-card ${selectedProducts.includes(p.id) ? "selected" : ""} ${draggedProductId === p.id ? "dragging" : ""}`}
@@ -3886,7 +3845,7 @@ return (
                     onDrop={() => { reorderProducts(draggedProductId, p.id); setDraggedProductId(null); }}
                     onDragEnd={() => setDraggedProductId(null)}
                   >
-                    <label className="product-row-select-check" title="تحديد المنتج">
+                    <label className="product-select-check">
                       <input
                         type="checkbox"
                         checked={selectedProducts.includes(p.id)}
@@ -3934,29 +3893,7 @@ return (
                         </div>
                       )}
 
-                      <div className="products-row-category">
-                        <span>{p.category || "بدون قسم"}</span>
-                      </div>
-                      <div className="products-row-status">
-                        <span className={p.status === "hidden" ? "row-status hidden" : "row-status active"}>
-                          {p.status === "hidden" ? "مخفي" : "ظاهر"}
-                        </span>
-                      </div>
-                      <div className="products-row-options">
-                        {Array.isArray(p.options) && p.options.length > 0 ? `${p.options.length} خيارات` : "—"}
-                      </div>
-                      <div className="products-row-sku">
-                        {p.sku || "—"}
-                      </div>
-
                       <div className="admin-product-actions">
-                        <label className="product-select-check" title="تحديد المنتج">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.includes(p.id)}
-                            onChange={() => toggleProductSelection(p.id)}
-                          />
-                        </label>
                         <button onClick={()=>openProductEditor(p)}><Pencil size={16}/> تعديل كامل</button>
                         <button type="button" onClick={()=>duplicateProduct(p)}><Plus size={16}/> نسخ</button>
                         <button className="danger" onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={16}/> حذف</button>
