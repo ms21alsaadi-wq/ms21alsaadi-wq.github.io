@@ -3871,6 +3871,8 @@ return (
                     <span>السعر</span>
                     <span>المخزون</span>
                     <span>الحالة</span>
+                    <span>الخيارات</span>
+                    <span>SKU</span>
                     <span>إجراءات</span>
                   </div>
                 )}
@@ -3924,6 +3926,18 @@ return (
                           {p.options.length > 4 && <span>+{p.options.length - 4}</span>}
                         </div>
                       )}
+
+                      <div className="products-row-status">
+                        <span className={p.status === "hidden" ? "row-status hidden" : "row-status active"}>
+                          {p.status === "hidden" ? "مخفي" : "ظاهر"}
+                        </span>
+                      </div>
+                      <div className="products-row-options">
+                        {Array.isArray(p.options) && p.options.length > 0 ? `${p.options.length} خيارات` : "—"}
+                      </div>
+                      <div className="products-row-sku">
+                        {p.sku || "—"}
+                      </div>
 
                       <div className="admin-product-actions">
                         <label className="product-select-check" title="تحديد المنتج">
