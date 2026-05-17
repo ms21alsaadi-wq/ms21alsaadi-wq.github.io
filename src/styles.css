@@ -12200,7 +12200,7 @@ button.product-flat-top-btn:hover svg{
 /* رفع شارة القسم فقط داخل عرض الصفوف */
 .admin-main .products-view-rows .admin-product-badges,
 .admin-main .products-view-rows .products-row-category{
-  transform:translateY(-6px) !important;
+  transform:translateY(-7px) !important;
 }
 
 .admin-main .products-view-rows .admin-product-badges span,
