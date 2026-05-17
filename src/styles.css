@@ -12315,3 +12315,19 @@ button.product-flat-top-btn:hover svg{
     min-width:1120px !important;
   }
 }
+
+
+/* ===== Rows: raise category badges only ===== */
+/* رفع شارات القسم داخل عرض الصفوف فقط */
+.admin-main .products-view-rows .products-row-category-fixed,
+.admin-main .products-view-rows .products-row-category,
+.admin-main .products-view-rows .admin-product-badges{
+  transform: translateY(-8px) !important;
+}
+
+.admin-main .products-view-rows .products-row-category-fixed span,
+.admin-main .products-view-rows .products-row-category span,
+.admin-main .products-view-rows .admin-product-badges span{
+  transform: none !important;
+  margin: 0 !important;
+}
