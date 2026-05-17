@@ -12525,3 +12525,165 @@ button.product-flat-top-btn:hover svg{
     min-width:1030px !important;
   }
 }
+
+
+/* ===== Products rows final one-line alignment =====
+   إصلاح التفاف أزرار الإجراءات وجعل كل محتويات الصف على خط أفقي واحد.
+*/
+.admin-main .products-view-rows .admin-product-card{
+  min-height:58px !important;
+  height:58px !important;
+  align-items:center !important;
+  overflow:visible !important;
+}
+
+/* توحيد الأعمدة مع توسيع عمود الإجراءات حتى لا تلتف الأزرار */
+.admin-main .products-view-rows .products-excel-header,
+.admin-main .products-view-rows .admin-product-card{
+  grid-template-columns:
+    54px
+    70px
+    minmax(260px, 1.6fr)
+    120px
+    100px
+    105px
+    85px
+    92px
+    120px
+    170px
+  !important;
+}
+
+/* كل خلية داخل الصف تكون في منتصف الصف أفقياً وعمودياً */
+.admin-main .products-view-rows .product-row-select-check,
+.admin-main .products-view-rows .admin-product-thumb,
+.admin-main .products-view-rows .admin-product-info > div:first-child,
+.admin-main .products-view-rows .products-row-category,
+.admin-main .products-view-rows .admin-product-meta span,
+.admin-main .products-view-rows .products-row-status,
+.admin-main .products-view-rows .products-row-options,
+.admin-main .products-view-rows .products-row-sku,
+.admin-main .products-view-rows .admin-product-actions{
+  height:58px !important;
+  min-height:58px !important;
+  display:flex !important;
+  align-items:center !important;
+}
+
+/* الصورة لا تغير ارتفاع الصف */
+.admin-main .products-view-rows .admin-product-thumb{
+  height:42px !important;
+  min-height:42px !important;
+  max-height:42px !important;
+  width:50px !important;
+  min-width:50px !important;
+  justify-content:center !important;
+}
+
+/* اسم المنتج على سطر واحد فقط */
+.admin-main .products-view-rows .admin-product-info h3{
+  margin:0 !important;
+  padding:0 !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+/* منع أي عنصر من النزول لسطر ثاني */
+.admin-main .products-view-rows .products-row-category span,
+.admin-main .products-view-rows .admin-product-meta span,
+.admin-main .products-view-rows .products-row-options,
+.admin-main .products-view-rows .products-row-sku,
+.admin-main .products-view-rows .row-status{
+  white-space:nowrap !important;
+  line-height:1 !important;
+}
+
+/* إصلاح عمود الإجراءات: كل الأزرار بجانب بعض وليس فوق بعض */
+.admin-main .products-view-rows .admin-product-actions{
+  grid-column:10 !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:6px !important;
+  padding:0 10px !important;
+  overflow:visible !important;
+  white-space:nowrap !important;
+}
+
+/* أزرار الإجراءات مقاس ثابت ولا تلتف */
+.admin-main .products-view-rows .admin-product-actions button{
+  flex:0 0 30px !important;
+  width:30px !important;
+  min-width:30px !important;
+  max-width:30px !important;
+  height:30px !important;
+  min-height:30px !important;
+  padding:0 !important;
+  margin:0 !important;
+  border-radius:9px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:0 !important;
+  line-height:1 !important;
+}
+
+.admin-main .products-view-rows .admin-product-actions button svg{
+  width:14px !important;
+  height:14px !important;
+  margin:0 !important;
+}
+
+/* إخفاء مربع تحديد الكرت السفلي في الصفوف، لأنه عندنا تحديد مستقل تحت عمود تحديد */
+.admin-main .products-view-rows .admin-product-actions .product-select-check{
+  display:none !important;
+}
+
+/* مركزية عناوين الجدول بنفس ارتفاع الرأس */
+.admin-main .products-view-rows .products-excel-header{
+  min-height:34px !important;
+  height:34px !important;
+}
+
+.admin-main .products-view-rows .products-excel-header span{
+  height:34px !important;
+  min-height:34px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1 !important;
+}
+
+/* منع الجدول من ضغط الأعمدة بطريقة تخرب المحاذاة */
+.admin-main .admin-product-cards.products-view-rows{
+  overflow-x:auto !important;
+  overflow-y:visible !important;
+}
+
+@media (max-width: 1500px){
+  .admin-main .products-view-rows .products-excel-header,
+  .admin-main .products-view-rows .admin-product-card{
+    grid-template-columns:
+      52px
+      66px
+      minmax(230px, 1.45fr)
+      105px
+      90px
+      95px
+      78px
+      84px
+      105px
+      156px
+    !important;
+  }
+}
+
+@media (max-width: 1200px){
+  .admin-main .products-view-rows .products-excel-header,
+  .admin-main .products-view-rows .admin-product-card{
+    min-width:1040px !important;
+  }
+}
