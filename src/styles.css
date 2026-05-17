@@ -12034,189 +12034,69 @@ button.product-flat-top-btn:hover svg{
   display:none !important;
 }
 
-
-/* ===== Rows: align product name and category on same horizontal level ===== */
-/* هذا التعديل يخص عرض الصفوف فقط: اسم المنتج والقسم يكونان في نفس المستوى الأفقي */
-.admin-main .products-view-rows .admin-product-card{
-  align-items:center !important;
+/* ===== CLEAN FINAL: products rows alignment =====
+   Final safe override for product rows only.
+   Keeps current columns, places row checkbox under "تحديد",
+   keeps card checkbox beside actions in card view,
+   and lowers product name to match the category badge.
+*/
+.admin-main .products-view-cards .product-row-select-check{
+  display:none !important;
 }
 
-/* خلية اسم المنتج */
-.admin-main .products-view-rows .admin-product-info > div:first-child{
-  height:100% !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  padding-top:0 !important;
-  padding-bottom:0 !important;
-}
-
-/* اسم المنتج نفسه بدون نزول أو ارتفاع زائد */
-.admin-main .products-view-rows .admin-product-info h3{
-  margin:0 !important;
-  padding:0 !important;
-  line-height:1.15 !important;
-  transform:none !important;
-  display:block !important;
-}
-
-/* خلية القسم تكون في منتصف الصف بنفس مستوى الاسم */
-.admin-main .products-view-rows .admin-product-badges{
-  height:100% !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  padding-top:0 !important;
-  padding-bottom:0 !important;
-  margin:0 !important;
-}
-
-/* شارة القسم بدون نزول */
-.admin-main .products-view-rows .admin-product-badges span{
-  margin:0 !important;
-  line-height:1 !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-
-/* لو كانت النسخة تستخدم خلية قسم مستقلة */
-.admin-main .products-view-rows .products-row-category{
-  height:100% !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  padding-top:0 !important;
-  padding-bottom:0 !important;
-  margin:0 !important;
-}
-
-.admin-main .products-view-rows .products-row-category span{
-  margin:0 !important;
-  line-height:1 !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-
-
-/* ===== Rows: precise product/category baseline alignment ===== */
-/* رفع شارة القسم قليلًا حتى تكون على نفس خط اسم المنتج داخل الصفوف فقط */
-.admin-main .products-view-rows .admin-product-badges,
-.admin-main .products-view-rows .products-row-category{
-  align-items:center !important;
-  justify-content:center !important;
-  transform:translateY(-6px) !important;
-}
-
-/* منع الشارة من إضافة ارتفاع أو نزول داخل الخلية */
-.admin-main .products-view-rows .admin-product-badges span,
-.admin-main .products-view-rows .products-row-category span{
-  line-height:1 !important;
-  margin:0 !important;
-  transform:none !important;
-}
-
-/* تثبيت اسم المنتج في مكانه الحالي */
-.admin-main .products-view-rows .admin-product-info h3{
-  transform:none !important;
-  line-height:1.15 !important;
-  margin:0 !important;
-}
-
-
-/* ===== Rows: force product name and all row cells to the same visual baseline ===== */
-/* يجعل اسم المنتج والقسم وباقي محتويات الصف على نفس المستوى الأفقي داخل الصفوف فقط */
-.admin-main .products-view-rows .admin-product-card{
-  align-items:center !important;
-}
-
-/* خلية المنتج: نلغي أي تمركز قديم ونحرك الاسم للأسفل قليلًا */
-.admin-main .products-view-rows .admin-product-info > div:first-child{
-  height:100% !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  padding-top:0 !important;
-  padding-bottom:0 !important;
-}
-
-/* اسم المنتج كان أعلى من باقي الصف، لذلك ننزله قليلًا */
-.admin-main .products-view-rows .admin-product-info h3{
-  margin:0 !important;
-  padding:0 !important;
-  line-height:1 !important;
-  transform:translateY(8px) !important;
-  display:block !important;
-}
-
-/* القسم يرجع بدون رفع مبالغ فيه، ويكون في منتصف الخلية */
-.admin-main .products-view-rows .admin-product-badges,
-.admin-main .products-view-rows .products-row-category{
-  height:100% !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin:0 !important;
-  padding-top:0 !important;
-  padding-bottom:0 !important;
-  transform:none !important;
-}
-
-/* شارة القسم نفسها على نفس مستوى النص */
-.admin-main .products-view-rows .admin-product-badges span,
-.admin-main .products-view-rows .products-row-category span{
-  margin:0 !important;
-  line-height:1 !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  transform:none !important;
-}
-
-/* تثبيت باقي الخلايا على نفس مستوى القسم */
-.admin-main .products-view-rows .admin-product-meta span,
-.admin-main .products-view-rows .products-row-status,
-.admin-main .products-view-rows .products-row-options,
-.admin-main .products-view-rows .products-row-sku,
-.admin-main .products-view-rows .admin-product-actions,
 .admin-main .products-view-rows .product-row-select-check{
-  height:100% !important;
+  grid-column:1 !important;
+  grid-row:1 !important;
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
-  transform:none !important;
-  line-height:1 !important;
+  width:100% !important;
+  height:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
 }
 
-/* الصورة تبقى وسط الصف */
-.admin-main .products-view-rows .admin-product-thumb{
-  align-self:center !important;
-  transform:none !important;
+.admin-main .products-view-rows .product-row-select-check input{
+  width:16px !important;
+  height:16px !important;
+  accent-color:#0f4d36 !important;
+  cursor:pointer !important;
+  margin:0 !important;
 }
 
-
-/* ===== Rows: raise category badge slightly ===== */
-/* رفع شارة القسم فقط داخل عرض الصفوف */
-.admin-main .products-view-rows .admin-product-badges,
-.admin-main .products-view-rows .products-row-category{
-  transform:translateY(-7px) !important;
+.admin-main .products-view-rows .admin-product-actions .product-select-check{
+  display:none !important;
 }
 
-.admin-main .products-view-rows .admin-product-badges span,
-.admin-main .products-view-rows .products-row-category span{
-  transform:none !important;
+.admin-main .products-view-cards .admin-product-actions .product-select-check{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:30px !important;
+  height:30px !important;
+  min-width:30px !important;
+  border-radius:10px !important;
+  background:#fff !important;
+  border:1px solid rgba(15,77,54,.18) !important;
+  box-shadow:none !important;
+  cursor:pointer !important;
 }
 
+.admin-main .products-view-cards .admin-product-actions .product-select-check input{
+  width:16px !important;
+  height:16px !important;
+  accent-color:#0f4d36 !important;
+  cursor:pointer !important;
+  margin:0 !important;
+}
 
-/* ===== Rows: lower product name to match category badge ===== */
-/* ينزل اسم المنتج داخل عرض الصفوف فقط حتى يكون على نفس مستوى شارة القسم */
+.admin-main .products-view-rows .product-drag-handle{
+  display:none !important;
+}
+
 .admin-main .products-view-rows .admin-product-info h3{
-  transform: translateY(14px) !important;
-}
-
-
-/* ===== Rows: lower product name more ===== */
-.admin-main .products-view-rows .admin-product-info h3{
-  transform: translateY(14px) !important;
+  transform:translateY(14px) !important;
 }
