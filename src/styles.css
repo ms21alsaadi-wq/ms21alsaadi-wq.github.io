@@ -11966,3 +11966,70 @@ button.product-flat-top-btn:hover svg{
     min-width:1040px !important;
   }
 }
+
+
+/* ===== Fix row checkbox position only =====
+   في عرض الصفوف: مربع التحديد يظهر تحت عمود تحديد.
+   في عرض الكروت: يبقى مربع التحديد تحت بجانب أزرار الكرت.
+*/
+.admin-main .products-view-cards .product-row-select-check{
+  display:none !important;
+}
+
+.admin-main .products-view-rows .product-row-select-check{
+  grid-column:1 !important;
+  grid-row:1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:100% !important;
+  height:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  align-self:stretch !important;
+  justify-self:stretch !important;
+}
+
+.admin-main .products-view-rows .product-row-select-check input{
+  width:16px !important;
+  height:16px !important;
+  accent-color:#0f4d36 !important;
+  cursor:pointer !important;
+  margin:0 !important;
+}
+
+/* أخفِ مربع تحديد الكرت الموجود بجانب الإجراءات فقط في عرض الصفوف */
+.admin-main .products-view-rows .admin-product-actions .product-select-check{
+  display:none !important;
+}
+
+/* في عرض الكروت، خليه ظاهر بجانب أزرار الإجراءات */
+.admin-main .products-view-cards .admin-product-actions .product-select-check{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:30px !important;
+  height:30px !important;
+  min-width:30px !important;
+  border-radius:10px !important;
+  background:#fff !important;
+  border:1px solid rgba(15,77,54,.18) !important;
+  box-shadow:none !important;
+  cursor:pointer !important;
+}
+
+.admin-main .products-view-cards .admin-product-actions .product-select-check input{
+  width:16px !important;
+  height:16px !important;
+  accent-color:#0f4d36 !important;
+  cursor:pointer !important;
+  margin:0 !important;
+}
+
+/* تأكد أن زر السحب لا يأخذ مكان عمود التحديد في الصفوف */
+.admin-main .products-view-rows .product-drag-handle{
+  display:none !important;
+}

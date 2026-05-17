@@ -3886,6 +3886,13 @@ return (
                     onDrop={() => { reorderProducts(draggedProductId, p.id); setDraggedProductId(null); }}
                     onDragEnd={() => setDraggedProductId(null)}
                   >
+                    <label className="product-row-select-check" title="تحديد المنتج">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(p.id)}
+                        onChange={() => toggleProductSelection(p.id)}
+                      />
+                    </label>
                     <button type="button" className="product-drag-handle" title="اسحب لترتيب المنتج">↕</button>
                     <div className="admin-product-thumb">
                       <img src={p.image} alt={p.name || "منتج"} loading="lazy" decoding="async" />
