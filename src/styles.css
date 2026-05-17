@@ -12262,3 +12262,200 @@ button.product-flat-top-btn:hover svg{
     min-width:980px !important;
   }
 }
+
+
+/* ===== Product rows: level alignment + description in product cell ===== */
+/* Reduce row height and vertically center every table cell */
+.admin-main .products-view-rows .admin-product-card{
+  min-height:54px !important;
+  height:54px !important;
+  align-items:center !important;
+}
+
+.admin-main .products-view-rows .products-excel-header{
+  height:34px !important;
+  min-height:34px !important;
+}
+
+/* Make all direct grid cells vertically centered */
+.admin-main .products-view-rows .admin-product-card > *,
+.admin-main .products-view-rows .products-excel-header span{
+  align-self:stretch !important;
+  display:flex !important;
+  align-items:center !important;
+}
+
+/* Smaller image for compact Excel-like rows */
+.admin-main .products-view-rows .admin-product-thumb{
+  width:46px !important;
+  height:42px !important;
+  min-width:46px !important;
+  min-height:42px !important;
+  max-height:42px !important;
+  border-radius:9px !important;
+}
+
+/* Product cell: name + description, both aligned in one vertical stack */
+.admin-main .products-view-rows .admin-product-info > div:first-child{
+  grid-column:3 !important;
+  height:100% !important;
+  padding:0 12px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  align-items:flex-start !important;
+  gap:2px !important;
+  min-width:0 !important;
+}
+
+.admin-main .products-view-rows .admin-product-info h3{
+  font-size:12.5px !important;
+  line-height:1.15 !important;
+  margin:0 !important;
+  min-height:0 !important;
+  height:auto !important;
+  font-weight:800 !important;
+  text-align:right !important;
+  width:100% !important;
+  display:block !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+/* Use the existing paragraph as the product description in rows */
+.admin-main .products-view-rows .admin-product-info p{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  font-size:10.5px !important;
+  line-height:1.15 !important;
+  color:#7a8a80 !important;
+  font-weight:600 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+/* Keep category label hidden inside product cell; category has its own column */
+.admin-main .products-view-rows .admin-product-info small,
+.admin-main .products-view-rows .admin-product-badges,
+.admin-main .products-view-rows .admin-product-options-list{
+  display:none !important;
+}
+
+/* Center each data cell exactly under its header */
+.admin-main .products-view-rows .products-row-category,
+.admin-main .products-view-rows .products-row-status,
+.admin-main .products-view-rows .products-row-options,
+.admin-main .products-view-rows .products-row-sku,
+.admin-main .products-view-rows .admin-product-meta span{
+  height:100% !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1 !important;
+}
+
+/* Price and stock should not look like two-line values */
+.admin-main .products-view-rows .admin-product-meta span:nth-child(1),
+.admin-main .products-view-rows .admin-product-meta span:nth-child(2){
+  white-space:nowrap !important;
+  font-size:11.5px !important;
+}
+
+/* Category pill compact */
+.admin-main .products-view-rows .products-row-category span{
+  font-size:10.5px !important;
+  padding:3px 7px !important;
+  line-height:1 !important;
+}
+
+/* Status compact */
+.admin-main .products-view-rows .row-status{
+  height:21px !important;
+  min-width:48px !important;
+  padding:0 7px !important;
+  font-size:10.5px !important;
+}
+
+/* Options and SKU compact */
+.admin-main .products-view-rows .products-row-options,
+.admin-main .products-view-rows .products-row-sku{
+  font-size:10.8px !important;
+  line-height:1 !important;
+}
+
+/* Action buttons compact and centered */
+.admin-main .products-view-rows .admin-product-actions{
+  height:100% !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+.admin-main .products-view-rows .admin-product-actions button{
+  height:25px !important;
+  min-width:25px !important;
+  padding:0 6px !important;
+  border-radius:7px !important;
+}
+
+.admin-main .products-view-rows .admin-product-actions button svg{
+  width:13px !important;
+  height:13px !important;
+}
+
+/* Row checkbox centered */
+.admin-main .products-view-rows .product-row-select-check input{
+  width:14px !important;
+  height:14px !important;
+}
+
+/* Header text smaller so columns line up visually */
+.admin-main .products-view-rows .products-excel-header span{
+  font-size:10.8px !important;
+  line-height:1 !important;
+}
+
+/* Slightly rebalance columns after adding description */
+.admin-main .products-view-rows .products-excel-header,
+.admin-main .products-view-rows .admin-product-card{
+  grid-template-columns:
+    50px
+    64px
+    minmax(270px, 1.65fr)
+    105px
+    86px
+    92px
+    76px
+    82px
+    105px
+    118px
+  !important;
+}
+
+@media (max-width: 1500px){
+  .admin-main .products-view-rows .products-excel-header,
+  .admin-main .products-view-rows .admin-product-card{
+    grid-template-columns:
+      48px
+      60px
+      minmax(230px, 1.45fr)
+      96px
+      82px
+      86px
+      72px
+      78px
+      96px
+      112px
+    !important;
+  }
+}
+
+@media (max-width: 1200px){
+  .admin-main .products-view-rows .products-excel-header,
+  .admin-main .products-view-rows .admin-product-card{
+    min-width:950px !important;
+  }
+}
