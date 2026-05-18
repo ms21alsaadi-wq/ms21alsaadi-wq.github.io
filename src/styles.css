@@ -11686,7 +11686,7 @@ button.product-flat-top-btn:hover svg{
 
 /* ===== CLEAN FINAL: Admin products rows table =====
    One source of truth for rows mode. No translateY, no duplicated category badges.
-   Columns: تحديد | الصورة | المنتج | القسم | السعر | المخزون | الحالة | الخيارات | SKU | إجراءات
+   Columns: تحديد | الصورة | المنتج | الوصف | القسم | السعر | المخزون | الحالة | الخيارات | SKU | إجراءات
 */
 .admin-main .admin-product-cards.products-view-rows{
   display:block !important;
@@ -11700,10 +11700,10 @@ button.product-flat-top-btn:hover svg{
 .admin-main .products-view-rows .products-excel-header,
 .admin-main .products-view-rows .admin-product-card{
   display:grid !important;
-  grid-template-columns:52px 76px minmax(320px, 1.7fr) 140px 110px 115px 95px 105px 130px 150px !important;
+  grid-template-columns:52px 76px minmax(220px, 1fr) minmax(260px, 1.1fr) 140px 110px 115px 95px 105px 130px 150px !important;
   align-items:center !important;
   gap:0 !important;
-  min-width:1293px !important;
+  min-width:1453px !important;
 }
 
 .admin-main .products-view-rows .products-excel-header{
@@ -11875,8 +11875,33 @@ button.product-flat-top-btn:hover svg{
   display:none !important;
 }
 
-.admin-main .products-view-rows .products-row-category-fixed{
+.admin-main .products-view-cards .products-row-description{
+  display:none !important;
+}
+
+.admin-main .products-view-rows .products-row-description{
   grid-column:4 !important;
+  grid-row:1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  height:100% !important;
+  min-width:0 !important;
+  padding:0 14px !important;
+  margin:0 !important;
+  color:#607268 !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:1.2 !important;
+  text-align:right !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  transform:none !important;
+}
+
+.admin-main .products-view-rows .products-row-category-fixed{
+  grid-column:5 !important;
   grid-row:1 !important;
   display:flex !important;
   align-items:center !important;
@@ -11935,8 +11960,8 @@ button.product-flat-top-btn:hover svg{
   transform:none !important;
 }
 
-.admin-main .products-view-rows .admin-product-meta span:nth-child(1){ grid-column:5 !important; grid-row:1 !important; }
-.admin-main .products-view-rows .admin-product-meta span:nth-child(2){ grid-column:6 !important; grid-row:1 !important; }
+.admin-main .products-view-rows .admin-product-meta span:nth-child(1){ grid-column:6 !important; grid-row:1 !important; }
+.admin-main .products-view-rows .admin-product-meta span:nth-child(2){ grid-column:7 !important; grid-row:1 !important; }
 .admin-main .products-view-rows .admin-product-meta span:nth-child(n+3){ display:none !important; }
 
 .admin-main .products-view-rows .products-row-status,
@@ -11955,10 +11980,10 @@ button.product-flat-top-btn:hover svg{
   transform:none !important;
 }
 
-.admin-main .products-view-rows .products-row-status{ grid-column:7 !important; }
-.admin-main .products-view-rows .products-row-options{ grid-column:8 !important; color:#607268 !important; font-size:12px !important; font-weight:900 !important; white-space:nowrap !important; }
-.admin-main .products-view-rows .products-row-sku{ grid-column:9 !important; color:#607268 !important; direction:ltr !important; text-align:center !important; font-size:12px !important; font-weight:800 !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
-.admin-main .products-view-rows .admin-product-actions{ grid-column:10 !important; gap:7px !important; }
+.admin-main .products-view-rows .products-row-status{ grid-column:8 !important; }
+.admin-main .products-view-rows .products-row-options{ grid-column:9 !important; color:#607268 !important; font-size:12px !important; font-weight:900 !important; white-space:nowrap !important; }
+.admin-main .products-view-rows .products-row-sku{ grid-column:10 !important; color:#607268 !important; direction:ltr !important; text-align:center !important; font-size:12px !important; font-weight:800 !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+.admin-main .products-view-rows .admin-product-actions{ grid-column:11 !important; gap:7px !important; }
 
 .admin-main .products-view-rows .row-status.active{
   color:#0f6b3d !important;
@@ -11994,7 +12019,7 @@ button.product-flat-top-btn:hover svg{
 @media (max-width: 1200px){
   .admin-main .products-view-rows .products-excel-header,
   .admin-main .products-view-rows .admin-product-card{
-    min-width:1293px !important;
+    min-width:1453px !important;
   }
 }
 

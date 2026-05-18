@@ -2143,7 +2143,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const filteredAdminProducts = products
     .filter(product => {
       const q = productSearch.trim().toLowerCase();
-      const searchable = `${product.name || ""} ${product.category || ""} ${product.brand || ""} ${product.sku || ""}`.toLowerCase();
+      const searchable = `${product.name || ""} ${product.description || ""} ${product.category || ""} ${product.brand || ""} ${product.sku || ""}`.toLowerCase();
       const matchesSearch = !q || searchable.includes(q);
 
       const matchesCategory = productCategoryFilter === "all" || product.category === productCategoryFilter;
@@ -3867,6 +3867,7 @@ return (
                     <span>تحديد</span>
                     <span>الصورة</span>
                     <span>المنتج</span>
+                    <span>الوصف</span>
                     <span>القسم</span>
                     <span>السعر</span>
                     <span>المخزون</span>
@@ -3919,6 +3920,10 @@ return (
                           {Array.isArray(p.gallery) && p.gallery.length > 1 && <span>{p.gallery.length} صور</span>}
                         </div>
                         <p>{p.description || p.brand}</p>
+                      </div>
+
+                      <div className="products-row-description" title={p.description || p.brand || "بدون وصف"}>
+                        {p.description || p.brand || "—"}
                       </div>
 
                       <div className="admin-product-meta">
