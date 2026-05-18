@@ -11997,3 +11997,41 @@ button.product-flat-top-btn:hover svg{
     min-width:1293px !important;
   }
 }
+
+/* ===== FINAL MICRO FIX: rows image vertical alignment ===== */
+.admin-main .products-view-rows .admin-product-thumb{
+  align-self:stretch !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  height:94px !important;
+  min-height:94px !important;
+  max-height:94px !important;
+  padding:0 !important;
+  margin:0 !important;
+  line-height:0 !important;
+  font-size:0 !important;
+  color:transparent !important;
+  overflow:hidden !important;
+}
+
+.admin-main .products-view-rows .admin-product-thumb img,
+.admin-main .products-view-rows .admin-product-thumb .admin-product-image{
+  flex:0 0 58px !important;
+  width:58px !important;
+  height:58px !important;
+  min-width:58px !important;
+  max-width:58px !important;
+  min-height:58px !important;
+  max-height:58px !important;
+  display:block !important;
+  margin:0 auto !important;
+  object-fit:cover !important;
+  object-position:center !important;
+  border-radius:12px !important;
+  line-height:0 !important;
+  font-size:0 !important;
+  color:transparent !important;
+  text-indent:-9999px !important;
+  overflow:hidden !important;
+}
