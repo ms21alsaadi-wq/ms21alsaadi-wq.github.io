@@ -3895,7 +3895,7 @@ return (
                     </label>
                     <button type="button" className="product-drag-handle" title="اسحب لترتيب المنتج">↕</button>
                     <div className="admin-product-thumb">
-                      <img src={p.image} alt={p.name || "منتج"} loading="lazy" decoding="async" />
+                      <img src={p.image} alt={p.name || "منتج"} loading="lazy" decoding="async" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='18' fill='%23f3f6f2'/%3E%3Cpath d='M25 66h46L57 48 47 60l-8-9-14 15Z' fill='%23b9c8bf'/%3E%3Ccircle cx='35' cy='34' r='7' fill='%23b9c8bf'/%3E%3C/svg%3E"; }} />
                       <span className={p.status === "hidden" ? "status hidden" : "status active"}>
                         {p.status === "hidden" ? "مخفي" : "ظاهر"}
                       </span>
