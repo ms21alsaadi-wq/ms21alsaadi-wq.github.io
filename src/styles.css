@@ -11716,8 +11716,8 @@ button.product-flat-top-btn:hover svg{
 }
 
 .admin-main .products-view-rows .admin-product-card{
-  min-height:94px !important;
-  height:94px !important;
+  min-height:74px !important;
+  height:74px !important;
   padding:0 !important;
   margin:0 !important;
   border:0 !important;
@@ -12004,9 +12004,9 @@ button.product-flat-top-btn:hover svg{
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
-  height:94px !important;
-  min-height:94px !important;
-  max-height:94px !important;
+  height:74px !important;
+  min-height:74px !important;
+  max-height:74px !important;
   padding:0 !important;
   margin:0 !important;
   line-height:0 !important;
