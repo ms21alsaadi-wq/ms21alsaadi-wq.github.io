@@ -12351,3 +12351,68 @@ button.product-flat-top-btn:hover svg{
 .admin-main .products-view-rows .admin-product-info h3{
   transform:translateY(20px) !important;
 }
+
+/* ===== FINAL FIX: Admin products rows vertical alignment =====
+   المشكلة كانت من translateY على اسم المنتج/القسم، وهذا يخلي عناصر الصف
+   طالعة ونازلة ويزيد ارتفاع الصف. هذا التعديل يثبت كل الخلايا في المنتصف.
+*/
+.admin-main .products-view-rows .admin-product-card{
+  min-height:64px !important;
+  height:64px !important;
+  align-items:stretch !important;
+  overflow:hidden !important;
+}
+
+.admin-main .products-view-rows .product-row-select-check,
+.admin-main .products-view-rows .admin-product-thumb,
+.admin-main .products-view-rows .admin-product-info > div:first-child,
+.admin-main .products-view-rows .products-row-category-fixed,
+.admin-main .products-view-rows .admin-product-meta span,
+.admin-main .products-view-rows .products-row-status,
+.admin-main .products-view-rows .products-row-options,
+.admin-main .products-view-rows .products-row-sku,
+.admin-main .products-view-rows .admin-product-actions{
+  align-self:stretch !important;
+  height:100% !important;
+  min-height:0 !important;
+  margin-top:0 !important;
+  margin-bottom:0 !important;
+  transform:none !important;
+}
+
+.admin-main .products-view-rows .admin-product-info > div:first-child,
+.admin-main .products-view-rows .products-row-category-fixed,
+.admin-main .products-view-rows .admin-product-meta span,
+.admin-main .products-view-rows .products-row-status,
+.admin-main .products-view-rows .products-row-options,
+.admin-main .products-view-rows .products-row-sku,
+.admin-main .products-view-rows .admin-product-actions{
+  display:flex !important;
+  align-items:center !important;
+}
+
+.admin-main .products-view-rows .admin-product-info h3{
+  transform:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  line-height:1.2 !important;
+  min-height:0 !important;
+  max-height:2.4em !important;
+  display:-webkit-box !important;
+  -webkit-line-clamp:2 !important;
+  -webkit-box-orient:vertical !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+.admin-main .products-view-rows .products-row-category-fixed span,
+.admin-main .products-view-rows .row-status{
+  transform:none !important;
+  margin:0 !important;
+}
+
+.admin-main .products-view-rows .admin-product-thumb{
+  align-self:center !important;
+  height:48px !important;
+  min-height:48px !important;
+}
