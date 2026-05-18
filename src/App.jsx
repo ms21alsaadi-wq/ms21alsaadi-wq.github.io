@@ -3848,7 +3848,7 @@ return (
                       checked={filteredAdminProducts.length > 0 && filteredAdminProducts.every(product => selectedProducts.includes(product.id))}
                       onChange={toggleAllVisibleProducts}
                     />
-                    تحديد الكل
+                    تحديد الظاهر
                   </label>
 
                   <span>{selectedProducts.length} محدد</span>

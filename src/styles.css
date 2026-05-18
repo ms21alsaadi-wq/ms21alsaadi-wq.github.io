@@ -12060,3 +12060,386 @@ button.product-flat-top-btn:hover svg{
   text-indent:-9999px !important;
   overflow:hidden !important;
 }
+
+/* ===== FINAL: Unified product add/edit popup with dashboard design ===== */
+.admin-main .product-modal-backdrop{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:9999 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:24px !important;
+  background:rgba(9,26,20,.54) !important;
+  backdrop-filter:blur(10px) !important;
+}
+
+.admin-main .product-modal-shell{
+  width:min(1120px,96vw) !important;
+  max-height:92vh !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  direction:rtl !important;
+  background:var(--admin-bg,#f6f7f3) !important;
+  border:1px solid rgba(255,255,255,.74) !important;
+  border-radius:30px !important;
+  box-shadow:0 32px 90px rgba(9,26,20,.28) !important;
+}
+
+.admin-main .product-modal-shell .full-product-form-card,
+.admin-main .product-modal-shell .product-form-card.products-form-compact-final{
+  width:100% !important;
+  max-height:92vh !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  display:grid !important;
+  grid-template-rows:auto auto minmax(0,1fr) auto !important;
+  overflow:hidden !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:30px !important;
+  box-shadow:none !important;
+}
+
+.admin-main .product-modal-shell .pro-card-head{
+  position:relative !important;
+  top:auto !important;
+  z-index:5 !important;
+  min-height:78px !important;
+  margin:0 !important;
+  padding:18px 22px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  background:var(--admin-surface,#fff) !important;
+  border-bottom:1px solid var(--admin-line,rgba(15,74,53,.10)) !important;
+  border-radius:30px 30px 0 0 !important;
+}
+
+.admin-main .product-modal-shell .pro-card-head span{
+  display:inline-flex !important;
+  align-items:center !important;
+  width:max-content !important;
+  padding:6px 10px !important;
+  margin-bottom:6px !important;
+  border-radius:999px !important;
+  background:var(--admin-soft,#eef4ed) !important;
+  color:var(--admin-primary,#0f4a35) !important;
+  font-size:11px !important;
+  font-weight:900 !important;
+  letter-spacing:.03em !important;
+}
+
+.admin-main .product-modal-shell .pro-card-head h2{
+  margin:0 !important;
+  color:var(--admin-text,#13251d) !important;
+  font-size:24px !important;
+  line-height:1.25 !important;
+  font-weight:950 !important;
+}
+
+.admin-main .product-modal-shell .modal-close-btn{
+  flex:0 0 42px !important;
+  width:42px !important;
+  height:42px !important;
+  min-width:42px !important;
+  padding:0 !important;
+  border-radius:14px !important;
+  border:1px solid var(--admin-line,rgba(15,74,53,.10)) !important;
+  background:#f9faf7 !important;
+  color:var(--admin-primary,#0f4a35) !important;
+  font-size:26px !important;
+  line-height:1 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-shadow:none !important;
+  cursor:pointer !important;
+}
+
+.admin-main .product-modal-shell .modal-close-btn:hover{
+  background:#eef4ed !important;
+  transform:none !important;
+}
+
+.admin-main .product-modal-tabs{
+  position:relative !important;
+  top:auto !important;
+  z-index:4 !important;
+  margin:0 !important;
+  padding:12px 22px !important;
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:8px !important;
+  background:var(--admin-surface,#fff) !important;
+  border-bottom:1px solid var(--admin-line,rgba(15,74,53,.10)) !important;
+}
+
+.admin-main .product-modal-tabs button{
+  height:42px !important;
+  min-height:42px !important;
+  padding:0 10px !important;
+  border-radius:14px !important;
+  border:1px solid var(--admin-line,rgba(15,74,53,.10)) !important;
+  background:#f9faf7 !important;
+  color:var(--admin-muted,#6f7d73) !important;
+  font-size:13px !important;
+  font-weight:900 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  white-space:nowrap !important;
+  box-shadow:none !important;
+  cursor:pointer !important;
+}
+
+.admin-main .product-modal-tabs button.active{
+  background:var(--admin-primary,#0f4a35) !important;
+  border-color:var(--admin-primary,#0f4a35) !important;
+  color:#fff !important;
+  box-shadow:0 12px 26px rgba(15,74,53,.18) !important;
+}
+
+.admin-main .product-editor-tabs-form{
+  min-height:0 !important;
+  overflow:auto !important;
+  padding:20px 22px !important;
+  background:var(--admin-bg,#f6f7f3) !important;
+}
+
+.admin-main .product-editor-tabs-form .products-six-card-grid{
+  display:block !important;
+}
+
+.admin-main .product-editor-tabs-form .product-options-master-card,
+.admin-main .product-editor-tabs-form .products-six-card-grid .product-six-card,
+.admin-main .product-editor-tabs-form .gallery-manager,
+.admin-main .product-editor-tabs-form .product-live-preview-panel{
+  display:none !important;
+}
+
+.admin-main .product-editor-tabs-form.active-tab-info .products-six-card-grid .product-six-card:nth-child(1),
+.admin-main .product-editor-tabs-form.active-tab-pricing .products-six-card-grid .product-six-card:nth-child(2),
+.admin-main .product-editor-tabs-form.active-tab-pricing .products-six-card-grid .product-six-card:nth-child(4),
+.admin-main .product-editor-tabs-form.active-tab-pricing .products-six-card-grid .product-six-card:nth-child(5),
+.admin-main .product-editor-tabs-form.active-tab-images .products-six-card-grid .product-six-card:nth-child(3),
+.admin-main .product-editor-tabs-form.active-tab-images .gallery-manager,
+.admin-main .product-editor-tabs-form.active-tab-options .product-options-master-card,
+.admin-main .product-editor-tabs-form.active-tab-seo .products-six-card-grid .product-six-card:nth-child(6),
+.admin-main .product-editor-tabs-form.active-tab-seo .product-live-preview-panel{
+  display:block !important;
+}
+
+.admin-main .product-editor-tabs-form.active-tab-pricing .products-six-card-grid .product-six-card:nth-child(2),
+.admin-main .product-editor-tabs-form.active-tab-pricing .products-six-card-grid .product-six-card:nth-child(4),
+.admin-main .product-editor-tabs-form.active-tab-pricing .products-six-card-grid .product-six-card:nth-child(5){
+  margin-bottom:14px !important;
+}
+
+.admin-main .product-modal-shell .product-six-card,
+.admin-main .product-modal-shell .product-options-master-card,
+.admin-main .product-modal-shell .gallery-manager,
+.admin-main .product-modal-shell .product-live-preview-panel{
+  margin:0 !important;
+  padding:20px !important;
+  background:var(--admin-surface,#fff) !important;
+  border:1px solid var(--admin-line,rgba(15,74,53,.10)) !important;
+  border-radius:22px !important;
+  box-shadow:var(--admin-shadow,0 18px 50px rgba(15,74,53,.08)) !important;
+}
+
+.admin-main .product-modal-shell .product-six-card h3,
+.admin-main .product-modal-shell .product-options-master-head h3,
+.admin-main .product-modal-shell .gallery-manager-head b,
+.admin-main .product-modal-shell .product-live-preview-head h3{
+  margin:0 0 14px !important;
+  color:var(--admin-text,#13251d) !important;
+  font-size:18px !important;
+  font-weight:950 !important;
+  line-height:1.4 !important;
+}
+
+.admin-main .product-modal-shell .product-section-icon{
+  width:34px !important;
+  height:34px !important;
+  min-width:34px !important;
+  margin-inline-end:8px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:12px !important;
+  background:var(--admin-soft,#eef4ed) !important;
+  color:var(--admin-primary,#0f4a35) !important;
+}
+
+.admin-main .product-modal-shell .control,
+.admin-main .product-modal-shell label{
+  color:var(--admin-text,#13251d) !important;
+  font-weight:900 !important;
+}
+
+.admin-main .product-modal-shell input,
+.admin-main .product-modal-shell textarea,
+.admin-main .product-modal-shell select{
+  width:100% !important;
+  min-height:46px !important;
+  padding:11px 13px !important;
+  border-radius:14px !important;
+  border:1px solid var(--admin-line,rgba(15,74,53,.10)) !important;
+  background:#fbfcf9 !important;
+  color:var(--admin-text,#13251d) !important;
+  box-shadow:none !important;
+  outline:none !important;
+}
+
+.admin-main .product-modal-shell textarea{
+  min-height:116px !important;
+  resize:vertical !important;
+  line-height:1.7 !important;
+}
+
+.admin-main .product-modal-shell input:focus,
+.admin-main .product-modal-shell textarea:focus,
+.admin-main .product-modal-shell select:focus{
+  border-color:rgba(15,74,53,.34) !important;
+  background:#fff !important;
+  box-shadow:0 0 0 4px rgba(15,74,53,.08) !important;
+}
+
+.admin-main .product-modal-shell .two{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+}
+
+.admin-main .product-modal-shell .three{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:12px !important;
+}
+
+.admin-main .product-modal-shell .options-master-grid{
+  display:grid !important;
+  grid-template-columns:.9fr 1.25fr !important;
+  gap:16px !important;
+  align-items:start !important;
+}
+
+.admin-main .product-modal-shell .product-option-row,
+.admin-main .product-modal-shell .refined-option-row{
+  display:grid !important;
+  grid-template-columns:1fr 1fr 1.2fr 1fr 1fr .9fr auto !important;
+  gap:8px !important;
+  align-items:center !important;
+  margin-bottom:8px !important;
+}
+
+.admin-main .product-modal-shell .option-preview-panel,
+.admin-main .product-modal-shell .options-editor-panel,
+.admin-main .product-modal-shell .seo-preview-box,
+.admin-main .product-modal-shell .product-image-preview,
+.admin-main .product-modal-shell .product-card-note,
+.admin-main .product-modal-shell .product-options-mini-note{
+  background:#fbfcf9 !important;
+  border:1px solid var(--admin-line,rgba(15,74,53,.10)) !important;
+  border-radius:18px !important;
+}
+
+.admin-main .product-modal-shell .product-live-preview-panel{
+  margin-top:16px !important;
+}
+
+.admin-main .product-modal-shell .product-modal-footer{
+  position:relative !important;
+  bottom:auto !important;
+  z-index:6 !important;
+  margin:0 !important;
+  padding:16px 22px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  background:var(--admin-surface,#fff) !important;
+  border-top:1px solid var(--admin-line,rgba(15,74,53,.10)) !important;
+  border-radius:0 0 30px 30px !important;
+  box-shadow:0 -14px 34px rgba(15,74,53,.06) !important;
+}
+
+.admin-main .product-modal-shell .product-modal-footer-actions{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  flex-wrap:wrap !important;
+}
+
+.admin-main .product-modal-shell .product-modal-footer .admin-primary,
+.admin-main .product-modal-shell .product-modal-footer .admin-secondary{
+  min-width:160px !important;
+  height:48px !important;
+  min-height:48px !important;
+  padding:0 18px !important;
+  border-radius:16px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+  font-weight:900 !important;
+  white-space:nowrap !important;
+}
+
+.admin-main .product-modal-shell .product-modal-footer .admin-primary{
+  min-width:220px !important;
+}
+
+.admin-main .product-editor-tabs-form .pro-actions,
+.admin-main .product-editor-tabs-form .form-actions.pro-actions{
+  display:none !important;
+}
+
+@media (max-width:900px){
+  .admin-main .product-modal-backdrop{
+    padding:10px !important;
+    align-items:stretch !important;
+  }
+  .admin-main .product-modal-shell,
+  .admin-main .product-modal-shell .full-product-form-card,
+  .admin-main .product-modal-shell .product-form-card.products-form-compact-final{
+    width:100% !important;
+    height:100% !important;
+    max-height:none !important;
+    border-radius:22px !important;
+  }
+  .admin-main .product-modal-shell .pro-card-head{
+    border-radius:22px 22px 0 0 !important;
+  }
+  .admin-main .product-modal-tabs{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .admin-main .product-modal-tabs button{
+    font-size:12px !important;
+  }
+  .admin-main .product-modal-shell .two,
+  .admin-main .product-modal-shell .three,
+  .admin-main .product-modal-shell .options-master-grid,
+  .admin-main .product-modal-shell .product-option-row,
+  .admin-main .product-modal-shell .refined-option-row{
+    grid-template-columns:1fr !important;
+  }
+  .admin-main .product-modal-shell .product-modal-footer{
+    border-radius:0 0 22px 22px !important;
+    flex-direction:column-reverse !important;
+    align-items:stretch !important;
+  }
+  .admin-main .product-modal-shell .product-modal-footer-actions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+  }
+  .admin-main .product-modal-shell .product-modal-footer .admin-primary,
+  .admin-main .product-modal-shell .product-modal-footer .admin-secondary,
+  .admin-main .product-modal-shell .product-modal-footer > button{
+    width:100% !important;
+    min-width:0 !important;
+  }
+}
