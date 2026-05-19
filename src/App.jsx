@@ -28,6 +28,50 @@ import { formatPrice, formatOrderDate, orderTimestamp, getTrackingUrl, orderStat
 
 
 
+
+const ADMIN_PERMISSION_LABELS = {
+  dashboard: "لوحة التحكم",
+  reports: "التقارير",
+  identity: "هوية المتجر",
+  homepage: "ثيم المتجر",
+  products: "المنتجات",
+  orders: "الطلبات",
+  customers: "العملاء",
+  coupons: "الكوبونات",
+  settings: "الإعدادات",
+  notifications: "الإشعارات",
+  users: "المستخدمين"
+};
+
+const ADMIN_PERMISSION_DESCRIPTIONS = {
+  dashboard: "مشاهدة ملخص الأداء ونبض المتجر",
+  reports: "مشاهدة وتصدير تقارير المبيعات والطلبات",
+  identity: "تعديل شعار وبيانات وهوية المتجر",
+  homepage: "تعديل أقسام الصفحة الرئيسية والبنرات والثيم",
+  products: "إضافة وتعديل وحذف المنتجات وخياراتها",
+  orders: "متابعة الطلبات وتحديث حالاتها",
+  customers: "عرض بيانات العملاء وسجل طلباتهم",
+  coupons: "إنشاء وتعديل وحذف كوبونات الخصم",
+  settings: "إدارة إعدادات المتجر العامة",
+  notifications: "مشاهدة تنبيهات المتجر ومركز الإشعارات",
+  users: "إضافة الموظفين وتعديل أدوارهم وصلاحياتهم"
+};
+
+const ADMIN_ROLE_DEFAULTS = {
+  owner: Object.keys(ADMIN_PERMISSION_LABELS),
+  manager: Object.keys(ADMIN_PERMISSION_LABELS).filter(key => key !== "users"),
+  products: ["dashboard", "products"],
+  orders: ["dashboard", "reports", "orders", "customers"],
+  content: ["dashboard", "identity", "homepage", "products"],
+  support: ["dashboard", "orders", "customers", "notifications"]
+};
+
+const normalizeStaffPermissions = (permissions = []) => {
+  const list = Array.isArray(permissions) ? permissions : [];
+  const normalized = list.map(item => item === "pages" ? "homepage" : item);
+  return [...new Set(normalized)].filter(key => ADMIN_PERMISSION_LABELS[key]);
+};
+
 function cleanSeoText(value, fallback = "") {
   return String(value || fallback || "")
     .replace(/<[^>]*>/g, " ")
@@ -2562,7 +2606,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
             email: currentAdmin.email || "",
             phone: "",
             role: "owner",
-            permissions: ["dashboard", "products", "orders", "customers", "coupons", "pages", "settings", "users"],
+            permissions: Object.keys(ADMIN_PERMISSION_LABELS),
             status: "active",
             isOwner: true,
             lastLogin: Date.now(),
@@ -3368,6 +3412,11 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   ];
 
   const selectedThemeSection = themeSections.find(section => section.id === openSection);
+  const goToThemeSection = (sectionId) => {
+    setTab("homepage");
+    setOpenSection(sectionId);
+    setThemeMenuOpen(true);
+  };
   const changeAdminLanguage = (language) => {
     setAdminLanguage(language);
     localStorage.setItem("adminLanguage", language);
@@ -3381,6 +3430,64 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     localStorage.setItem("productsViewMode", mode);
   };
 
+  const currentAdminUser = auth.currentUser;
+  const currentStaffProfile = useMemo(() => {
+    const email = String(currentAdminUser?.email || "").toLowerCase();
+    const uidValue = currentAdminUser?.uid || "";
+    return staffUsers.find(user => user.id === uidValue || String(user.email || "").toLowerCase() === email) || null;
+  }, [staffUsers, currentAdminUser?.email, currentAdminUser?.uid]);
+
+  const currentPermissions = useMemo(() => {
+    if (!staffUsers.length) return Object.keys(ADMIN_PERMISSION_LABELS);
+    if (!currentStaffProfile) return Object.keys(ADMIN_PERMISSION_LABELS);
+    if (currentStaffProfile.isOwner || currentStaffProfile.role === "owner") return Object.keys(ADMIN_PERMISSION_LABELS);
+    if (currentStaffProfile.status === "disabled") return [];
+    return normalizeStaffPermissions(currentStaffProfile.permissions);
+  }, [staffUsers, currentStaffProfile]);
+
+  const canAccessAdminSection = (permission) => currentPermissions.includes(permission);
+  const tabPermission = {
+    dashboard: "dashboard",
+    reports: "reports",
+    identity: "identity",
+    homepage: "homepage",
+    products: "products",
+    orders: "orders",
+    customers: "customers",
+    coupons: "coupons",
+    settings: "settings",
+    notifications: "notifications",
+    users: "users"
+  };
+  const accessibleTabs = Object.keys(tabPermission).filter(key => canAccessAdminSection(tabPermission[key]));
+
+  useEffect(() => {
+    if (!accessibleTabs.length) return;
+    const requiredPermission = tabPermission[tab];
+    if (requiredPermission && !canAccessAdminSection(requiredPermission)) {
+      setTab(accessibleTabs[0]);
+      setNotice("لا تملك صلاحية الوصول لهذا القسم");
+      setTimeout(() => setNotice(""), 2600);
+    }
+  }, [tab, currentPermissions.join("|")]);
+
+  const renderAdminNavButton = (tabKey, permissionKey, icon, label, onClick) => {
+    if (!canAccessAdminSection(permissionKey)) return null;
+    return (
+      <button className={tab===tabKey?"on":""} onClick={onClick || (()=>setTab(tabKey))}>
+        {icon} {label}
+      </button>
+    );
+  };
+
+  const noPermissionCard = (sectionLabel = "هذا القسم") => (
+    <section className="admin-card admin-permission-denied">
+      <Lock size={28}/>
+      <h2>لا تملك صلاحية الوصول</h2>
+      <p>حسابك لا يملك صلاحية الدخول إلى {sectionLabel}. تواصل مع مالك المتجر لتعديل صلاحياتك.</p>
+    </section>
+  );
+
 return (
     <div className={`admin admin-lang-${adminLanguage}`} dir={adminLanguage === "ar" ? "rtl" : "ltr"}>
       <aside className="admin-sidebar">
@@ -3388,40 +3495,42 @@ return (
           {settings.logo ? <img className="admin-brand-logo" src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>{settings.storeName}</b>}
           <span>{t("adminPanel")}</span>
         </div>
-        <button className={tab==="dashboard"?"on":""} onClick={()=>setTab("dashboard")}><LayoutDashboard/> {t("home")}</button>
-        <button className={tab==="reports"?"on":""} onClick={()=>setTab("reports")}><TrendingUp/> {t("reports")}</button>
-        <button className={tab==="identity"?"on":""} onClick={()=>setTab("identity")}><Palette/> {t("identity")}</button>
-        <div className="admin-menu-group">
-          <button
-            className={tab==="homepage"?"on":""}
-            onClick={() => {
-              setTab("homepage");
-              setThemeMenuOpen(!themeMenuOpen);
-            }}
-          >
-            <Home/> {t("storeTheme")} <span className="admin-menu-chevron">{themeMenuOpen ? "−" : "+"}</span>
-          </button>
-          {themeMenuOpen && (
-            <div className="admin-submenu">
-              {themeSections.map(section => (
-                <button
-                  key={section.id}
-                  className={tab==="homepage" && openSection===section.id ? "on" : ""}
-                  onClick={() => goToThemeSection(section.id)}
-                >
-                  {section.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <button className={tab==="orders"?"on":""} onClick={()=>setTab("orders")}><ClipboardList/> {t("orders")}</button>
-        <button className={tab==="customers"?"on":""} onClick={()=>setTab("customers")}><Users/> {t("customers")}</button>
-        <button className={tab==="products"?"on":""} onClick={()=>setTab("products")}><PackagePlus/> {t("products")}</button>
-        <button className={tab==="coupons"?"on":""} onClick={()=>setTab("coupons")}><Palette/> {t("coupons")}</button>
-        <button className={tab==="users"?"on":""} onClick={()=>setTab("users")}><Users/> {t("users")}</button>
-        <button className={tab==="settings"?"on":""} onClick={()=>setTab("settings")}><Settings/> {t("settings")}</button>
-        <button className={tab==="notifications"?"on":""} onClick={()=>setTab("notifications")}><Bell/> {t("notifications")}</button>
+        {renderAdminNavButton("dashboard", "dashboard", <LayoutDashboard/>, t("home"))}
+        {renderAdminNavButton("reports", "reports", <TrendingUp/>, t("reports"))}
+        {renderAdminNavButton("identity", "identity", <Palette/>, t("identity"))}
+        {canAccessAdminSection("homepage") && (
+          <div className="admin-menu-group">
+            <button
+              className={tab==="homepage"?"on":""}
+              onClick={() => {
+                setTab("homepage");
+                setThemeMenuOpen(!themeMenuOpen);
+              }}
+            >
+              <Home/> {t("storeTheme")} <span className="admin-menu-chevron">{themeMenuOpen ? "−" : "+"}</span>
+            </button>
+            {themeMenuOpen && (
+              <div className="admin-submenu">
+                {themeSections.map(section => (
+                  <button
+                    key={section.id}
+                    className={tab==="homepage" && openSection===section.id ? "on" : ""}
+                    onClick={() => goToThemeSection(section.id)}
+                  >
+                    {section.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {renderAdminNavButton("orders", "orders", <ClipboardList/>, t("orders"))}
+        {renderAdminNavButton("customers", "customers", <Users/>, t("customers"))}
+        {renderAdminNavButton("products", "products", <PackagePlus/>, t("products"))}
+        {renderAdminNavButton("coupons", "coupons", <Palette/>, t("coupons"))}
+        {renderAdminNavButton("users", "users", <Users/>, t("users"))}
+        {renderAdminNavButton("settings", "settings", <Settings/>, t("settings"))}
+        {renderAdminNavButton("notifications", "notifications", <Bell/>, t("notifications"))}
 
         <div className="admin-sidebar-card">
           <span>{t("pulse")}</span>
@@ -3433,7 +3542,7 @@ return (
       </aside>
 
       <main className="admin-main">
-        {tab === "dashboard" && (
+        {tab === "dashboard" && canAccessAdminSection("dashboard") && (
 <header className="admin-top modern-admin-top">
           <div className="modern-admin-title">
             <span>{t("dashboard")}</span>
@@ -3507,7 +3616,7 @@ return (
           </div>
         )}
 
-        {tab === "dashboard" && (
+        {tab === "dashboard" && canAccessAdminSection("dashboard") && (
           <section className="dashboard-pro-page">
             <div className="admin-health-grid">
               {adminHealthCards.map(card => (
@@ -3722,7 +3831,7 @@ return (
         )}
 
 
-        {tab === "reports" && (
+        {tab === "reports" && canAccessAdminSection("reports") && (
           <section className="reports-pro-page">
             <div className="reports-hero-card admin-card">
               <div>
@@ -3891,7 +4000,7 @@ return (
           </section>
         )}
 
-        {tab === "coupons" && (
+        {tab === "coupons" && canAccessAdminSection("coupons") && (
           <section className="coupons-admin-page">
             <div className="admin-card coupons-admin-hero">
               <div>
@@ -3988,7 +4097,7 @@ return (
         )}
 
 
-        {tab === "identity" && (
+        {tab === "identity" && canAccessAdminSection("identity") && (
           <section className="admin-grid">
             <div className="admin-card">
               <h2>{t("readyColors")}</h2>
@@ -4014,7 +4123,7 @@ return (
           </section>
         )}
 
-        {tab === "products" && (
+        {tab === "products" && canAccessAdminSection("products") && (
           <section className="admin-products-stacked">
             <div className="admin-products-command-center">
               <div className="products-command-main">
@@ -4564,7 +4673,7 @@ return (
           </section>
         )}
 
-        {tab === "homepage" && (
+        {tab === "homepage" && canAccessAdminSection("homepage") && (
           <section className="homepage-admin-page">
 
             <div className="homepage-sections-list">
@@ -4865,14 +4974,14 @@ return (
           </section>
         )}
 
-        {tab === "users" && (
+        {tab === "users" && canAccessAdminSection("users") && (
           <StaffUsersPanel
             staffUsers={staffUsers}
             onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }}
           />
         )}
 
-        {tab === "settings" && (
+        {tab === "settings" && canAccessAdminSection("settings") && (
           <section className="admin-card admin-placeholder-page">
             <div className="pro-card-head">
               <div>
@@ -4884,7 +4993,7 @@ return (
           </section>
         )}
 
-        {tab === "notifications" && (
+        {tab === "notifications" && canAccessAdminSection("notifications") && (
           <section className="admin-card admin-placeholder-page">
             <div className="pro-card-head">
               <div>
@@ -4896,8 +5005,9 @@ return (
           </section>
         )}
 
-        {tab === "customers" && <CustomersPanel customers={customers} orders={orders} />}
-        {tab === "orders" && <OrdersPanel orders={orders} t={t} onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }} />}
+        {tab === "customers" && canAccessAdminSection("customers") && <CustomersPanel customers={customers} orders={orders} />}
+        {tab === "orders" && canAccessAdminSection("orders") && <OrdersPanel orders={orders} t={t} onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }} />}
+        {tabPermission[tab] && !canAccessAdminSection(tabPermission[tab]) && noPermissionCard(titleFor(tab, adminLanguage))}
       </main>
     </div>
   );
@@ -5022,25 +5132,9 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     support: "دعم عملاء"
   };
 
-  const permissionLabels = {
-    dashboard: "لوحة التحكم",
-    products: "المنتجات",
-    orders: "الطلبات",
-    customers: "العملاء",
-    coupons: "الكوبونات",
-    pages: "الصفحات",
-    settings: "الإعدادات",
-    users: "المستخدمين"
-  };
-
-  const roleDefaults = {
-    owner: Object.keys(permissionLabels),
-    manager: Object.keys(permissionLabels).filter(key => key !== "users"),
-    products: ["dashboard", "products"],
-    orders: ["dashboard", "orders", "customers"],
-    content: ["dashboard", "pages", "products"],
-    support: ["dashboard", "orders", "customers"]
-  };
+  const permissionLabels = ADMIN_PERMISSION_LABELS;
+  const permissionDescriptions = ADMIN_PERMISSION_DESCRIPTIONS;
+  const roleDefaults = ADMIN_ROLE_DEFAULTS;
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -5078,7 +5172,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       email: user.email || "",
       phone: user.phone || "",
       role: user.role || "products",
-      permissions: Array.isArray(user.permissions) ? user.permissions : [],
+      permissions: normalizeStaffPermissions(user.permissions),
       status: user.status || "active"
     });
     setModalOpen(true);
@@ -5088,7 +5182,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     setForm(prev => ({
       ...prev,
       role,
-      permissions: roleDefaults[role] || prev.permissions
+      permissions: normalizeStaffPermissions(roleDefaults[role] || prev.permissions)
     }));
   };
 
@@ -5116,7 +5210,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       email,
       phone: form.phone.trim(),
       role: isOwner ? "owner" : form.role,
-      permissions: isOwner ? Object.keys(permissionLabels) : form.permissions,
+      permissions: isOwner ? Object.keys(permissionLabels) : normalizeStaffPermissions(form.permissions),
       status: isOwner ? "active" : form.status,
       isOwner,
       createdAtMs: editingStaff?.createdAtMs || Date.now(),
@@ -5180,6 +5274,23 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
         </select>
       </div>
 
+      <div className="staff-permissions-overview">
+        <div>
+          <h3>جدول الصلاحيات حسب القسم</h3>
+          <p>كل صف يوضح القسم داخل لوحة التحكم وما الذي يسمح به عند تفعيل الصلاحية للموظف.</p>
+        </div>
+        <div className="staff-permission-table-wrap compact">
+          <table className="staff-permission-table">
+            <thead><tr><th>القسم</th><th>الصلاحية</th></tr></thead>
+            <tbody>
+              {Object.entries(permissionLabels).map(([key, label]) => (
+                <tr key={key}><td><b>{label}</b></td><td>{permissionDescriptions[key]}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="staff-table-wrap">
         <table className="staff-table">
           <thead>
@@ -5207,8 +5318,8 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
                 <td><span className="staff-role-chip">{roleLabels[user.role] || user.role || "موظف"}</span></td>
                 <td>
                   <div className="staff-permissions-preview">
-                    {(user.permissions || []).slice(0, 3).map(permission => <span key={permission}>{permissionLabels[permission] || permission}</span>)}
-                    {(user.permissions || []).length > 3 && <span>+{(user.permissions || []).length - 3}</span>}
+                    {normalizeStaffPermissions(user.permissions).slice(0, 3).map(permission => <span key={permission}>{permissionLabels[permission] || permission}</span>)}
+                    {normalizeStaffPermissions(user.permissions).length > 3 && <span>+{normalizeStaffPermissions(user.permissions).length - 3}</span>}
                   </div>
                 </td>
                 <td><span className={user.status === "disabled" ? "staff-status off" : "staff-status on"}>{user.status === "disabled" ? "معطل" : "نشط"}</span></td>
@@ -5263,18 +5374,35 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
             <div className="staff-permission-box">
               <h3>الصلاحيات</h3>
               <p>حدد الأقسام التي يستطيع الموظف الوصول إليها داخل لوحة التحكم.</p>
-              <div className="staff-permission-grid">
-                {Object.entries(permissionLabels).map(([key, label]) => (
-                  <label key={key} className="staff-permission-item">
-                    <input
-                      type="checkbox"
-                      checked={Boolean((form.permissions || []).includes(key) || editingStaff?.isOwner)}
-                      disabled={Boolean(editingStaff?.isOwner)}
-                      onChange={() => togglePermission(key)}
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
+              <div className="staff-permission-table-wrap">
+                <table className="staff-permission-table">
+                  <thead>
+                    <tr>
+                      <th>القسم</th>
+                      <th>ما الذي يسمح به؟</th>
+                      <th>السماح</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(permissionLabels).map(([key, label]) => (
+                      <tr key={key}>
+                        <td><b>{label}</b></td>
+                        <td>{permissionDescriptions[key] || "الوصول إلى هذا القسم"}</td>
+                        <td>
+                          <label className="staff-permission-switch">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(normalizeStaffPermissions(form.permissions).includes(key) || editingStaff?.isOwner)}
+                              disabled={Boolean(editingStaff?.isOwner)}
+                              onChange={() => togglePermission(key)}
+                            />
+                            <span>{normalizeStaffPermissions(form.permissions).includes(key) || editingStaff?.isOwner ? "مسموح" : "ممنوع"}</span>
+                          </label>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
 
