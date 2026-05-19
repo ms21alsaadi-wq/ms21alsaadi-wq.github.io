@@ -751,24 +751,25 @@ function StaffTemporaryPasswordGate({ staffProfile, settings }) {
   }
 
   return (
-    <div className="login-page staff-password-gate" dir="rtl">
-      <div className="login-card staff-password-card">
+    <div className="staff-password-modal-lock" dir="rtl" role="dialog" aria-modal="true" aria-labelledby="staff-password-title">
+      <div className="staff-password-modal-backdrop" />
+      <div className="staff-password-modal-card staff-password-card">
         <div className="login-brand-mark">
           {settings?.logo ? <img src={settings.logo} alt="logo"/> : <ShieldCheck size={34}/>}
         </div>
         <span className="staff-password-eyebrow">حماية الحساب</span>
-        <h1>غيّر كلمة المرور المؤقتة</h1>
-        <p>مرحبًا {staffProfile?.name || auth.currentUser?.email || ""}، قبل استخدام لوحة التحكم لازم تختار كلمة مرور جديدة خاصة بك.</p>
+        <h1 id="staff-password-title">غيّر كلمة المرور المؤقتة</h1>
+        <p>مرحبًا {staffProfile?.name || auth.currentUser?.email || ""}، دخلت بنجاح. قبل استخدام لوحة التحكم لازم تختار كلمة مرور جديدة خاصة بك.</p>
         <form onSubmit={submit} className="login-form staff-password-form">
           <label>
             <span><Lock size={16}/> كلمة المرور الجديدة</span>
-            <input name="newPassword" type="password" minLength="8" required placeholder="8 أحرف أو أكثر" autoComplete="new-password" />
+            <input name="newPassword" type="password" minLength="8" required placeholder="8 أحرف أو أكثر" autoComplete="new-password" autoFocus />
           </label>
           <label>
             <span><Lock size={16}/> تأكيد كلمة المرور</span>
             <input name="confirmPassword" type="password" minLength="8" required placeholder="أعد كتابة كلمة المرور" autoComplete="new-password" />
           </label>
-          <button className="admin-primary" disabled={busy}>{busy ? "جاري الحفظ..." : "حفظ وفتح لوحة التحكم"}</button>
+          <button className="admin-primary" disabled={busy}>{busy ? "جاري الحفظ..." : "تغيير كلمة المرور والمتابعة"}</button>
           <button type="button" className="admin-secondary" onClick={() => signOut(auth)}>تسجيل خروج</button>
           {message && <p className="auth-message">{message}</p>}
         </form>
@@ -3604,12 +3605,11 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     </section>
   );
 
-  if (currentStaffProfile?.mustChangePassword && !currentStaffProfile?.isOwner) {
-    return <StaffTemporaryPasswordGate staffProfile={currentStaffProfile} settings={settings} />;
-  }
+  const mustForceStaffPasswordChange = Boolean(currentStaffProfile?.mustChangePassword && !currentStaffProfile?.isOwner);
 
 return (
-    <div className={`admin admin-lang-${adminLanguage}`} dir={adminLanguage === "ar" ? "rtl" : "ltr"}>
+    <div className={`admin admin-lang-${adminLanguage} ${mustForceStaffPasswordChange ? "admin-password-change-locked" : ""}`} dir={adminLanguage === "ar" ? "rtl" : "ltr"}>
+      {mustForceStaffPasswordChange && <StaffTemporaryPasswordGate staffProfile={currentStaffProfile} settings={settings} />}
       <aside className="admin-sidebar">
         <div className="admin-brand">
           {settings.logo ? <img className="admin-brand-logo" src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>{settings.storeName}</b>}

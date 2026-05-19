@@ -14019,3 +14019,65 @@ button.product-flat-top-btn:hover svg{
   width: 100%;
   justify-content: center;
 }
+
+/* Staff password change as a mandatory admin modal */
+.admin-password-change-locked {
+  position: relative;
+}
+.staff-password-modal-lock {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  pointer-events: auto;
+}
+.staff-password-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+}
+.staff-password-modal-card {
+  position: relative;
+  width: min(520px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 28px;
+  text-align: center;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 28px 90px rgba(17, 24, 39, 0.26);
+}
+.staff-password-modal-card h1 {
+  margin: 8px 0 10px;
+  font-size: 24px;
+  color: #111827;
+}
+.staff-password-modal-card p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.8;
+}
+.staff-password-modal-card .login-brand-mark {
+  margin: 0 auto 10px;
+}
+.staff-password-modal-card .login-form label {
+  text-align: right;
+}
+.staff-password-modal-card .admin-primary,
+.staff-password-modal-card .admin-secondary {
+  width: 100%;
+  justify-content: center;
+}
+@media (max-width: 640px) {
+  .staff-password-modal-lock {
+    padding: 12px;
+  }
+  .staff-password-modal-card {
+    border-radius: 22px;
+    padding: 22px;
+  }
+}
