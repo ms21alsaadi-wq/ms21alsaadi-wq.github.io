@@ -656,7 +656,7 @@ function AdminLogin({ go, settings }) {
         }
       }
 
-      const canEnterAsStaff = staffRecord && staffRecord.status !== "disabled";
+      const canEnterAsStaff = staffRecord && staffRecord.status !== "disabled" && staffRecord.status !== "deleted" && !staffRecord.isDeleted;
       if (!adminSnap.exists() && !canEnterAsStaff) {
         await signOut(auth);
         setMessage("هذا الحساب غير مصرح له بدخول لوحة التحكم.");
@@ -2737,6 +2737,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
       const rows = snapshot.docs
         .map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }))
+        .filter((staffUser) => staffUser.status !== "deleted" && !staffUser.isDeleted)
         .sort((a, b) => {
           if (a.isOwner && !b.isOwner) return -1;
           if (!a.isOwner && b.isOwner) return 1;
@@ -5495,8 +5496,38 @@ ${invite.body}`;
       return;
     }
     if (!window.confirm(`حذف الموظف ${user.name || user.email}؟`)) return;
-    await deleteDoc(doc(db, "staffUsers", user.id));
-    onNotice("تم حذف الموظف");
+
+    try {
+      const adminDocId = user.authUid || user.id;
+
+      // نحذف ظهوره من لوحة التحكم بطريقة آمنة حتى لو Firebase لا يسمح بحذف حساب Auth من الواجهة.
+      await setDoc(doc(db, "staffUsers", user.id), {
+        status: "deleted",
+        isDeleted: true,
+        deletedAtMs: Date.now(),
+        deletedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      // نلغي صلاحية الدخول من سجل الأدمن إن وجد. فشل هذه الخطوة لا يمنع اختفاء الموظف من الجدول.
+      if (adminDocId) {
+        try {
+          await setDoc(doc(db, "admins", adminDocId), {
+            disabled: true,
+            status: "deleted",
+            permissions: [],
+            deletedAtMs: Date.now(),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        } catch (adminError) {
+          console.warn("Could not disable admin profile", adminError);
+        }
+      }
+
+      onNotice("تم حذف الموظف من لوحة التحكم وتعطيل صلاحياته");
+    } catch (error) {
+      onNotice(firebaseError(error));
+    }
   };
 
   return (
