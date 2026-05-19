@@ -13,7 +13,8 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   updateProfile,
-  updatePassword
+  updatePassword,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import {
   collection, doc, getDoc, setDoc, onSnapshot, deleteDoc, serverTimestamp,
@@ -5456,30 +5457,55 @@ ${invite.body}`;
 
     let staffId = editingStaff?.id || `staff-${Date.now()}`;
     let authUid = editingStaff?.authUid || (editingStaff?.id?.startsWith("staff-") ? "" : editingStaff?.id) || "";
+    let restoredDeletedStaff = null;
+    let accountAlreadyExists = false;
     const isOwner = Boolean(editingStaff?.isOwner || form.role === "owner");
     const invitationToken = editingStaff?.invitationToken || `invite-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     let temporaryPassword = editingStaff ? (editingStaff.invitePassword || "") : String(form.tempPassword || "").trim();
 
     if (!editingStaff) {
+      const sameEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
+      const existingStaffDocs = sameEmailSnap.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }));
+      const activeExisting = existingStaffDocs.find((item) => !isStaffDeleted(item));
+      restoredDeletedStaff = existingStaffDocs.find((item) => isStaffDeleted(item)) || null;
+
+      if (activeExisting) {
+        onNotice("هذا البريد موجود بالفعل ضمن الموظفين");
+        return;
+      }
+
+      if (restoredDeletedStaff) {
+        staffId = restoredDeletedStaff.id;
+        authUid = restoredDeletedStaff.authUid || (restoredDeletedStaff.id?.startsWith("staff-") ? "" : restoredDeletedStaff.id) || "";
+      }
+
       if (temporaryPassword.length < 6) {
         onNotice("كلمة المرور المؤقتة يجب أن تكون 6 أحرف أو أكثر");
         return;
       }
-      try {
-        const secondaryApp = initializeApp(firebaseConfig, `staffInviteApp-${Date.now()}`);
-        const secondaryAuth = getAuth(secondaryApp);
-        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, temporaryPassword);
-        authUid = cred.user.uid;
-        staffId = authUid;
-        await updateProfile(cred.user, { displayName: form.name.trim() });
-        await signOut(secondaryAuth);
-        await deleteApp(secondaryApp);
-      } catch (error) {
-        if (error?.code === "auth/email-already-in-use") {
-          onNotice("هذا البريد لديه حساب سابق. تم حفظ الموظف، لكن لا يمكن إنشاء كلمة مرور له من هنا. استخدم إعادة تعيين كلمة المرور من Firebase أو أرسل له كلمة مروره الحالية.");
-        } else {
-          onNotice(firebaseError(error));
-          return;
+
+      if (!authUid) {
+        try {
+          const secondaryApp = initializeApp(firebaseConfig, `staffInviteApp-${Date.now()}`);
+          const secondaryAuth = getAuth(secondaryApp);
+          const cred = await createUserWithEmailAndPassword(secondaryAuth, email, temporaryPassword);
+          authUid = cred.user.uid;
+          staffId = authUid;
+          await updateProfile(cred.user, { displayName: form.name.trim() });
+          await signOut(secondaryAuth);
+          await deleteApp(secondaryApp);
+        } catch (error) {
+          if (error?.code === "auth/email-already-in-use") {
+            accountAlreadyExists = true;
+            try {
+              await sendPasswordResetEmail(auth, email);
+            } catch (resetError) {
+              // لا نوقف حفظ الموظف إذا فشل إرسال رابط إعادة التعيين.
+            }
+          } else {
+            onNotice(firebaseError(error));
+            return;
+          }
         }
       }
     }
@@ -5494,11 +5520,17 @@ ${invite.body}`;
       isOwner,
       authUid,
       invitationToken,
-      invitePassword: temporaryPassword,
-      mustChangePassword: editingStaff ? Boolean(editingStaff.mustChangePassword) : true,
-      invitationStatus: editingStaff?.invitationStatus || (form.inviteAfterSave ? "pending" : "created"),
-      invitedAtMs: form.inviteAfterSave ? Date.now() : (editingStaff?.invitedAtMs || null),
-      createdAtMs: editingStaff?.createdAtMs || Date.now(),
+      invitePassword: accountAlreadyExists ? "" : temporaryPassword,
+      mustChangePassword: editingStaff ? Boolean(editingStaff.mustChangePassword) : !accountAlreadyExists,
+      invitationStatus: accountAlreadyExists ? "password-reset-required" : (editingStaff?.invitationStatus || (form.inviteAfterSave ? "pending" : "created")),
+      invitedAtMs: form.inviteAfterSave ? Date.now() : (editingStaff?.invitedAtMs || restoredDeletedStaff?.invitedAtMs || null),
+      createdAtMs: editingStaff?.createdAtMs || restoredDeletedStaff?.createdAtMs || Date.now(),
+      restoredAtMs: restoredDeletedStaff ? Date.now() : null,
+      isDeleted: false,
+      deleted: false,
+      disabled: false,
+      deletedAtMs: null,
+      deletedAt: null,
       updatedAt: serverTimestamp()
     };
 
@@ -5509,6 +5541,10 @@ ${invite.body}`;
         role: payload.role,
         permissions: payload.permissions,
         staffUser: true,
+        status: payload.status,
+        disabled: false,
+        isDeleted: false,
+        deleted: false,
         mustChangePassword: payload.mustChangePassword,
         updatedAt: serverTimestamp()
       }, { merge: true });
@@ -5516,10 +5552,13 @@ ${invite.body}`;
     setModalOpen(false);
     setEditingStaff(null);
     setForm(emptyForm);
-    if (!editingStaff && form.inviteAfterSave) {
+    setHiddenDeletedStaffKeys(prev => prev.filter(key => ![staffId, authUid, email].filter(Boolean).map(item => String(item).toLowerCase()).includes(String(key).toLowerCase())));
+    if (!editingStaff && form.inviteAfterSave && !accountAlreadyExists) {
       openInviteEmail({ id: staffId, ...payload });
+    } else if (!editingStaff && accountAlreadyExists) {
+      onNotice("تمت إعادة تفعيل الموظف. حساب البريد موجود سابقًا، لذلك أرسلنا له رابط إعادة تعيين كلمة المرور بدل كلمة مرور مؤقتة.");
     } else {
-      onNotice(editingStaff ? "تم تحديث بيانات الموظف" : "تمت إضافة الموظف");
+      onNotice(editingStaff ? "تم تحديث بيانات الموظف" : (restoredDeletedStaff ? "تمت إعادة تفعيل الموظف" : "تمت إضافة الموظف"));
     }
   };
 
