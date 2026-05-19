@@ -691,7 +691,7 @@ function AdminLogin({ go, settings }) {
       const canEnterAsStaff = Boolean(staffRecord && !isStaffDisabled(staffRecord));
       const isStaffAdminAccount = Boolean(adminData?.staffUser || staffRecord);
 
-      if (adminBlocked || (!adminSnap.exists() && !canEnterAsStaff) || (isStaffAdminAccount && !canEnterAsStaff)) {
+      if ((adminBlocked && !canEnterAsStaff) || (!adminSnap.exists() && !canEnterAsStaff) || (isStaffAdminAccount && !canEnterAsStaff)) {
         await signOut(auth);
         setMessage("هذا الحساب غير مصرح له بدخول لوحة التحكم أو تم حذفه/تعطيله.");
         return;
@@ -702,6 +702,10 @@ function AdminLogin({ go, settings }) {
           ...staffRecord,
           email,
           authUid: cred.user.uid,
+          status: staffRecord.status === "disabled" ? "disabled" : "active",
+          disabled: false,
+          isDeleted: false,
+          deleted: false,
           invitationStatus: "accepted",
           lastLoginAt: serverTimestamp(),
           updatedAt: serverTimestamp()
@@ -711,6 +715,10 @@ function AdminLogin({ go, settings }) {
           role: staffRecord.role || "staff",
           permissions: normalizeStaffPermissions(staffRecord.permissions),
           staffUser: true,
+          status: staffRecord.status === "disabled" ? "disabled" : "active",
+          disabled: staffRecord.status === "disabled",
+          isDeleted: false,
+          deleted: false,
           updatedAt: serverTimestamp()
         }, { merge: true });
       }
@@ -5465,16 +5473,23 @@ ${invite.body}`;
 
     if (!editingStaff) {
       const sameEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
+      const sameAdminSnap = await getDocs(query(collection(db, "admins"), where("email", "==", email)));
       const existingStaffDocs = sameEmailSnap.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }));
+      const existingAdminDocs = sameAdminSnap.docs.map((adminDoc) => ({ id: adminDoc.id, ...(adminDoc.data() || {}) }));
       const activeExisting = existingStaffDocs.find((item) => !isStaffDeleted(item));
       restoredDeletedStaff = existingStaffDocs.find((item) => isStaffDeleted(item)) || null;
+      const existingAuthAdmin = existingAdminDocs.find((item) => item.id && !String(item.id).startsWith("staff-")) || existingAdminDocs[0] || null;
+      if (existingAuthAdmin?.id) {
+        authUid = existingAuthAdmin.id;
+        staffId = existingAuthAdmin.id;
+      }
 
       if (activeExisting) {
         onNotice("هذا البريد موجود بالفعل ضمن الموظفين");
         return;
       }
 
-      if (restoredDeletedStaff) {
+      if (restoredDeletedStaff && !authUid) {
         staffId = restoredDeletedStaff.id;
         authUid = restoredDeletedStaff.authUid || (restoredDeletedStaff.id?.startsWith("staff-") ? "" : restoredDeletedStaff.id) || "";
       }
@@ -5497,6 +5512,10 @@ ${invite.body}`;
         } catch (error) {
           if (error?.code === "auth/email-already-in-use") {
             accountAlreadyExists = true;
+            if (existingAuthAdmin?.id) {
+              authUid = existingAuthAdmin.id;
+              staffId = existingAuthAdmin.id;
+            }
             try {
               await sendPasswordResetEmail(auth, email);
             } catch (resetError) {
@@ -5535,6 +5554,13 @@ ${invite.body}`;
     };
 
     await setDoc(doc(db, "staffUsers", staffId), payload, { merge: true });
+    if (restoredDeletedStaff?.id && restoredDeletedStaff.id !== staffId) {
+      try {
+        await deleteDoc(doc(db, "staffUsers", restoredDeletedStaff.id));
+      } catch (cleanupError) {
+        // لا نوقف الحفظ إذا رفضت القواعد حذف السجل القديم.
+      }
+    }
     if (authUid) {
       await setDoc(doc(db, "admins", authUid), {
         email,
