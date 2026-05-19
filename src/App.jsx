@@ -1683,6 +1683,14 @@ function HeroStyle() {
 
 
 function ProductDetailPage({ product, products = [], settings, go, addToCart, selectedSize, setSelectedSize }) {
+  const [activeImage, setActiveImage] = useState(product?.image || "");
+  const [qty, setQty] = useState(1);
+
+  useEffect(() => {
+    setActiveImage(product?.image || "");
+    setQty(1);
+  }, [product?.id, product?.image]);
+
   const relatedProducts = (products || [])
     .filter((item) => item?.id !== product?.id && (item?.status || "active") !== "hidden")
     .filter((item) => !product?.category || item.category === product.category)
@@ -1705,72 +1713,160 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
   const selected = selectedSize[product.id] || sizes[0] || "Free";
   const oldPrice = Number(product.oldPrice || 0);
   const price = Number(product.price || 0);
+  const stock = Number(product.stock || 0);
   const hasDiscount = oldPrice > price;
+  const discountPercent = hasDiscount ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
+  const rating = Number(product.rating || 5);
+  const reviewCount = Number(product.reviewCount || product.reviews || 24);
+  const safeQty = Math.max(1, Math.min(Number(qty || 1), stock || 1));
+  const storeName = settings?.storeName || "GREEN DIXAM";
+  const productDescription = product.longDescription || product.description || "منتج مختار بعناية من المتجر.";
+  const productFeatures = Array.isArray(product.features)
+    ? product.features.filter(Boolean)
+    : String(product.features || "").split(/[\n،,]+/).map(x => x.trim()).filter(Boolean);
+  const fallbackFeatures = productFeatures.length ? productFeatures : [
+    "مختار بعناية ليناسب الهدايا والاستخدام اليومي",
+    "تغليف أنيق يحافظ على جودة المنتج أثناء التوصيل",
+    "خيار مناسب للمنزل أو المكتب أو المناسبات"
+  ];
+  const deliveryNote = product.deliveryInfo || settings?.deliveryInfo || "تجهيز الطلب خلال 24 إلى 48 ساعة، وتظهر تكلفة الشحن في السلة حسب الطلب.";
+  const careNote = product.careGuide || product.usage || "يحفظ في مكان مناسب بعيدًا عن الظروف القاسية، واتبع تعليمات العناية المرفقة إن وجدت.";
+  const shareText = encodeURIComponent(`${product.name || "منتج"} - ${storeName}`);
+  const shareUrl = encodeURIComponent(typeof window !== "undefined" ? window.location.href : productPath(product));
+
+  const handleAddQtyToCart = () => {
+    for (let i = 0; i < safeQty; i += 1) addToCart(product);
+  };
 
   return (
-    <main className="container product-detail-page">
-      <button type="button" className="primary store-page-back" onClick={() => go("/")}>← رجوع للمتجر</button>
+    <main className="product-detail-page product-commerce-page">
+      <div className="container">
+        <div className="product-breadcrumbs">
+          <button type="button" onClick={() => go("/")}>المتجر</button>
+          <span>/</span>
+          {product.category && <><button type="button" onClick={() => go(`/page/${makePageSlug(product.category)}`)}>{product.category}</button><span>/</span></>}
+          <b>{product.name}</b>
+        </div>
 
-      <section className="product-detail-hero">
-        <div className="product-detail-media">
-          <div className="product-detail-main-image">
-            <img src={product.image} alt={product.name || "منتج"} loading="eager" decoding="async" />
-            {product.tag && <span>{product.tag}</span>}
-          </div>
-          {gallery.length > 1 && (
-            <div className="product-detail-gallery">
-              {gallery.slice(0, 5).map((img, index) => (
-                <img key={`${img}-${index}`} src={img} alt={`${product.name || "منتج"} ${index + 1}`} loading="lazy" decoding="async" />
+        <section className="product-commerce-shell">
+          <aside className="product-gallery-column">
+            <div className="product-gallery-rail" aria-label="صور المنتج">
+              {(gallery.length ? gallery : [product.image]).slice(0, 6).map((img, index) => (
+                <button
+                  type="button"
+                  key={`${img || "empty"}-${index}`}
+                  className={activeImage === img || (!activeImage && index === 0) ? "active" : ""}
+                  onClick={() => setActiveImage(img)}
+                  aria-label={`عرض صورة ${index + 1}`}
+                >
+                  {img ? <img src={img} alt={`${product.name || "منتج"} ${index + 1}`} loading="lazy" decoding="async" /> : <PackagePlus size={22} />}
+                </button>
               ))}
             </div>
-          )}
-        </div>
 
-        <div className="product-detail-info">
-          <div className="product-detail-kicker">
-            <span>{product.brand || settings?.storeName || "GREEN DIXAM"}</span>
-            {product.category && <em>{product.category}</em>}
-          </div>
-          <h1>{product.name}</h1>
-          <div className="product-detail-rating"><Star size={17} fill="currentColor"/> {product.rating || 5}</div>
-          <p className="product-detail-description">{product.description || "منتج مختار بعناية من المتجر."}</p>
+            <div className="product-main-photo">
+              {hasDiscount && <span className="product-sale-ribbon">خصم {discountPercent}%</span>}
+              {product.tag && <span className="product-tag-ribbon">{product.tag}</span>}
+              {activeImage || product.image ? (
+                <img src={activeImage || product.image} alt={product.name || "منتج"} loading="eager" decoding="async" />
+              ) : (
+                <div className="product-photo-placeholder"><PackagePlus size={44} /><span>لا توجد صورة</span></div>
+              )}
+            </div>
+          </aside>
 
-          <div className="product-detail-price">
-            <b>{formatPrice(price)} ر.س</b>
-            {hasDiscount && <del>{formatPrice(oldPrice)} ر.س</del>}
-          </div>
+          <section className="product-summary-column">
+            <div className="product-brand-line">
+              <span>{product.brand || storeName}</span>
+              {product.category && <em>{product.category}</em>}
+            </div>
+            <h1>{product.name}</h1>
+            <div className="product-rating-line">
+              <span className="stars"><Star size={16} fill="currentColor"/> {rating.toFixed(1)}</span>
+              <button type="button">{reviewCount} تقييم</button>
+              {stock > 0 ? <b className="in-stock">متوفر الآن</b> : <b className="out-stock">غير متوفر</b>}
+            </div>
+            <p className="product-short-description">{product.description || "منتج مختار بعناية من المتجر."}</p>
 
-          {sizes.length > 0 && (
-            <div className="product-detail-options">
-              <span>اختر المقاس</span>
-              <div className="sizes">
-                {sizes.map((size) => (
-                  <button
-                    type="button"
-                    key={size}
-                    className={selected === size ? "active" : ""}
-                    onClick={() => setSelectedSize(prev => ({ ...prev, [product.id]: size }))}
-                  >
-                    {size}
-                  </button>
-                ))}
+            <div className="product-feature-list">
+              {fallbackFeatures.slice(0, 4).map((feature, index) => <span key={`${feature}-${index}`}>✓ {feature}</span>)}
+            </div>
+          </section>
+
+          <aside className="product-buy-box">
+            <div className="product-buy-price">
+              <b>{formatPrice(price)} ر.س</b>
+              {hasDiscount && <><del>{formatPrice(oldPrice)} ر.س</del><span>وفّر {formatPrice(oldPrice - price)} ر.س</span></>}
+            </div>
+
+            <div className="product-buy-benefits">
+              <div><Truck size={18}/><span>توصيل سريع</span></div>
+              <div><ShieldCheck size={18}/><span>دفع آمن</span></div>
+              <div><RotateCcw size={18}/><span>استرجاع حسب سياسة المتجر</span></div>
+            </div>
+
+            {sizes.length > 0 && (
+              <div className="product-detail-options product-commerce-options">
+                <span>اختر الخيار</span>
+                <div className="sizes">
+                  {sizes.map((size) => (
+                    <button
+                      type="button"
+                      key={size}
+                      className={selected === size ? "active" : ""}
+                      onClick={() => setSelectedSize(prev => ({ ...prev, [product.id]: size }))}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="product-quantity-row">
+              <span>الكمية</span>
+              <div className="quantity-stepper">
+                <button type="button" onClick={() => setQty(prev => Math.max(1, Number(prev || 1) - 1))}>−</button>
+                <b>{safeQty}</b>
+                <button type="button" onClick={() => setQty(prev => Math.min(stock || 99, Number(prev || 1) + 1))}>+</button>
               </div>
             </div>
-          )}
 
-          <div className="product-detail-meta">
-            <div><span>المخزون</span><b>{Number(product.stock || 0) > 0 ? `${product.stock} متوفر` : "غير متوفر"}</b></div>
-            {product.sku && <div><span>SKU</span><b>{product.sku}</b></div>}
-          </div>
+            <button type="button" className="product-detail-add product-cart-cta" onClick={handleAddQtyToCart} disabled={stock === 0}>
+              {stock === 0 ? "غير متوفر" : "أضف إلى السلة"}
+            </button>
+            <button type="button" className="product-buy-now" onClick={handleAddQtyToCart} disabled={stock === 0}>اشتري الآن</button>
+            <a className="product-whatsapp-share" href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noreferrer">مشاركة عبر واتساب</a>
 
-          <button type="button" className="product-detail-add" onClick={() => addToCart(product)} disabled={Number(product.stock || 0) === 0}>
-            {Number(product.stock || 0) === 0 ? "غير متوفر" : "أضف إلى السلة"}
-          </button>
-        </div>
-      </section>
+            <div className="product-mini-meta">
+              {product.sku && <p><span>SKU</span><b>{product.sku}</b></p>}
+              <p><span>المخزون</span><b>{stock > 0 ? `${stock} قطعة` : "غير متوفر"}</b></p>
+            </div>
+          </aside>
+        </section>
+
+        <section className="product-detail-panels">
+          <article>
+            <h2>تفاصيل المنتج</h2>
+            <p>{productDescription}</p>
+          </article>
+          <article>
+            <h2>المميزات</h2>
+            <ul>{fallbackFeatures.map((feature, index) => <li key={`${feature}-panel-${index}`}>{feature}</li>)}</ul>
+          </article>
+          <article>
+            <h2>العناية والاستخدام</h2>
+            <p>{careNote}</p>
+          </article>
+          <article>
+            <h2>الشحن والتسليم</h2>
+            <p>{deliveryNote}</p>
+          </article>
+        </section>
+      </div>
 
       {relatedProducts.length > 0 && (
-        <section className="product-detail-related">
+        <section className="container product-detail-related">
           <div className="section-title"><span>منتجات مشابهة</span><h2>قد يعجبك أيضًا</h2></div>
           <div className="products-grid">
             {relatedProducts.map((item) => (
