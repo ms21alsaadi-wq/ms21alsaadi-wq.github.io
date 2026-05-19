@@ -13897,3 +13897,63 @@ button.product-flat-top-btn:hover svg{
   font-weight:850!important;
   padding:8px 2px!important;
 }
+
+/* Staff invitations */
+.staff-invite-toggle{
+  margin-top:14px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:fit-content!important;
+  max-width:100%!important;
+  padding:10px 12px!important;
+  border-radius:16px!important;
+  border:1px solid rgba(15,74,53,.10)!important;
+  background:#f7f7f1!important;
+  color:#0f4a35!important;
+  font-weight:900!important;
+  cursor:pointer!important;
+}
+.staff-invite-toggle input{
+  width:18px!important;
+  height:18px!important;
+  min-height:18px!important;
+  accent-color:#0f4a35!important;
+}
+.staff-invite-note{
+  margin-top:10px!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:8px!important;
+  padding:10px 12px!important;
+  border-radius:16px!important;
+  background:#fffdf8!important;
+  border:1px dashed rgba(15,74,53,.16)!important;
+  color:#647469!important;
+}
+.staff-invite-note svg{
+  width:16px!important;
+  height:16px!important;
+  margin-top:3px!important;
+  color:#0f4a35!important;
+  flex:0 0 auto!important;
+}
+.staff-invite-note p{
+  margin:0!important;
+  font-size:12px!important;
+  line-height:1.7!important;
+  font-weight:800!important;
+}
+.staff-actions{
+  flex-wrap:wrap!important;
+}
+.staff-actions button[title="إرسال دعوة"],
+.staff-actions button[title="نسخ رابط الدعوة"]{
+  background:#f1f6ef!important;
+  color:#0f4a35!important;
+}
+.staff-actions button[title="إرسال دعوة"]:hover,
+.staff-actions button[title="نسخ رابط الدعوة"]:hover{
+  background:#0f4a35!important;
+  color:#fff!important;
+}

@@ -5120,7 +5120,8 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     phone: "",
     role: "products",
     permissions: ["products"],
-    status: "active"
+    status: "active",
+    inviteAfterSave: true
   };
 
   const roleLabels = {
@@ -5173,7 +5174,8 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       phone: user.phone || "",
       role: user.role || "products",
       permissions: normalizeStaffPermissions(user.permissions),
-      status: user.status || "active"
+      status: user.status || "active",
+      inviteAfterSave: false
     });
     setModalOpen(true);
   };
@@ -5214,6 +5216,43 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
 
   const selectedPermissions = normalizeStaffPermissions(form.permissions);
 
+  const getAdminInviteUrl = (user = {}) => {
+    const origin = window.location?.origin || "https://ms21alsaadi-wq-github-io.vercel.app";
+    const emailPart = user.email ? `?email=${encodeURIComponent(user.email)}` : "";
+    return `${origin}/admin${emailPart}`;
+  };
+
+  const buildInviteMessage = (user = {}) => {
+    const permissions = normalizeStaffPermissions(user.permissions).map(permission => permissionLabels[permission] || permission).join("، ") || "حسب الصلاحيات المحددة";
+    const roleName = roleLabels[user.role] || "موظف";
+    const inviteUrl = getAdminInviteUrl(user);
+    return {
+      url: inviteUrl,
+      subject: `دعوة للانضمام إلى لوحة تحكم GREEN DIXAM`,
+      body: `مرحبًا ${user.name || ""}،\n\nتمت دعوتك للانضمام إلى لوحة تحكم متجر GREEN DIXAM.\n\nرابط الدخول:\n${inviteUrl}\n\nالدور:\n${roleName}\n\nالصلاحيات:\n${permissions}\n\nملاحظة: استخدم بريدك المسجل (${user.email || ""}) للدخول أو إنشاء الحساب.\n\nتحياتي`
+    };
+  };
+
+  const openInviteEmail = (user) => {
+    if (!user?.email) {
+      onNotice("لا يوجد بريد إلكتروني لهذا الموظف");
+      return;
+    }
+    const invite = buildInviteMessage(user);
+    window.location.href = `mailto:${encodeURIComponent(user.email)}?subject=${encodeURIComponent(invite.subject)}&body=${encodeURIComponent(invite.body)}`;
+    onNotice("تم فتح تطبيق البريد برسالة الدعوة الجاهزة");
+  };
+
+  const copyInviteLink = async (user) => {
+    const invite = buildInviteMessage(user);
+    try {
+      await navigator.clipboard.writeText(invite.url);
+      onNotice("تم نسخ رابط الدعوة");
+    } catch (error) {
+      window.prompt("انسخ رابط الدعوة", invite.url);
+    }
+  };
+
   const saveStaff = async (event) => {
     event.preventDefault();
     const email = form.email.trim().toLowerCase();
@@ -5232,6 +5271,8 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       permissions: isOwner ? Object.keys(permissionLabels) : normalizeStaffPermissions(form.permissions),
       status: isOwner ? "active" : form.status,
       isOwner,
+      invitationStatus: editingStaff?.invitationStatus || (form.inviteAfterSave ? "pending" : "created"),
+      invitedAtMs: form.inviteAfterSave ? Date.now() : (editingStaff?.invitedAtMs || null),
       createdAtMs: editingStaff?.createdAtMs || Date.now(),
       updatedAt: serverTimestamp()
     };
@@ -5240,7 +5281,11 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     setModalOpen(false);
     setEditingStaff(null);
     setForm(emptyForm);
-    onNotice(editingStaff ? "تم تحديث بيانات الموظف" : "تمت إضافة الموظف");
+    if (!editingStaff && form.inviteAfterSave) {
+      openInviteEmail({ id: staffId, ...payload });
+    } else {
+      onNotice(editingStaff ? "تم تحديث بيانات الموظف" : "تمت إضافة الموظف");
+    }
   };
 
   const toggleStatus = async (user) => {
@@ -5328,6 +5373,8 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
                 <td><span className={user.status === "disabled" ? "staff-status off" : "staff-status on"}>{user.status === "disabled" ? "معطل" : "نشط"}</span></td>
                 <td>
                   <div className="staff-actions">
+                    <button type="button" onClick={() => openInviteEmail(user)} title="إرسال دعوة"><Mail size={16}/></button>
+                    <button type="button" onClick={() => copyInviteLink(user)} title="نسخ رابط الدعوة"><ExternalLink size={16}/></button>
                     <button type="button" onClick={() => openEdit(user)} title="تعديل"><Pencil size={16}/></button>
                     <button type="button" onClick={() => toggleStatus(user)} title="تفعيل/تعطيل"><Lock size={16}/></button>
                     <button type="button" className="danger" onClick={() => removeStaff(user)} title="حذف"><Trash2 size={16}/></button>
@@ -5398,6 +5445,20 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
                       <option value="disabled">معطل</option>
                     </select>
                   </Control>
+                </div>
+                {!editingStaff && (
+                  <label className="staff-invite-toggle">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(form.inviteAfterSave)}
+                      onChange={e => setForm(prev => ({ ...prev, inviteAfterSave: e.target.checked }))}
+                    />
+                    <span>فتح رسالة دعوة جاهزة بالبريد بعد حفظ الموظف</span>
+                  </label>
+                )}
+                <div className="staff-invite-note">
+                  <Mail size={16}/>
+                  <p>الإرسال يتم من تطبيق البريد عندك برسالة جاهزة، لأن الإرسال التلقائي يحتاج ربط خدمة بريد آمنة لاحقًا.</p>
                 </div>
               </div>
 
