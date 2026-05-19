@@ -448,11 +448,25 @@ export default function App() {
     });
 
     const unsubProducts = onSnapshot(collection(db, "products"), async (snap) => {
+      const seedRef = doc(db, "store", "productsSeed");
+
       if (snap.empty) {
-        await Promise.all(defaultProducts.map(p => setDoc(doc(db, "products", p.id), p)));
-      } else {
-        setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const seedSnap = await getDoc(seedRef);
+
+        if (!seedSnap.exists()) {
+          await Promise.all([
+            ...defaultProducts.map(p => setDoc(doc(db, "products", p.id), p)),
+            setDoc(seedRef, { seeded: true, seededAt: serverTimestamp() }, { merge: true })
+          ]);
+        } else {
+          setProducts([]);
+        }
+
+        return;
       }
+
+      await setDoc(seedRef, { seeded: true, updatedAt: serverTimestamp() }, { merge: true });
+      setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
     return () => {
@@ -2708,6 +2722,25 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     }
   };
 
+  const deleteProduct = async (product) => {
+    if (!product?.id) return;
+
+    const ok = window.confirm(`هل أنت متأكد من حذف المنتج: ${product.name || "بدون اسم"}؟`);
+    if (!ok) return;
+
+    try {
+      await deleteDoc(doc(db, "products", product.id));
+      setEditing(current => current?.id === product.id ? null : current);
+      setSelectedProducts(prev => prev.filter(id => id !== product.id));
+      setNotice("تم حذف المنتج بنجاح");
+      setTimeout(() => setNotice(""), 2400);
+    } catch (error) {
+      console.error("Delete product failed:", error);
+      setNotice("تعذر حذف المنتج. تأكد من الاتصال والصلاحيات ثم حاول مرة أخرى.");
+      setTimeout(() => setNotice(""), 4000);
+    }
+  };
+
   const quickUpdateProduct = async (id, patch) => {
     try {
       await setDoc(doc(db, "products", id), patch, { merge: true });
@@ -4477,7 +4510,7 @@ return (
                         </label>
                         <button onClick={()=>openProductEditor(p)}><Pencil size={16}/> تعديل كامل</button>
                         <button type="button" onClick={()=>duplicateProduct(p)}><Plus size={16}/> نسخ</button>
-                        <button className="danger" onClick={()=>deleteDoc(doc(db, "products", p.id))}><Trash2 size={16}/> حذف</button>
+                        <button className="danger" onClick={() => deleteProduct(p)}><Trash2 size={16}/> حذف</button>
                       </div>
                     </div>
                   </div>
