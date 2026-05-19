@@ -75,6 +75,18 @@ const normalizeStaffPermissions = (permissions = []) => {
   return [...new Set(normalized)].filter(key => ADMIN_PERMISSION_LABELS[key]);
 };
 
+const isStaffDeleted = (user = {}) => {
+  const record = user || {};
+  return Boolean(record.isDeleted || record.deleted) ||
+    record.status === "deleted" ||
+    record.status === "removed";
+};
+
+const isStaffDisabled = (user = {}) => {
+  const record = user || {};
+  return isStaffDeleted(record) || record.status === "disabled" || Boolean(record.disabled);
+};
+
 const generateStaffTemporaryPassword = () => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
   let password = "Gd-";
@@ -488,7 +500,18 @@ export default function App() {
       setIsAdmin(false);
       if (u) {
         const adminDoc = await getDoc(doc(db, "admins", u.uid));
-        setIsAdmin(adminDoc.exists());
+        const adminData = adminDoc.exists() ? (adminDoc.data() || {}) : null;
+        let adminAllowed = Boolean(adminDoc.exists() && !isStaffDisabled(adminData));
+        if (adminAllowed && adminData?.staffUser) {
+          const staffByUid = await getDoc(doc(db, "staffUsers", u.uid));
+          let staffRecord = staffByUid.exists() ? { id: u.uid, ...(staffByUid.data() || {}) } : null;
+          if (!staffRecord && u.email) {
+            const staffByEmail = await getDocs(query(collection(db, "staffUsers"), where("email", "==", String(u.email).toLowerCase())));
+            staffRecord = staffByEmail.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) })).find((item) => !isStaffDisabled(item)) || null;
+          }
+          adminAllowed = Boolean(staffRecord && !isStaffDisabled(staffRecord));
+        }
+        setIsAdmin(adminAllowed);
         const customerDoc = await getDoc(doc(db, "customers", u.uid));
         if (customerDoc.exists()) setCustomer({ id: u.uid, ...customerDoc.data() });
       }
@@ -645,21 +668,31 @@ function AdminLogin({ go, settings }) {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const adminSnap = await getDoc(doc(db, "admins", cred.user.uid));
+      const adminData = adminSnap.exists() ? (adminSnap.data() || {}) : null;
+      const adminBlocked = Boolean(
+        adminData?.disabled ||
+        adminData?.isDeleted ||
+        adminData?.deleted ||
+        adminData?.status === "deleted" ||
+        adminData?.status === "disabled"
+      );
+
       const staffByUidSnap = await getDoc(doc(db, "staffUsers", cred.user.uid));
       let staffRecord = staffByUidSnap.exists() ? { id: cred.user.uid, ...staffByUidSnap.data() } : null;
 
-      if (!staffRecord) {
-        const staffByEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
-        if (!staffByEmailSnap.empty) {
-          const firstStaffDoc = staffByEmailSnap.docs[0];
-          staffRecord = { id: firstStaffDoc.id, ...firstStaffDoc.data() };
-        }
+      const staffByEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
+      const emailStaffRecords = staffByEmailSnap.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }));
+      const activeEmailStaff = emailStaffRecords.find((item) => !isStaffDisabled(item));
+      if (!staffRecord || isStaffDisabled(staffRecord)) {
+        staffRecord = activeEmailStaff || staffRecord;
       }
 
-      const canEnterAsStaff = staffRecord && staffRecord.status !== "disabled" && staffRecord.status !== "deleted" && !staffRecord.isDeleted;
-      if (!adminSnap.exists() && !canEnterAsStaff) {
+      const canEnterAsStaff = Boolean(staffRecord && !isStaffDisabled(staffRecord));
+      const isStaffAdminAccount = Boolean(adminData?.staffUser || staffRecord);
+
+      if (adminBlocked || (!adminSnap.exists() && !canEnterAsStaff) || (isStaffAdminAccount && !canEnterAsStaff)) {
         await signOut(auth);
-        setMessage("هذا الحساب غير مصرح له بدخول لوحة التحكم.");
+        setMessage("هذا الحساب غير مصرح له بدخول لوحة التحكم أو تم حذفه/تعطيله.");
         return;
       }
 
@@ -2737,7 +2770,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
       const rows = snapshot.docs
         .map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }))
-        .filter((staffUser) => staffUser.status !== "deleted" && !staffUser.isDeleted)
+        .filter((staffUser) => !isStaffDeleted(staffUser))
         .sort((a, b) => {
           if (a.isOwner && !b.isOwner) return -1;
           if (!a.isOwner && b.isOwner) return 1;
@@ -3559,7 +3592,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     if (!staffUsers.length) return Object.keys(ADMIN_PERMISSION_LABELS);
     if (!currentStaffProfile) return Object.keys(ADMIN_PERMISSION_LABELS);
     if (currentStaffProfile.isOwner || currentStaffProfile.role === "owner") return Object.keys(ADMIN_PERMISSION_LABELS);
-    if (currentStaffProfile.status === "disabled") return [];
+    if (isStaffDisabled(currentStaffProfile)) return [];
     return normalizeStaffPermissions(currentStaffProfile.permissions);
   }, [staffUsers, currentStaffProfile]);
 
@@ -5264,23 +5297,33 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [hiddenDeletedStaffKeys, setHiddenDeletedStaffKeys] = useState([]);
+
+  const visibleStaffUsers = useMemo(() => {
+    const hidden = new Set(hiddenDeletedStaffKeys.filter(Boolean).map(item => String(item).toLowerCase()));
+    return staffUsers.filter(user => {
+      if (isStaffDeleted(user)) return false;
+      const keys = [user.id, user.authUid, user.email].filter(Boolean).map(item => String(item).toLowerCase());
+      return !keys.some(key => hidden.has(key));
+    });
+  }, [staffUsers, hiddenDeletedStaffKeys]);
 
   const stats = useMemo(() => ({
-    total: staffUsers.length,
-    active: staffUsers.filter(user => user.status !== "disabled").length,
-    disabled: staffUsers.filter(user => user.status === "disabled").length,
-    owners: staffUsers.filter(user => user.isOwner || user.role === "owner").length
-  }), [staffUsers]);
+    total: visibleStaffUsers.length,
+    active: visibleStaffUsers.filter(user => user.status !== "disabled").length,
+    disabled: visibleStaffUsers.filter(user => user.status === "disabled").length,
+    owners: visibleStaffUsers.filter(user => user.isOwner || user.role === "owner").length
+  }), [visibleStaffUsers]);
 
   const filteredStaff = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return staffUsers.filter(user => {
+    return visibleStaffUsers.filter(user => {
       const haystack = [user.name, user.email, user.phone, roleLabels[user.role]].join(" ").toLowerCase();
       const matchesSearch = !q || haystack.includes(q);
       const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? user.status !== "disabled" : user.status === "disabled");
       return matchesSearch && matchesStatus;
     });
-  }, [staffUsers, search, statusFilter]);
+  }, [visibleStaffUsers, search, statusFilter]);
 
   const openCreate = () => {
     setEditingStaff(null);
@@ -5487,6 +5530,15 @@ ${invite.body}`;
     }
     const nextStatus = user.status === "disabled" ? "active" : "disabled";
     await setDoc(doc(db, "staffUsers", user.id), { status: nextStatus, updatedAt: serverTimestamp() }, { merge: true });
+    const adminDocId = user.authUid || user.id;
+    if (adminDocId) {
+      await setDoc(doc(db, "admins", adminDocId), {
+        status: nextStatus,
+        disabled: nextStatus === "disabled",
+        permissions: nextStatus === "disabled" ? [] : normalizeStaffPermissions(user.permissions),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
     onNotice(nextStatus === "disabled" ? "تم تعطيل حساب الموظف" : "تم تفعيل حساب الموظف");
   };
 
@@ -5497,35 +5549,63 @@ ${invite.body}`;
     }
     if (!window.confirm(`حذف الموظف ${user.name || user.email}؟`)) return;
 
+    const email = String(user.email || "").trim().toLowerCase();
+    const localHideKeys = [user.id, user.authUid, email].filter(Boolean);
+
+    // إخفاء فوري من الجدول حتى لو تأخر onSnapshot في Firebase.
+    setHiddenDeletedStaffKeys(prev => [...new Set([...prev, ...localHideKeys])]);
+
     try {
-      const adminDocId = user.authUid || user.id;
+      const idsToDisable = new Set([user.id, user.authUid].filter(Boolean));
+      const matchingStaffDocs = [];
 
-      // نحذف ظهوره من لوحة التحكم بطريقة آمنة حتى لو Firebase لا يسمح بحذف حساب Auth من الواجهة.
-      await setDoc(doc(db, "staffUsers", user.id), {
-        status: "deleted",
-        isDeleted: true,
-        deletedAtMs: Date.now(),
-        deletedAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      // نلغي صلاحية الدخول من سجل الأدمن إن وجد. فشل هذه الخطوة لا يمنع اختفاء الموظف من الجدول.
-      if (adminDocId) {
-        try {
-          await setDoc(doc(db, "admins", adminDocId), {
-            disabled: true,
-            status: "deleted",
-            permissions: [],
-            deletedAtMs: Date.now(),
-            updatedAt: serverTimestamp()
-          }, { merge: true });
-        } catch (adminError) {
-          console.warn("Could not disable admin profile", adminError);
-        }
+      if (email) {
+        const sameEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
+        sameEmailSnap.docs.forEach((staffDoc) => {
+          idsToDisable.add(staffDoc.id);
+          const data = staffDoc.data() || {};
+          if (data.authUid) idsToDisable.add(data.authUid);
+          matchingStaffDocs.push({ id: staffDoc.id, ...data });
+        });
       }
 
-      onNotice("تم حذف الموظف من لوحة التحكم وتعطيل صلاحياته");
+      const staffDocIds = new Set([user.id, ...matchingStaffDocs.map((item) => item.id)].filter(Boolean));
+      if (!staffDocIds.size && user.id) staffDocIds.add(user.id);
+
+      // نحذف مستند الموظف من staffUsers حتى يختفي فعليًا من الجدول.
+      // وإذا رفضت قواعد Firebase الحذف، نرجع لـ soft delete كخطة بديلة.
+      await Promise.all([...staffDocIds].map(async (staffDocId) => {
+        try {
+          await deleteDoc(doc(db, "staffUsers", staffDocId));
+        } catch (deleteError) {
+          await setDoc(doc(db, "staffUsers", staffDocId), {
+            status: "deleted",
+            isDeleted: true,
+            deleted: true,
+            disabled: true,
+            permissions: [],
+            deletedAtMs: Date.now(),
+            deletedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        }
+      }));
+
+      await Promise.all([...idsToDisable].map((adminDocId) => setDoc(doc(db, "admins", adminDocId), {
+        staffUser: true,
+        status: "deleted",
+        disabled: true,
+        isDeleted: true,
+        deleted: true,
+        permissions: [],
+        deletedAtMs: Date.now(),
+        updatedAt: serverTimestamp()
+      }, { merge: true })));
+
+      onNotice("تم حذف الموظف من الجدول وتعطيل دخوله للوحة التحكم");
     } catch (error) {
+      // لو فشلت العملية نرجع إظهاره بدل ما يختفي محليًا فقط.
+      setHiddenDeletedStaffKeys(prev => prev.filter(key => !localHideKeys.includes(key)));
       onNotice(firebaseError(error));
     }
   };
