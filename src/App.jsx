@@ -1789,7 +1789,14 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
             <p className="product-short-description">{product.description || "منتج مختار بعناية من المتجر."}</p>
 
             <div className="product-feature-list">
-              {fallbackFeatures.slice(0, 4).map((feature, index) => <span key={`${feature}-${index}`}>✓ {feature}</span>)}
+              {fallbackFeatures.slice(0, 3).map((feature, index) => <span key={`${feature}-${index}`}>✓ {feature}</span>)}
+            </div>
+
+            <div className="product-compact-specs" aria-label="ملخص المنتج">
+              <p><span>التوصيل</span><b>24 - 48 ساعة</b></p>
+              <p><span>الاسترجاع</span><b>حسب سياسة المتجر</b></p>
+              <p><span>التوفر</span><b>{stock > 0 ? "متوفر" : "غير متوفر"}</b></p>
+              {product.sku && <p><span>الكود</span><b>{product.sku}</b></p>}
             </div>
           </section>
 
