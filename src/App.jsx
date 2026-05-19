@@ -12,7 +12,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  updateProfile
+  updateProfile,
+  updatePassword
 } from "firebase/auth";
 import {
   collection, doc, getDoc, setDoc, onSnapshot, deleteDoc, serverTimestamp,
@@ -698,6 +699,81 @@ function AdminLogin({ go, settings }) {
         <button type="button" className="admin-secondary" onClick={() => go("/")}>رجوع للمتجر</button>
       </form>
     </AuthShell>
+  );
+}
+
+function StaffTemporaryPasswordGate({ staffProfile, settings }) {
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event) {
+    event.preventDefault();
+    setMessage("");
+    const newPassword = event.target.newPassword.value;
+    const confirmPassword = event.target.confirmPassword.value;
+
+    if (newPassword.length < 8) {
+      setMessage("كلمة المرور الجديدة يجب أن تكون 8 أحرف أو أكثر");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setMessage("تأكيد كلمة المرور غير مطابق");
+      return;
+    }
+
+    try {
+      setBusy(true);
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("no-current-user");
+
+      await updatePassword(currentUser, newPassword);
+      await setDoc(doc(db, "staffUsers", currentUser.uid), {
+        mustChangePassword: false,
+        invitePassword: "",
+        invitationStatus: "accepted",
+        passwordChangedAtMs: Date.now(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      await setDoc(doc(db, "admins", currentUser.uid), {
+        mustChangePassword: false,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      setMessage("تم تغيير كلمة المرور بنجاح. جاري فتح لوحة التحكم...");
+    } catch (error) {
+      if (error?.code === "auth/requires-recent-login") {
+        setMessage("انتهت صلاحية جلسة الدخول. سجّل خروج ثم ادخل بكلمة المرور المؤقتة وحاول مرة أخرى.");
+      } else {
+        setMessage(firebaseError(error));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="login-page staff-password-gate" dir="rtl">
+      <div className="login-card staff-password-card">
+        <div className="login-brand-mark">
+          {settings?.logo ? <img src={settings.logo} alt="logo"/> : <ShieldCheck size={34}/>}
+        </div>
+        <span className="staff-password-eyebrow">حماية الحساب</span>
+        <h1>غيّر كلمة المرور المؤقتة</h1>
+        <p>مرحبًا {staffProfile?.name || auth.currentUser?.email || ""}، قبل استخدام لوحة التحكم لازم تختار كلمة مرور جديدة خاصة بك.</p>
+        <form onSubmit={submit} className="login-form staff-password-form">
+          <label>
+            <span><Lock size={16}/> كلمة المرور الجديدة</span>
+            <input name="newPassword" type="password" minLength="8" required placeholder="8 أحرف أو أكثر" autoComplete="new-password" />
+          </label>
+          <label>
+            <span><Lock size={16}/> تأكيد كلمة المرور</span>
+            <input name="confirmPassword" type="password" minLength="8" required placeholder="أعد كتابة كلمة المرور" autoComplete="new-password" />
+          </label>
+          <button className="admin-primary" disabled={busy}>{busy ? "جاري الحفظ..." : "حفظ وفتح لوحة التحكم"}</button>
+          <button type="button" className="admin-secondary" onClick={() => signOut(auth)}>تسجيل خروج</button>
+          {message && <p className="auth-message">{message}</p>}
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -3528,6 +3604,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     </section>
   );
 
+  if (currentStaffProfile?.mustChangePassword && !currentStaffProfile?.isOwner) {
+    return <StaffTemporaryPasswordGate staffProfile={currentStaffProfile} settings={settings} />;
+  }
+
 return (
     <div className={`admin admin-lang-${adminLanguage}`} dir={adminLanguage === "ar" ? "rtl" : "ltr"}>
       <aside className="admin-sidebar">
@@ -5371,6 +5451,7 @@ ${invite.body}`;
       authUid,
       invitationToken,
       invitePassword: temporaryPassword,
+      mustChangePassword: editingStaff ? Boolean(editingStaff.mustChangePassword) : true,
       invitationStatus: editingStaff?.invitationStatus || (form.inviteAfterSave ? "pending" : "created"),
       invitedAtMs: form.inviteAfterSave ? Date.now() : (editingStaff?.invitedAtMs || null),
       createdAtMs: editingStaff?.createdAtMs || Date.now(),
@@ -5384,6 +5465,7 @@ ${invite.body}`;
         role: payload.role,
         permissions: payload.permissions,
         staffUser: true,
+        mustChangePassword: payload.mustChangePassword,
         updatedAt: serverTimestamp()
       }, { merge: true });
     }
