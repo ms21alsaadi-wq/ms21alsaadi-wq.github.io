@@ -5195,6 +5195,25 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     });
   };
 
+  const addPermission = (permission) => {
+    if (!permission || editingStaff?.isOwner) return;
+    setForm(prev => {
+      const current = new Set(normalizeStaffPermissions(prev.permissions));
+      current.add(permission);
+      return { ...prev, permissions: [...current] };
+    });
+  };
+
+  const removePermission = (permission) => {
+    if (editingStaff?.isOwner) return;
+    setForm(prev => ({
+      ...prev,
+      permissions: normalizeStaffPermissions(prev.permissions).filter(item => item !== permission)
+    }));
+  };
+
+  const selectedPermissions = normalizeStaffPermissions(form.permissions);
+
   const saveStaff = async (event) => {
     event.preventDefault();
     const email = form.email.trim().toLowerCase();
@@ -5382,41 +5401,39 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
                 </div>
               </div>
 
-              <div className="staff-permission-box">
+              <div className="staff-permission-box staff-permission-badges-box">
                 <div className="staff-modal-section-title">
                   <span>Access</span>
                   <h3>صلاحيات الموظف</h3>
-                  <p>حدد الأقسام التي يستطيع الموظف الوصول إليها داخل لوحة التحكم.</p>
+                  <p>أضف صلاحيات الموظف كشرائح صغيرة بدل جدول طويل داخل النافذة.</p>
                 </div>
-                <div className="staff-permission-table-wrap modal-table">
-                <table className="staff-permission-table">
-                  <thead>
-                    <tr>
-                      <th>القسم</th>
-                      <th>ما الذي يسمح به؟</th>
-                      <th>السماح</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(permissionLabels).map(([key, label]) => (
-                      <tr key={key}>
-                        <td><b>{label}</b></td>
-                        <td>{permissionDescriptions[key] || "الوصول إلى هذا القسم"}</td>
-                        <td>
-                          <label className="staff-permission-switch">
-                            <input
-                              type="checkbox"
-                              checked={Boolean(normalizeStaffPermissions(form.permissions).includes(key) || editingStaff?.isOwner)}
-                              disabled={Boolean(editingStaff?.isOwner)}
-                              onChange={() => togglePermission(key)}
-                            />
-                            <span>{normalizeStaffPermissions(form.permissions).includes(key) || editingStaff?.isOwner ? "مسموح" : "ممنوع"}</span>
-                          </label>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+
+                <Control label="إضافة صلاحية">
+                  <select
+                    value=""
+                    onChange={e => addPermission(e.target.value)}
+                    disabled={Boolean(editingStaff?.isOwner)}
+                  >
+                    <option value="">اختر صلاحية لإضافتها</option>
+                    {Object.entries(permissionLabels)
+                      .filter(([key]) => !selectedPermissions.includes(key))
+                      .map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                  </select>
+                </Control>
+
+                <div className="staff-permission-badges">
+                  {(editingStaff?.isOwner ? Object.keys(permissionLabels) : selectedPermissions).length ? (
+                    (editingStaff?.isOwner ? Object.keys(permissionLabels) : selectedPermissions).map(permission => (
+                      <span key={permission} className="staff-permission-badge" title={permissionDescriptions[permission] || "الوصول إلى هذا القسم"}>
+                        {permissionLabels[permission] || permission}
+                        {!editingStaff?.isOwner && (
+                          <button type="button" onClick={() => removePermission(permission)} aria-label={`حذف صلاحية ${permissionLabels[permission] || permission}`}>×</button>
+                        )}
+                      </span>
+                    ))
+                  ) : (
+                    <em className="staff-permission-empty">لم تتم إضافة أي صلاحية بعد</em>
+                  )}
                 </div>
               </div>
             </div>
