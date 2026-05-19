@@ -1017,7 +1017,7 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
             </div>
             <div className="cart-foot">
               <div className="coupon-box">
-                <label>{t("discountCode")}</label>
+                <label>كود الخصم</label>
                 <div className="coupon-input-row">
                   <input
                     value={couponCode}
@@ -1714,7 +1714,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                     .map(coupon => (
                       <div className={`customer-coupon-card ${couponClass(coupon)}`} key={coupon.id}>
                         <div>
-                          <span>{t("discountCode")}</span>
+                          <span>كود الخصم</span>
                           <h3>{coupon.code}</h3>
                           <p>خصم {coupon.percent}%</p>
                         </div>
