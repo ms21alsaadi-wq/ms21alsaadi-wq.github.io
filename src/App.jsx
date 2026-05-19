@@ -2550,6 +2550,43 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [showLiveVisitors, setShowLiveVisitors] = useState(false);
   const [liveEvents, setLiveEvents] = useState([]);
   const [funnelStats, setFunnelStats] = useState({ visit_store:0, view_product:0, add_to_cart:0, checkout:0, purchase:0 });
+  const [staffUsers, setStaffUsers] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "staffUsers"), async (snapshot) => {
+      if (snapshot.empty) {
+        const currentAdmin = auth.currentUser;
+        if (currentAdmin?.uid) {
+          await setDoc(doc(db, "staffUsers", currentAdmin.uid), {
+            name: currentAdmin.displayName || "مالك المتجر",
+            email: currentAdmin.email || "",
+            phone: "",
+            role: "owner",
+            permissions: ["dashboard", "products", "orders", "customers", "coupons", "pages", "settings", "users"],
+            status: "active",
+            isOwner: true,
+            lastLogin: Date.now(),
+            createdAtMs: Date.now(),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        }
+        setStaffUsers([]);
+        return;
+      }
+
+      const rows = snapshot.docs
+        .map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }))
+        .sort((a, b) => {
+          if (a.isOwner && !b.isOwner) return -1;
+          if (!a.isOwner && b.isOwner) return 1;
+          return Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0);
+        });
+
+      setStaffUsers(rows);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     setDraftSettings(settings);
@@ -4829,15 +4866,10 @@ return (
         )}
 
         {tab === "users" && (
-          <section className="admin-card admin-placeholder-page">
-            <div className="pro-card-head">
-              <div>
-                <span>Admin Users</span>
-                <h2>المستخدمين</h2>
-                <p>إدارة مستخدمي لوحة التحكم والصلاحيات ستضاف هنا.</p>
-              </div>
-            </div>
-          </section>
+          <StaffUsersPanel
+            staffUsers={staffUsers}
+            onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }}
+          />
         )}
 
         {tab === "settings" && (
@@ -4969,6 +5001,293 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
   );
 }
 
+
+
+function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
+  const emptyForm = {
+    name: "",
+    email: "",
+    phone: "",
+    role: "products",
+    permissions: ["products"],
+    status: "active"
+  };
+
+  const roleLabels = {
+    owner: "مالك المتجر",
+    manager: "مدير",
+    products: "موظف منتجات",
+    orders: "موظف طلبات",
+    content: "موظف محتوى",
+    support: "دعم عملاء"
+  };
+
+  const permissionLabels = {
+    dashboard: "لوحة التحكم",
+    products: "المنتجات",
+    orders: "الطلبات",
+    customers: "العملاء",
+    coupons: "الكوبونات",
+    pages: "الصفحات",
+    settings: "الإعدادات",
+    users: "المستخدمين"
+  };
+
+  const roleDefaults = {
+    owner: Object.keys(permissionLabels),
+    manager: Object.keys(permissionLabels).filter(key => key !== "users"),
+    products: ["dashboard", "products"],
+    orders: ["dashboard", "orders", "customers"],
+    content: ["dashboard", "pages", "products"],
+    support: ["dashboard", "orders", "customers"]
+  };
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+
+  const stats = useMemo(() => ({
+    total: staffUsers.length,
+    active: staffUsers.filter(user => user.status !== "disabled").length,
+    disabled: staffUsers.filter(user => user.status === "disabled").length,
+    owners: staffUsers.filter(user => user.isOwner || user.role === "owner").length
+  }), [staffUsers]);
+
+  const filteredStaff = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return staffUsers.filter(user => {
+      const haystack = [user.name, user.email, user.phone, roleLabels[user.role]].join(" ").toLowerCase();
+      const matchesSearch = !q || haystack.includes(q);
+      const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? user.status !== "disabled" : user.status === "disabled");
+      return matchesSearch && matchesStatus;
+    });
+  }, [staffUsers, search, statusFilter]);
+
+  const openCreate = () => {
+    setEditingStaff(null);
+    setForm(emptyForm);
+    setModalOpen(true);
+  };
+
+  const openEdit = (user) => {
+    setEditingStaff(user);
+    setForm({
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      role: user.role || "products",
+      permissions: Array.isArray(user.permissions) ? user.permissions : [],
+      status: user.status || "active"
+    });
+    setModalOpen(true);
+  };
+
+  const setRole = (role) => {
+    setForm(prev => ({
+      ...prev,
+      role,
+      permissions: roleDefaults[role] || prev.permissions
+    }));
+  };
+
+  const togglePermission = (permission) => {
+    setForm(prev => {
+      const current = new Set(prev.permissions || []);
+      if (current.has(permission)) current.delete(permission);
+      else current.add(permission);
+      return { ...prev, permissions: [...current] };
+    });
+  };
+
+  const saveStaff = async (event) => {
+    event.preventDefault();
+    const email = form.email.trim().toLowerCase();
+    if (!form.name.trim() || !email) {
+      onNotice("اكتب اسم الموظف والبريد الإلكتروني");
+      return;
+    }
+
+    const staffId = editingStaff?.id || `staff-${Date.now()}`;
+    const isOwner = Boolean(editingStaff?.isOwner || form.role === "owner");
+    const payload = {
+      name: form.name.trim(),
+      email,
+      phone: form.phone.trim(),
+      role: isOwner ? "owner" : form.role,
+      permissions: isOwner ? Object.keys(permissionLabels) : form.permissions,
+      status: isOwner ? "active" : form.status,
+      isOwner,
+      createdAtMs: editingStaff?.createdAtMs || Date.now(),
+      updatedAt: serverTimestamp()
+    };
+
+    await setDoc(doc(db, "staffUsers", staffId), payload, { merge: true });
+    setModalOpen(false);
+    setEditingStaff(null);
+    setForm(emptyForm);
+    onNotice(editingStaff ? "تم تحديث بيانات الموظف" : "تمت إضافة الموظف");
+  };
+
+  const toggleStatus = async (user) => {
+    if (user.isOwner || user.role === "owner") {
+      onNotice("لا يمكن تعطيل مالك المتجر");
+      return;
+    }
+    const nextStatus = user.status === "disabled" ? "active" : "disabled";
+    await setDoc(doc(db, "staffUsers", user.id), { status: nextStatus, updatedAt: serverTimestamp() }, { merge: true });
+    onNotice(nextStatus === "disabled" ? "تم تعطيل حساب الموظف" : "تم تفعيل حساب الموظف");
+  };
+
+  const removeStaff = async (user) => {
+    if (user.isOwner || user.role === "owner") {
+      onNotice("لا يمكن حذف مالك المتجر");
+      return;
+    }
+    if (!window.confirm(`حذف الموظف ${user.name || user.email}؟`)) return;
+    await deleteDoc(doc(db, "staffUsers", user.id));
+    onNotice("تم حذف الموظف");
+  };
+
+  return (
+    <section className="admin-card staff-admin-page">
+      <div className="pro-card-head staff-head">
+        <div>
+          <span>Team Access</span>
+          <h2>المستخدمين والموظفين</h2>
+          <p>إدارة الموظفين الذين يدخلون لوحة التحكم وتحديد صلاحيات كل موظف.</p>
+        </div>
+        <button type="button" className="admin-primary" onClick={openCreate}><Plus size={18}/> إضافة موظف</button>
+      </div>
+
+      <div className="staff-stats-grid">
+        <div><b>{stats.total}</b><span>إجمالي الموظفين</span></div>
+        <div><b>{stats.active}</b><span>نشط</span></div>
+        <div><b>{stats.disabled}</b><span>معطل</span></div>
+        <div><b>{stats.owners}</b><span>مالك المتجر</span></div>
+      </div>
+
+      <div className="staff-toolbar">
+        <label className="admin-search-field">
+          <Search size={17}/>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث بالاسم أو البريد أو الجوال" />
+        </label>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="all">كل الحالات</option>
+          <option value="active">نشط</option>
+          <option value="disabled">معطل</option>
+        </select>
+      </div>
+
+      <div className="staff-table-wrap">
+        <table className="staff-table">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>البريد</th>
+              <th>الجوال</th>
+              <th>الدور</th>
+              <th>الصلاحيات</th>
+              <th>الحالة</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredStaff.length ? filteredStaff.map(user => (
+              <tr key={user.id}>
+                <td>
+                  <div className="staff-person">
+                    <span>{(user.name || user.email || "م").slice(0, 1)}</span>
+                    <div><b>{user.name || "بدون اسم"}</b>{user.isOwner && <em>مالك المتجر</em>}</div>
+                  </div>
+                </td>
+                <td>{user.email || "-"}</td>
+                <td>{user.phone || "-"}</td>
+                <td><span className="staff-role-chip">{roleLabels[user.role] || user.role || "موظف"}</span></td>
+                <td>
+                  <div className="staff-permissions-preview">
+                    {(user.permissions || []).slice(0, 3).map(permission => <span key={permission}>{permissionLabels[permission] || permission}</span>)}
+                    {(user.permissions || []).length > 3 && <span>+{(user.permissions || []).length - 3}</span>}
+                  </div>
+                </td>
+                <td><span className={user.status === "disabled" ? "staff-status off" : "staff-status on"}>{user.status === "disabled" ? "معطل" : "نشط"}</span></td>
+                <td>
+                  <div className="staff-actions">
+                    <button type="button" onClick={() => openEdit(user)} title="تعديل"><Pencil size={16}/></button>
+                    <button type="button" onClick={() => toggleStatus(user)} title="تفعيل/تعطيل"><Lock size={16}/></button>
+                    <button type="button" className="danger" onClick={() => removeStaff(user)} title="حذف"><Trash2 size={16}/></button>
+                  </div>
+                </td>
+              </tr>
+            )) : (
+              <tr><td colSpan="7" className="staff-empty">لا يوجد موظفون مطابقون للبحث</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {modalOpen && (
+        <div className="product-modal-backdrop" onClick={() => setModalOpen(false)}>
+          <form className="product-modal-shell staff-modal-card" onSubmit={saveStaff} onClick={e => e.stopPropagation()}>
+            <div className="product-modal-head">
+              <div>
+                <span>Staff User</span>
+                <h2>{editingStaff ? "تعديل موظف" : "إضافة موظف"}</h2>
+                <p>أضف بيانات الموظف وحدد الدور والصلاحيات المناسبة له.</p>
+              </div>
+              <button type="button" onClick={() => setModalOpen(false)}><X size={18}/></button>
+            </div>
+
+            <div className="staff-form-grid">
+              <Control label="اسم الموظف"><input value={form.name} onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))} placeholder="مثال: محمد أحمد" /></Control>
+              <Control label="البريد الإلكتروني"><input type="email" value={form.email} onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))} placeholder="name@example.com" disabled={Boolean(editingStaff?.isOwner)} /></Control>
+              <Control label="رقم الجوال"><input value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="05xxxxxxxx" /></Control>
+              <Control label="الدور">
+                <select value={form.role} onChange={e => setRole(e.target.value)} disabled={Boolean(editingStaff?.isOwner)}>
+                  <option value="manager">مدير</option>
+                  <option value="products">موظف منتجات</option>
+                  <option value="orders">موظف طلبات</option>
+                  <option value="content">موظف محتوى</option>
+                  <option value="support">دعم عملاء</option>
+                </select>
+              </Control>
+              <Control label="الحالة">
+                <select value={form.status} onChange={e => setForm(prev => ({ ...prev, status: e.target.value }))} disabled={Boolean(editingStaff?.isOwner)}>
+                  <option value="active">نشط</option>
+                  <option value="disabled">معطل</option>
+                </select>
+              </Control>
+            </div>
+
+            <div className="staff-permission-box">
+              <h3>الصلاحيات</h3>
+              <p>حدد الأقسام التي يستطيع الموظف الوصول إليها داخل لوحة التحكم.</p>
+              <div className="staff-permission-grid">
+                {Object.entries(permissionLabels).map(([key, label]) => (
+                  <label key={key} className="staff-permission-item">
+                    <input
+                      type="checkbox"
+                      checked={Boolean((form.permissions || []).includes(key) || editingStaff?.isOwner)}
+                      disabled={Boolean(editingStaff?.isOwner)}
+                      onChange={() => togglePermission(key)}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="product-modal-actions">
+              <button type="button" className="admin-secondary" onClick={() => setModalOpen(false)}>إلغاء</button>
+              <button type="submit" className="admin-primary"><Save size={17}/> حفظ الموظف</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function CustomersPanel({ customers, orders }) {
   const [selected, setSelected] = useState(null);
