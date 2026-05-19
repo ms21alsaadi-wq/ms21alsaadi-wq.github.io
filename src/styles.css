@@ -13948,12 +13948,38 @@ button.product-flat-top-btn:hover svg{
   flex-wrap:wrap!important;
 }
 .staff-actions button[title="إرسال دعوة"],
-.staff-actions button[title="نسخ رابط الدعوة"]{
+.staff-actions button[title="نسخ نص الدعوة"]{
   background:#f1f6ef!important;
   color:#0f4a35!important;
 }
 .staff-actions button[title="إرسال دعوة"]:hover,
-.staff-actions button[title="نسخ رابط الدعوة"]:hover{
+.staff-actions button[title="نسخ نص الدعوة"]:hover{
   background:#0f4a35!important;
   color:#fff!important;
+}
+
+/* Staff invite password row */
+.staff-password-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+}
+.staff-password-row input{
+  flex:1;
+  min-width:0;
+}
+.staff-password-row .admin-secondary{
+  height:42px;
+  padding:0 14px;
+  white-space:nowrap;
+}
+@media (max-width: 640px){
+  .staff-password-row{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .staff-password-row .admin-secondary{
+    width:100%;
+  }
 }

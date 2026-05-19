@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { initializeApp, deleteApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import {
   Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
   Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
@@ -14,9 +16,9 @@ import {
 } from "firebase/auth";
 import {
   collection, doc, getDoc, setDoc, onSnapshot, deleteDoc, serverTimestamp,
-  addDoc, query, orderBy, where
+  addDoc, query, orderBy, where, getDocs
 } from "firebase/firestore";
-import { auth, db } from "./firebase.js";
+import { auth, db, firebaseConfig } from "./firebase.js";
 import { STORE_WHATSAPP, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, defaultSettings, defaultProducts, palettes } from "./data/storeData";
 import { formatPrice, formatOrderDate, orderTimestamp, getTrackingUrl, orderStatusLabel, couponUsedByCustomer, sizesArray, uid, makePageSlug, normalizePageHref, getTrafficSource, formatDuration, getGoogleDriveFileId, normalizeVideoUrl, isGoogleDriveVideo, firebaseError } from "./utils/helpers";
 
@@ -70,6 +72,15 @@ const normalizeStaffPermissions = (permissions = []) => {
   const list = Array.isArray(permissions) ? permissions : [];
   const normalized = list.map(item => item === "pages" ? "homepage" : item);
   return [...new Set(normalized)].filter(key => ADMIN_PERMISSION_LABELS[key]);
+};
+
+const generateStaffTemporaryPassword = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  let password = "Gd-";
+  for (let i = 0; i < 9; i += 1) {
+    password += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return password + "!";
 };
 
 function cleanSeoText(value, fallback = "") {
@@ -633,11 +644,40 @@ function AdminLogin({ go, settings }) {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const adminSnap = await getDoc(doc(db, "admins", cred.user.uid));
+      const staffByUidSnap = await getDoc(doc(db, "staffUsers", cred.user.uid));
+      let staffRecord = staffByUidSnap.exists() ? { id: cred.user.uid, ...staffByUidSnap.data() } : null;
 
-      if (!adminSnap.exists()) {
+      if (!staffRecord) {
+        const staffByEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
+        if (!staffByEmailSnap.empty) {
+          const firstStaffDoc = staffByEmailSnap.docs[0];
+          staffRecord = { id: firstStaffDoc.id, ...firstStaffDoc.data() };
+        }
+      }
+
+      const canEnterAsStaff = staffRecord && staffRecord.status !== "disabled";
+      if (!adminSnap.exists() && !canEnterAsStaff) {
         await signOut(auth);
         setMessage("هذا الحساب غير مصرح له بدخول لوحة التحكم.");
         return;
+      }
+
+      if (canEnterAsStaff) {
+        await setDoc(doc(db, "staffUsers", cred.user.uid), {
+          ...staffRecord,
+          email,
+          authUid: cred.user.uid,
+          invitationStatus: "accepted",
+          lastLoginAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        await setDoc(doc(db, "admins", cred.user.uid), {
+          email,
+          role: staffRecord.role || "staff",
+          permissions: normalizeStaffPermissions(staffRecord.permissions),
+          staffUser: true,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
       }
     } catch (err) {
       setMessage(firebaseError(err));
@@ -651,7 +691,7 @@ function AdminLogin({ go, settings }) {
       subtitle="لوحة التحكم مخصصة لحسابات الأدمن المصرح لها فقط."
     >
       <form onSubmit={submit} className="login-form">
-        <label><span><Mail size={16}/> الإيميل</span><input name="email" type="email" required /></label>
+        <label><span><Mail size={16}/> الإيميل</span><input name="email" type="email" required defaultValue={new URLSearchParams(window.location.search).get("email") || ""} /></label>
         <label><span><Lock size={16}/> كلمة المرور</span><input name="password" type="password" required minLength="6" /></label>
         {message && <div className="error">{message}</div>}
         <button className="admin-primary">دخول</button>
@@ -5121,7 +5161,8 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     role: "products",
     permissions: ["products"],
     status: "active",
-    inviteAfterSave: true
+    inviteAfterSave: true,
+    tempPassword: generateStaffTemporaryPassword()
   };
 
   const roleLabels = {
@@ -5162,7 +5203,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
 
   const openCreate = () => {
     setEditingStaff(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, tempPassword: generateStaffTemporaryPassword() });
     setModalOpen(true);
   };
 
@@ -5175,7 +5216,8 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       role: user.role || "products",
       permissions: normalizeStaffPermissions(user.permissions),
       status: user.status || "active",
-      inviteAfterSave: false
+      inviteAfterSave: false,
+      tempPassword: user.invitePassword || ""
     });
     setModalOpen(true);
   };
@@ -5218,8 +5260,11 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
 
   const getAdminInviteUrl = (user = {}) => {
     const origin = window.location?.origin || "https://ms21alsaadi-wq-github-io.vercel.app";
-    const emailPart = user.email ? `?email=${encodeURIComponent(user.email)}` : "";
-    return `${origin}/admin${emailPart}`;
+    const params = new URLSearchParams();
+    if (user.email) params.set("email", user.email);
+    if (user.invitationToken) params.set("invite", user.invitationToken);
+    const queryString = params.toString();
+    return `${origin}/admin${queryString ? `?${queryString}` : ""}`;
   };
 
   const buildInviteMessage = (user = {}) => {
@@ -5229,7 +5274,26 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     return {
       url: inviteUrl,
       subject: `دعوة للانضمام إلى لوحة تحكم GREEN DIXAM`,
-      body: `مرحبًا ${user.name || ""}،\n\nتمت دعوتك للانضمام إلى لوحة تحكم متجر GREEN DIXAM.\n\nرابط الدخول:\n${inviteUrl}\n\nالدور:\n${roleName}\n\nالصلاحيات:\n${permissions}\n\nملاحظة: استخدم بريدك المسجل (${user.email || ""}) للدخول أو إنشاء الحساب.\n\nتحياتي`
+      body: `مرحبًا ${user.name || ""}،
+
+تمت دعوتك للانضمام إلى لوحة تحكم متجر GREEN DIXAM.
+
+رابط الدخول:
+${inviteUrl}
+
+بيانات الدخول:
+البريد: ${user.email || ""}
+كلمة المرور المؤقتة: ${user.invitePassword || "استخدم كلمة المرور التي تم تزويدك بها من مالك المتجر"}
+
+الدور:
+${roleName}
+
+الصلاحيات:
+${permissions}
+
+ملاحظة: هذه كلمة مرور مؤقتة خاصة بحساب لوحة التحكم.
+
+تحياتي`
     };
   };
 
@@ -5239,17 +5303,22 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       return;
     }
     const invite = buildInviteMessage(user);
-    window.location.href = `mailto:${encodeURIComponent(user.email)}?subject=${encodeURIComponent(invite.subject)}&body=${encodeURIComponent(invite.body)}`;
-    onNotice("تم فتح تطبيق البريد برسالة الدعوة الجاهزة");
+    const mailto = `mailto:${encodeURIComponent(user.email)}?subject=${encodeURIComponent(invite.subject)}&body=${encodeURIComponent(invite.body)}`;
+    const opened = window.open(mailto, "_blank", "noopener,noreferrer");
+    if (!opened) window.location.href = mailto;
+    onNotice("إذا لم يفتح البريد عندك، استخدم زر نسخ نص الدعوة وأرسلها يدويًا");
   };
 
   const copyInviteLink = async (user) => {
     const invite = buildInviteMessage(user);
+    const fullInviteText = `${invite.subject}
+
+${invite.body}`;
     try {
-      await navigator.clipboard.writeText(invite.url);
-      onNotice("تم نسخ رابط الدعوة");
+      await navigator.clipboard.writeText(fullInviteText);
+      onNotice("تم نسخ نص الدعوة كاملًا مع الرابط وكلمة المرور المؤقتة");
     } catch (error) {
-      window.prompt("انسخ رابط الدعوة", invite.url);
+      window.prompt("انسخ نص الدعوة", fullInviteText);
     }
   };
 
@@ -5261,8 +5330,36 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       return;
     }
 
-    const staffId = editingStaff?.id || `staff-${Date.now()}`;
+    let staffId = editingStaff?.id || `staff-${Date.now()}`;
+    let authUid = editingStaff?.authUid || (editingStaff?.id?.startsWith("staff-") ? "" : editingStaff?.id) || "";
     const isOwner = Boolean(editingStaff?.isOwner || form.role === "owner");
+    const invitationToken = editingStaff?.invitationToken || `invite-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    let temporaryPassword = editingStaff ? (editingStaff.invitePassword || "") : String(form.tempPassword || "").trim();
+
+    if (!editingStaff) {
+      if (temporaryPassword.length < 6) {
+        onNotice("كلمة المرور المؤقتة يجب أن تكون 6 أحرف أو أكثر");
+        return;
+      }
+      try {
+        const secondaryApp = initializeApp(firebaseConfig, `staffInviteApp-${Date.now()}`);
+        const secondaryAuth = getAuth(secondaryApp);
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, temporaryPassword);
+        authUid = cred.user.uid;
+        staffId = authUid;
+        await updateProfile(cred.user, { displayName: form.name.trim() });
+        await signOut(secondaryAuth);
+        await deleteApp(secondaryApp);
+      } catch (error) {
+        if (error?.code === "auth/email-already-in-use") {
+          onNotice("هذا البريد لديه حساب سابق. تم حفظ الموظف، لكن لا يمكن إنشاء كلمة مرور له من هنا. استخدم إعادة تعيين كلمة المرور من Firebase أو أرسل له كلمة مروره الحالية.");
+        } else {
+          onNotice(firebaseError(error));
+          return;
+        }
+      }
+    }
+
     const payload = {
       name: form.name.trim(),
       email,
@@ -5271,6 +5368,9 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       permissions: isOwner ? Object.keys(permissionLabels) : normalizeStaffPermissions(form.permissions),
       status: isOwner ? "active" : form.status,
       isOwner,
+      authUid,
+      invitationToken,
+      invitePassword: temporaryPassword,
       invitationStatus: editingStaff?.invitationStatus || (form.inviteAfterSave ? "pending" : "created"),
       invitedAtMs: form.inviteAfterSave ? Date.now() : (editingStaff?.invitedAtMs || null),
       createdAtMs: editingStaff?.createdAtMs || Date.now(),
@@ -5278,6 +5378,15 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     };
 
     await setDoc(doc(db, "staffUsers", staffId), payload, { merge: true });
+    if (authUid) {
+      await setDoc(doc(db, "admins", authUid), {
+        email,
+        role: payload.role,
+        permissions: payload.permissions,
+        staffUser: true,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
     setModalOpen(false);
     setEditingStaff(null);
     setForm(emptyForm);
@@ -5374,7 +5483,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
                 <td>
                   <div className="staff-actions">
                     <button type="button" onClick={() => openInviteEmail(user)} title="إرسال دعوة"><Mail size={16}/></button>
-                    <button type="button" onClick={() => copyInviteLink(user)} title="نسخ رابط الدعوة"><ExternalLink size={16}/></button>
+                    <button type="button" onClick={() => copyInviteLink(user)} title="نسخ نص الدعوة"><ExternalLink size={16}/></button>
                     <button type="button" onClick={() => openEdit(user)} title="تعديل"><Pencil size={16}/></button>
                     <button type="button" onClick={() => toggleStatus(user)} title="تفعيل/تعطيل"><Lock size={16}/></button>
                     <button type="button" className="danger" onClick={() => removeStaff(user)} title="حذف"><Trash2 size={16}/></button>
@@ -5429,6 +5538,14 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
                 <div className="staff-form-grid">
                   <Control label="اسم الموظف"><input value={form.name} onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))} placeholder="مثال: محمد أحمد" /></Control>
                   <Control label="البريد الإلكتروني"><input type="email" value={form.email} onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))} placeholder="name@example.com" disabled={Boolean(editingStaff?.isOwner)} /></Control>
+                  {!editingStaff && (
+                    <Control label="كلمة مرور مؤقتة">
+                      <div className="staff-password-row">
+                        <input value={form.tempPassword} onChange={e => setForm(prev => ({ ...prev, tempPassword: e.target.value }))} placeholder="كلمة مرور للموظف" minLength="6" />
+                        <button type="button" className="admin-secondary" onClick={() => setForm(prev => ({ ...prev, tempPassword: generateStaffTemporaryPassword() }))}>توليد</button>
+                      </div>
+                    </Control>
+                  )}
                   <Control label="رقم الجوال"><input value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="05xxxxxxxx" /></Control>
                   <Control label="الدور">
                     <select value={form.role} onChange={e => setRole(e.target.value)} disabled={Boolean(editingStaff?.isOwner)}>
@@ -5458,7 +5575,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
                 )}
                 <div className="staff-invite-note">
                   <Mail size={16}/>
-                  <p>الإرسال يتم من تطبيق البريد عندك برسالة جاهزة، لأن الإرسال التلقائي يحتاج ربط خدمة بريد آمنة لاحقًا.</p>
+                  <p>تمت إضافة كلمة مرور مؤقتة للموظف. زر الدعوة يفتح البريد إن كان جهازك يدعم ذلك، وزر النسخ ينسخ نص الدعوة كاملًا مع كلمة المرور.</p>
                 </div>
               </div>
 
