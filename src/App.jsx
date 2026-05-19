@@ -5465,44 +5465,54 @@ ${invite.body}`;
       return;
     }
 
-    let staffId = editingStaff?.id || `staff-${Date.now()}`;
-    let authUid = editingStaff?.authUid || (editingStaff?.id?.startsWith("staff-") ? "" : editingStaff?.id) || "";
-    let restoredDeletedStaff = null;
-    let accountAlreadyExists = false;
     const isOwner = Boolean(editingStaff?.isOwner || form.role === "owner");
-    const invitationToken = editingStaff?.invitationToken || `invite-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    let staffId = editingStaff?.id || `staff-${Date.now()}`;
+    let authUid = editingStaff?.authUid || (editingStaff?.id && !String(editingStaff.id).startsWith("staff-") ? editingStaff.id : "") || "";
+    let accountAlreadyExists = false;
+    let restoredDeletedStaff = null;
+    let restoredDeletedAdmin = null;
     let temporaryPassword = editingStaff ? (editingStaff.invitePassword || "") : String(form.tempPassword || "").trim();
+    const invitationToken = editingStaff?.invitationToken || `invite-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const sameEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
+    const sameAdminSnap = await getDocs(query(collection(db, "admins"), where("email", "==", email)));
+    const existingStaffDocs = sameEmailSnap.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }));
+    const existingAdminDocs = sameAdminSnap.docs.map((adminDoc) => ({ id: adminDoc.id, ...(adminDoc.data() || {}) }));
 
     if (!editingStaff) {
-      const sameEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
-      const sameAdminSnap = await getDocs(query(collection(db, "admins"), where("email", "==", email)));
-      const existingStaffDocs = sameEmailSnap.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }));
-      const existingAdminDocs = sameAdminSnap.docs.map((adminDoc) => ({ id: adminDoc.id, ...(adminDoc.data() || {}) }));
-      const activeExisting = existingStaffDocs.find((item) => !isStaffDisabled(item));
-      restoredDeletedStaff = existingStaffDocs.find((item) => isStaffDisabled(item) || isStaffDeleted(item)) || null;
-      const existingAuthAdmin = existingAdminDocs.find((item) => item.id && !String(item.id).startsWith("staff-")) || existingAdminDocs[0] || null;
+      const activeStaff = existingStaffDocs.find((item) => !isStaffDisabled(item));
+      const activeAdmin = existingAdminDocs.find((item) => !isStaffDisabled(item));
 
-      if (activeExisting) {
-        onNotice("هذا البريد موجود بالفعل ضمن الموظفين");
+      if (activeStaff || activeAdmin) {
+        onNotice("هذا البريد موجود بالفعل ضمن الموظفين. افتح الموظف من الجدول وعدّل بياناته بدل إضافته من جديد.");
         return;
       }
 
-      if (restoredDeletedStaff) {
-        staffId = restoredDeletedStaff.id || staffId;
-        authUid = restoredDeletedStaff.authUid || (restoredDeletedStaff.id && !String(restoredDeletedStaff.id).startsWith("staff-") ? restoredDeletedStaff.id : "") || authUid;
+      restoredDeletedStaff = existingStaffDocs.find((item) => isStaffDisabled(item) || isStaffDeleted(item)) || null;
+      restoredDeletedAdmin = existingAdminDocs.find((item) => isStaffDisabled(item) || isStaffDeleted(item)) || null;
+
+      if (restoredDeletedAdmin?.id) {
+        authUid = restoredDeletedAdmin.id;
+        staffId = restoredDeletedAdmin.id;
+        accountAlreadyExists = true;
+      } else if (restoredDeletedStaff?.authUid) {
+        authUid = restoredDeletedStaff.authUid;
+        staffId = restoredDeletedStaff.authUid;
+        accountAlreadyExists = true;
+      } else if (restoredDeletedStaff?.id && !String(restoredDeletedStaff.id).startsWith("staff-")) {
+        authUid = restoredDeletedStaff.id;
+        staffId = restoredDeletedStaff.id;
+        accountAlreadyExists = true;
+      } else if (restoredDeletedStaff?.id) {
+        staffId = restoredDeletedStaff.id;
       }
 
-      if (existingAuthAdmin?.id) {
-        authUid = existingAuthAdmin.id;
-        staffId = existingAuthAdmin.id;
-      }
-
-      if (temporaryPassword.length < 6) {
+      if (temporaryPassword.length < 6 && !accountAlreadyExists) {
         onNotice("كلمة المرور المؤقتة يجب أن تكون 6 أحرف أو أكثر");
         return;
       }
 
-      if (!authUid) {
+      if (!authUid && !accountAlreadyExists) {
         try {
           const secondaryApp = initializeApp(firebaseConfig, `staffInviteApp-${Date.now()}`);
           const secondaryAuth = getAuth(secondaryApp);
@@ -5515,15 +5525,10 @@ ${invite.body}`;
         } catch (error) {
           if (error?.code === "auth/email-already-in-use") {
             accountAlreadyExists = true;
-            if (existingAuthAdmin?.id) {
-              authUid = existingAuthAdmin.id;
-              staffId = existingAuthAdmin.id;
-            }
-            try {
-              await sendPasswordResetEmail(auth, email);
-            } catch (resetError) {
-              // لا نوقف حفظ الموظف إذا فشل إرسال رابط إعادة التعيين.
-            }
+            // لا يمكن من المتصفح معرفة UID أو تغيير كلمة مرور حساب موجود مسبقًا.
+            // ننشئ سجل موظف نشط بالبريد، وبعد تسجيل دخوله أو إعادة التعيين نربطه بالـ UID الحقيقي.
+            staffId = restoredDeletedStaff?.id || `staff-${Date.now()}`;
+            try { await sendPasswordResetEmail(auth, email); } catch (resetError) {}
           } else {
             onNotice(firebaseError(error));
             return;
@@ -5532,12 +5537,13 @@ ${invite.body}`;
       }
     }
 
+    const permissions = isOwner ? Object.keys(permissionLabels) : normalizeStaffPermissions(form.permissions);
     const payload = {
       name: form.name.trim(),
       email,
       phone: form.phone.trim(),
       role: isOwner ? "owner" : form.role,
-      permissions: isOwner ? Object.keys(permissionLabels) : normalizeStaffPermissions(form.permissions),
+      permissions,
       status: isOwner ? "active" : form.status,
       isOwner,
       authUid,
@@ -5547,7 +5553,7 @@ ${invite.body}`;
       invitationStatus: accountAlreadyExists ? "password-reset-required" : (editingStaff?.invitationStatus || (form.inviteAfterSave ? "pending" : "created")),
       invitedAtMs: form.inviteAfterSave ? Date.now() : (editingStaff?.invitedAtMs || restoredDeletedStaff?.invitedAtMs || null),
       createdAtMs: editingStaff?.createdAtMs || restoredDeletedStaff?.createdAtMs || Date.now(),
-      restoredAtMs: restoredDeletedStaff ? Date.now() : null,
+      restoredAtMs: restoredDeletedStaff || restoredDeletedAdmin ? Date.now() : null,
       isDeleted: false,
       deleted: false,
       disabled: false,
@@ -5557,15 +5563,23 @@ ${invite.body}`;
     };
 
     await setDoc(doc(db, "staffUsers", staffId), payload, { merge: true });
-    if (restoredDeletedStaff?.id && restoredDeletedStaff.id !== staffId) {
-      try {
-        await deleteDoc(doc(db, "staffUsers", restoredDeletedStaff.id));
-      } catch (cleanupError) {
-        // لا نوقف الحفظ إذا رفضت القواعد حذف السجل القديم.
-      }
-    }
-    if (authUid) {
-      await setDoc(doc(db, "admins", authUid), {
+
+    // تنظيف أي سجلات قديمة لنفس البريد حتى لا يرجع التعارض بعد الحذف وإعادة الإضافة.
+    await Promise.all(existingStaffDocs
+      .filter((item) => item.id && item.id !== staffId)
+      .map(async (item) => {
+        try { await deleteDoc(doc(db, "staffUsers", item.id)); }
+        catch (cleanupError) {
+          await setDoc(doc(db, "staffUsers", item.id), {
+            status: "deleted", isDeleted: true, deleted: true, disabled: true,
+            permissions: [], deletedAtMs: Date.now(), updatedAt: serverTimestamp()
+          }, { merge: true });
+        }
+      }));
+
+    const adminId = authUid || (staffId && !String(staffId).startsWith("staff-") ? staffId : "");
+    if (adminId) {
+      await setDoc(doc(db, "admins", adminId), {
         email,
         role: payload.role,
         permissions: payload.permissions,
@@ -5578,16 +5592,18 @@ ${invite.body}`;
         updatedAt: serverTimestamp()
       }, { merge: true });
     }
+
     setModalOpen(false);
     setEditingStaff(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, tempPassword: generateStaffTemporaryPassword() });
     setHiddenDeletedStaffKeys(prev => prev.filter(key => ![staffId, authUid, email].filter(Boolean).map(item => String(item).toLowerCase()).includes(String(key).toLowerCase())));
+
     if (!editingStaff && form.inviteAfterSave && !accountAlreadyExists) {
       openInviteEmail({ id: staffId, ...payload });
     } else if (!editingStaff && accountAlreadyExists) {
-      onNotice("تمت إعادة تفعيل الموظف. حساب البريد موجود سابقًا، لذلك أرسلنا له رابط إعادة تعيين كلمة المرور بدل كلمة مرور مؤقتة.");
+      onNotice("تمت إعادة تفعيل الموظف بنفس الإيميل. لأن حسابه موجود سابقًا، تم إرسال رابط إعادة تعيين كلمة المرور بدل إنشاء كلمة مؤقتة جديدة.");
     } else {
-      onNotice(editingStaff ? "تم تحديث بيانات الموظف" : (restoredDeletedStaff ? "تمت إعادة تفعيل الموظف" : "تمت إضافة الموظف"));
+      onNotice(editingStaff ? "تم تحديث بيانات الموظف" : (restoredDeletedStaff || restoredDeletedAdmin ? "تمت إعادة تفعيل الموظف" : "تمت إضافة الموظف"));
     }
   };
 
@@ -5705,18 +5721,26 @@ ${invite.body}`;
           updatedAt: serverTimestamp()
         }, { merge: true });
       }
+      try { await sendPasswordResetEmail(auth, email); } catch (resetError) {}
+      const recoveryText = `مرحبًا ${user.name || ""}،
+
+تم إصدار طلب استعادة دخول لوحة التحكم.
+
+رابط الدخول:
+${getAdminInviteUrl(user)}
+
+البريد:
+${email}
+
+رمز متابعة داخلي للمالك:
+${code}
+
+مهم: استخدم رابط إعادة تعيين كلمة المرور الذي وصلك على البريد لإنشاء كلمة مرور جديدة، ثم سجّل الدخول. بعد الدخول سيطلب منك النظام تأكيد كلمة مرورك الجديدة.`;
       try {
-        await sendPasswordResetEmail(auth, email);
-      } catch (resetError) {
-        // إذا فشل إرسال رابط Firebase، يبقى النص جاهز للنسخ اليدوي.
-      }
-      const invite = buildInviteMessage({ ...user, invitePassword: code });
-      const fullText = `${invite.subject}\n\n${invite.body}\n\nملاحظة للمالك: إذا لم يعمل الدخول بكلمة المرور المؤقتة لأن الحساب موجود سابقًا في Firebase، استخدم رابط إعادة تعيين كلمة المرور الذي تم إرساله للبريد أو أرسله يدويًا للموظف.`;
-      try {
-        await navigator.clipboard.writeText(fullText);
-        onNotice("تم إصدار رمز مؤقت ونسخ نص الاستعادة. تم أيضًا محاولة إرسال رابط إعادة تعيين كلمة المرور للبريد.");
+        await navigator.clipboard.writeText(recoveryText);
+        onNotice("تم إرسال رابط إعادة تعيين كلمة المرور ونسخ نص الاستعادة.");
       } catch (copyError) {
-        window.prompt("انسخ نص استعادة الدخول", fullText);
+        window.prompt("انسخ نص استعادة الدخول", recoveryText);
       }
     } catch (error) {
       onNotice(firebaseError(error));
@@ -5791,7 +5815,7 @@ ${invite.body}`;
                   <div className="staff-actions">
                     <button type="button" onClick={() => openInviteEmail(user)} title="إرسال دعوة"><Mail size={16}/></button>
                     <button type="button" onClick={() => copyInviteLink(user)} title="نسخ نص الدعوة"><ExternalLink size={16}/></button>
-                    <button type="button" onClick={() => issuePasswordReset(user)} title="إصدار رمز مؤقت / استعادة الدخول"><Lock size={16}/></button>
+                    <button type="button" onClick={() => issuePasswordReset(user)} title="استعادة كلمة المرور"><Lock size={16}/></button>
                     <button type="button" onClick={() => openEdit(user)} title="تعديل"><Pencil size={16}/></button>
                     <button type="button" onClick={() => toggleStatus(user)} title="تفعيل/تعطيل"><Lock size={16}/></button>
                     <button type="button" className="danger" onClick={() => removeStaff(user)} title="حذف"><Trash2 size={16}/></button>
@@ -5883,15 +5907,15 @@ ${invite.body}`;
                 )}
                 <div className="staff-invite-note">
                   <Mail size={16}/>
-                  <p>تمت إضافة كلمة مرور مؤقتة للموظف. زر الدعوة يفتح البريد إن كان جهازك يدعم ذلك، وزر النسخ ينسخ نص الدعوة كاملًا مع كلمة المرور.</p>
+                  <p>للموظف الجديد يتم إنشاء كلمة مرور مؤقتة. إذا كان البريد مستخدمًا سابقًا، سيتم تفعيل الموظف وإرسال رابط إعادة تعيين كلمة المرور بدل كلمة مؤقتة جديدة.</p>
                 </div>
                 {editingStaff && !editingStaff.isOwner && (
                   <div className="staff-recovery-card">
                     <div>
                       <b>استعادة دخول الموظف</b>
-                      <p>لو الموظف نسي كلمة المرور، أصدر له رمزًا مؤقتًا وانسخ نص الاستعادة. وللحسابات الموجودة مسبقًا في Firebase يتم أيضًا إرسال رابط إعادة تعيين آمن للبريد.</p>
+                      <p>لو الموظف نسي كلمة المرور، أرسل له رابط إعادة تعيين آمن ونسخ نص الاستعادة. الحسابات الموجودة سابقًا لا يمكن تغيير كلمة مرورها من المتصفح مباشرة بدون Backend.</p>
                     </div>
-                    <button type="button" className="admin-secondary" onClick={() => issuePasswordReset(editingStaff)}>إصدار رمز مؤقت</button>
+                    <button type="button" className="admin-secondary" onClick={() => issuePasswordReset(editingStaff)}>استعادة كلمة المرور</button>
                   </div>
                 )}
               </div>
