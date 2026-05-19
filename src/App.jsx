@@ -41,6 +41,32 @@ function limitSeoText(value, max = 160) {
   return `${text.slice(0, max - 1).trim()}…`;
 }
 
+function productSlug(product) {
+  return makePageSlug(product?.seoSlug || product?.slug || product?.name || product?.id, product?.id || "product");
+}
+
+function productPath(product) {
+  return `/product/${productSlug(product)}`;
+}
+
+function pathProductSlug(path = "") {
+  const raw = String(path || "").replace(/^\/product\//, "").split("/")[0] || "";
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+function findProductByPath(products = [], path = "") {
+  if (!String(path || "").startsWith("/product/")) return null;
+  const slug = pathProductSlug(path);
+  return products.find((product) => {
+    if ((product?.status || "active") === "hidden") return false;
+    return productSlug(product) === slug || String(product?.id || "") === slug;
+  }) || null;
+}
+
 function setHeadTag(selector, createTag, attrs = {}, textContent = "") {
   if (typeof document === "undefined") return null;
   let tag = document.head.querySelector(selector);
@@ -91,9 +117,14 @@ function SEOManager({ path, settings, products = [] }) {
     const canonicalPath = path || window.location.pathname || "/";
     const canonicalUrl = `${origin}${canonicalPath}`;
     const storeName = cleanSeoText(settings?.storeName, "GREEN DIXAM");
-    const title = pageTitleFromPath(canonicalPath, settings);
-    const description = pageDescriptionFromPath(canonicalPath, settings);
-    const image = settings?.homeHeroImage || settings?.homeHeaderImage || settings?.logo || products.find(p => p?.image)?.image || "";
+    const currentProduct = findProductByPath(products, canonicalPath);
+    const title = currentProduct
+      ? cleanSeoText(currentProduct.seoTitle || `${currentProduct.name || "منتج"} | ${storeName}`)
+      : pageTitleFromPath(canonicalPath, settings);
+    const description = currentProduct
+      ? limitSeoText(currentProduct.seoDescription || currentProduct.description || `${currentProduct.name || "منتج"} من ${storeName}`, 155)
+      : pageDescriptionFromPath(canonicalPath, settings);
+    const image = currentProduct?.image || settings?.homeHeroImage || settings?.homeHeaderImage || settings?.logo || products.find(p => p?.image)?.image || "";
     const isPrivatePage = canonicalPath.startsWith("/admin") || canonicalPath.startsWith("/login") || canonicalPath.startsWith("/account");
     const categories = [...new Set(products.map(p => p?.category).filter(Boolean))].slice(0, 8);
     const keywords = [
@@ -119,7 +150,7 @@ function SEOManager({ path, settings, products = [] }) {
       return link;
     }, { href: canonicalUrl });
 
-    setHeadTag('meta[property="og:type"]', () => document.createElement("meta"), { property: "og:type", content: "website" });
+    setHeadTag('meta[property="og:type"]', () => document.createElement("meta"), { property: "og:type", content: currentProduct ? "product" : "website" });
     setHeadTag('meta[property="og:locale"]', () => document.createElement("meta"), { property: "og:locale", content: "ar_SA" });
     setHeadTag('meta[property="og:site_name"]', () => document.createElement("meta"), { property: "og:site_name", content: storeName });
     setHeadTag('meta[property="og:title"]', () => document.createElement("meta"), { property: "og:title", content: title });
@@ -152,13 +183,31 @@ function SEOManager({ path, settings, products = [] }) {
         inLanguage: "ar-SA",
         description
       },
-      visibleProducts.length ? {
+      currentProduct ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: cleanSeoText(currentProduct.name, "منتج"),
+        description,
+        image: currentProduct.image || undefined,
+        sku: currentProduct.sku || undefined,
+        brand: currentProduct.brand ? { "@type": "Brand", name: currentProduct.brand } : undefined,
+        category: currentProduct.category || undefined,
+        offers: {
+          "@type": "Offer",
+          url: canonicalUrl,
+          priceCurrency: "SAR",
+          price: Number(currentProduct.price || 0),
+          availability: Number(currentProduct.stock || 0) === 0 ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
+        }
+      } : null,
+      !currentProduct && visibleProducts.length ? {
         "@context": "https://schema.org",
         "@type": "ItemList",
         name: `${storeName} products`,
         itemListElement: visibleProducts.map((product, index) => ({
           "@type": "ListItem",
           position: index + 1,
+          url: `${origin}${productPath(product)}`,
           item: {
             "@type": "Product",
             name: cleanSeoText(product.name, "منتج"),
@@ -764,6 +813,8 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const currentStorePage = path.startsWith("/page/")
     ? visibleHomePages.find((page, index) => normalizePageHref(page, index) === path)
     : null;
+  const currentProduct = path.startsWith("/product/") ? findProductByPath(products, path) : null;
+  const isProductPath = path.startsWith("/product/");
 
   if (path.startsWith("/login")) return <CustomerAuth go={go} settings={settings} />;
   if (path.startsWith("/account")) {
@@ -1076,7 +1127,17 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       </header>
 
 
-{currentStorePage ? (
+{isProductPath ? (
+        <ProductDetailPage
+          product={currentProduct}
+          products={products}
+          settings={settings}
+          go={go}
+          addToCart={addToCart}
+          selectedSize={selectedSize}
+          setSelectedSize={setSelectedSize}
+        />
+      ) : currentStorePage ? (
         <StoreCustomPage page={currentStorePage} products={products} go={go} />
       ) : (
         <>
@@ -1149,17 +1210,24 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           {filtered.map(p => {
             const sizes = sizesArray(p.sizes);
             return (
-              <article className="product" key={p.id}>
+              <article
+                className="product product-link-card"
+                key={p.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => go(productPath(p))}
+                onKeyDown={(e) => { if (e.key === "Enter") go(productPath(p)); }}
+              >
                 <div className="product-img">
                   <img src={p.image} alt={p.name} loading="lazy" decoding="async" />
                   <span>{p.tag}</span>
-                  <button onClick={() => setFavorites(prev => prev.includes(p.id) ? prev.filter(x=>x!==p.id) : [...prev,p.id])}><Heart className={favorites.includes(p.id) ? "heart-on" : ""}/></button>
+                  <button onClick={(e) => { e.stopPropagation(); setFavorites(prev => prev.includes(p.id) ? prev.filter(x=>x!==p.id) : [...prev,p.id]); }}><Heart className={favorites.includes(p.id) ? "heart-on" : ""}/></button>
                 </div>
                 <div className="product-body">
                   <div className="product-top"><div><small>{p.brand}</small><h3>{p.name}</h3></div><em>{p.category}</em></div>
                   <div className="rating"><Star size={15} fill="currentColor"/> {p.rating}</div>
-                  <div className="sizes">{sizes.map(s => <button className={(selectedSize[p.id] || sizes[0]) === s ? "active" : ""} key={s} onClick={() => setSelectedSize(prev => ({...prev, [p.id]: s}))}>{s}</button>)}</div>
-                  <div className="product-foot"><div><b>{formatPrice(p.price)} ر.س</b><del>{formatPrice(p.oldPrice)} ر.س</del></div><button onClick={() => addToCart(p)}>أضف</button></div>
+                  <div className="sizes">{sizes.map(s => <button className={(selectedSize[p.id] || sizes[0]) === s ? "active" : ""} key={s} onClick={(e) => { e.stopPropagation(); setSelectedSize(prev => ({...prev, [p.id]: s})); }}>{s}</button>)}</div>
+                  <div className="product-foot"><div><b>{formatPrice(p.price)} ر.س</b><del>{formatPrice(p.oldPrice)} ر.س</del></div><button onClick={(e) => { e.stopPropagation(); addToCart(p); }}>أضف</button></div>
                 </div>
               </article>
             );
@@ -1612,6 +1680,116 @@ function HeroStyle() {
 }
 
 
+function ProductDetailPage({ product, products = [], settings, go, addToCart, selectedSize, setSelectedSize }) {
+  const relatedProducts = (products || [])
+    .filter((item) => item?.id !== product?.id && (item?.status || "active") !== "hidden")
+    .filter((item) => !product?.category || item.category === product.category)
+    .slice(0, 4);
+
+  if (!product) {
+    return (
+      <main className="container product-detail-page product-not-found">
+        <button type="button" className="primary store-page-back" onClick={() => go("/")}>← رجوع للمتجر</button>
+        <div className="store-page-empty">
+          <h1>المنتج غير موجود</h1>
+          <p>الرابط غير صحيح أو المنتج مخفي من لوحة التحكم.</p>
+        </div>
+      </main>
+    );
+  }
+
+  const gallery = [...new Set([product.image, ...(Array.isArray(product.gallery) ? product.gallery : [])].filter(Boolean))];
+  const sizes = sizesArray(Array.isArray(product.sizes) ? product.sizes.join(",") : product.sizes);
+  const selected = selectedSize[product.id] || sizes[0] || "Free";
+  const oldPrice = Number(product.oldPrice || 0);
+  const price = Number(product.price || 0);
+  const hasDiscount = oldPrice > price;
+
+  return (
+    <main className="container product-detail-page">
+      <button type="button" className="primary store-page-back" onClick={() => go("/")}>← رجوع للمتجر</button>
+
+      <section className="product-detail-hero">
+        <div className="product-detail-media">
+          <div className="product-detail-main-image">
+            <img src={product.image} alt={product.name || "منتج"} loading="eager" decoding="async" />
+            {product.tag && <span>{product.tag}</span>}
+          </div>
+          {gallery.length > 1 && (
+            <div className="product-detail-gallery">
+              {gallery.slice(0, 5).map((img, index) => (
+                <img key={`${img}-${index}`} src={img} alt={`${product.name || "منتج"} ${index + 1}`} loading="lazy" decoding="async" />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="product-detail-info">
+          <div className="product-detail-kicker">
+            <span>{product.brand || settings?.storeName || "GREEN DIXAM"}</span>
+            {product.category && <em>{product.category}</em>}
+          </div>
+          <h1>{product.name}</h1>
+          <div className="product-detail-rating"><Star size={17} fill="currentColor"/> {product.rating || 5}</div>
+          <p className="product-detail-description">{product.description || "منتج مختار بعناية من المتجر."}</p>
+
+          <div className="product-detail-price">
+            <b>{formatPrice(price)} ر.س</b>
+            {hasDiscount && <del>{formatPrice(oldPrice)} ر.س</del>}
+          </div>
+
+          {sizes.length > 0 && (
+            <div className="product-detail-options">
+              <span>اختر المقاس</span>
+              <div className="sizes">
+                {sizes.map((size) => (
+                  <button
+                    type="button"
+                    key={size}
+                    className={selected === size ? "active" : ""}
+                    onClick={() => setSelectedSize(prev => ({ ...prev, [product.id]: size }))}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="product-detail-meta">
+            <div><span>المخزون</span><b>{Number(product.stock || 0) > 0 ? `${product.stock} متوفر` : "غير متوفر"}</b></div>
+            {product.sku && <div><span>SKU</span><b>{product.sku}</b></div>}
+          </div>
+
+          <button type="button" className="product-detail-add" onClick={() => addToCart(product)} disabled={Number(product.stock || 0) === 0}>
+            {Number(product.stock || 0) === 0 ? "غير متوفر" : "أضف إلى السلة"}
+          </button>
+        </div>
+      </section>
+
+      {relatedProducts.length > 0 && (
+        <section className="product-detail-related">
+          <div className="section-title"><span>منتجات مشابهة</span><h2>قد يعجبك أيضًا</h2></div>
+          <div className="products-grid">
+            {relatedProducts.map((item) => (
+              <article className="product product-link-card" key={item.id} role="button" tabIndex={0} onClick={() => go(productPath(item))} onKeyDown={(e) => { if (e.key === "Enter") go(productPath(item)); }}>
+                <div className="product-img">
+                  <img src={item.image} alt={item.name} loading="lazy" decoding="async" />
+                  <span>{item.tag}</span>
+                </div>
+                <div className="product-body">
+                  <div className="product-top"><div><small>{item.brand}</small><h3>{item.name}</h3></div><em>{item.category}</em></div>
+                  <div className="product-foot"><div><b>{formatPrice(item.price)} ر.س</b>{item.oldPrice && <del>{formatPrice(item.oldPrice)} ر.س</del>}</div></div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+    </main>
+  );
+}
+
 function StoreCustomPage({ page, products, go }) {
   const label = page?.label || "صفحة";
   const slug = makePageSlug(page?.href || label);
@@ -1644,7 +1822,14 @@ function StoreCustomPage({ page, products, go }) {
       {pageProducts.length > 0 ? (
         <div className="products-grid store-page-products">
           {pageProducts.map(product => (
-            <article className="product" key={product.id}>
+            <article
+              className="product product-link-card"
+              key={product.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => go(productPath(product))}
+              onKeyDown={(e) => { if (e.key === "Enter") go(productPath(product)); }}
+            >
               <div className="product-img">
                 <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
                 <span>{product.tag}</span>
@@ -2612,6 +2797,9 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       options: cleanOptions,
       tag: f.tag.value.trim(),
       description: f.description.value.trim(),
+      seoSlug: makePageSlug(f.seoSlug?.value?.trim() || f.name.value.trim() || id, id),
+      seoTitle: f.seoTitle?.value?.trim() || "",
+      seoDescription: f.seoDescription?.value?.trim() || "",
       stock: Number(f.stock.value || 0),
       sku: f.sku.value.trim(),
       status: f.status.value,
@@ -3874,12 +4062,21 @@ return (
 
                   <div className="pro-form-section product-six-card">
                     <h3><span className="product-section-icon">🔎</span> SEO</h3>
-                    <p className="product-card-help">تحسين تلقائي يعتمد على اسم المنتج والوصف والصورة.</p>
+                    <p className="product-card-help">هذه البيانات تظهر في صفحة المنتج المستقلة ونتائج Google ومشاركة واتساب.</p>
+                    <Control label="رابط المنتج / Slug">
+                      <input name="seoSlug" defaultValue={editing?.seoSlug || productSlug(editing || {})} placeholder="مثال: monstera-premium" />
+                    </Control>
+                    <Control label="عنوان SEO">
+                      <input name="seoTitle" defaultValue={editing?.seoTitle || ""} placeholder="اتركه فارغًا لاستخدام اسم المنتج" />
+                    </Control>
+                    <Control label="وصف SEO">
+                      <textarea name="seoDescription" defaultValue={editing?.seoDescription || ""} placeholder="اتركه فارغًا لاستخدام وصف المنتج" />
+                    </Control>
                     <div className="seo-preview-box">
-                      <b>{editing?.name || "اسم المنتج"}</b>
-                      <span>{editing?.description || "وصف المنتج يظهر هنا بعد الحفظ"}</span>
+                      <b>{editing?.seoTitle || editing?.name || "اسم المنتج"}</b>
+                      <span>{editing?.seoDescription || editing?.description || "وصف المنتج يظهر هنا بعد الحفظ"}</span>
                     </div>
-                    <div className="product-card-note">لا يغيّر بنية البيانات الحالية.</div>
+                    <div className="product-card-note">بعد الحفظ سيكون الرابط مثل: /product/{editing?.seoSlug || productSlug(editing || { name: "product" })}</div>
                   </div>
                 </div>
 
