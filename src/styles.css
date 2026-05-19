@@ -13659,3 +13659,162 @@ button.product-flat-top-btn:hover svg{
   .staff-permission-table th,
   .staff-permission-table td { padding: 11px 10px; }
 }
+
+/* Staff users polish: permissions table at the end + unified modal layout */
+.staff-admin-page{
+  width:100%!important;
+  max-width:none!important;
+  min-height:calc(100vh - 120px)!important;
+  overflow:visible!important;
+  padding:24px!important;
+  background:#fffdf8!important;
+}
+.staff-table-wrap{
+  margin-top:14px!important;
+  box-shadow:0 14px 34px rgba(15,74,53,.045)!important;
+}
+.staff-permissions-overview{
+  margin:22px 0 0!important;
+  padding:18px!important;
+  border:1px solid rgba(15,74,53,.08)!important;
+  border-radius:22px!important;
+  background:#fff!important;
+  box-shadow:0 14px 34px rgba(15,74,53,.045)!important;
+}
+.staff-permissions-overview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
+.staff-permissions-overview-head span,
+.staff-modal-section-title span{
+  display:block;
+  margin-bottom:3px;
+  color:#91a094!important;
+  font-size:11px!important;
+  font-weight:950!important;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.staff-permissions-overview h3,
+.staff-permission-box h3,
+.staff-modal-section-title h3{
+  color:#0f4a35!important;
+  font-size:18px!important;
+  margin:0 0 5px!important;
+  font-weight:950!important;
+}
+.staff-permissions-overview p,
+.staff-permission-box p,
+.staff-modal-section-title p{
+  color:#6f7f74!important;
+  font-size:13px!important;
+  line-height:1.7!important;
+  margin:0!important;
+  font-weight:700!important;
+}
+.staff-permission-table-wrap{
+  border:1px solid rgba(15,74,53,.08)!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  overflow:auto!important;
+}
+.staff-permission-table{border-collapse:separate!important;border-spacing:0!important;min-width:620px!important;}
+.staff-permission-table th{
+  height:48px!important;
+  background:#f8f7f1!important;
+  color:#52675b!important;
+  border-bottom:1px solid rgba(15,74,53,.08)!important;
+  font-weight:950!important;
+}
+.staff-permission-table td{
+  color:#315346!important;
+  border-bottom:1px solid rgba(15,74,53,.07)!important;
+  font-weight:750!important;
+}
+.staff-permission-table b{color:#0f4a35!important;}
+.product-modal-backdrop:has(.staff-modal-card){
+  align-items:center!important;
+  justify-content:center!important;
+  padding:20px!important;
+  overflow:auto!important;
+}
+.staff-modal-card{
+  width:min(980px,calc(100vw - 32px))!important;
+  max-height:90vh!important;
+  padding:0!important;
+  border-radius:26px!important;
+  background:#fffdf8!important;
+  border:1px solid rgba(15,74,53,.10)!important;
+  overflow:hidden!important;
+  box-shadow:0 34px 90px rgba(12,38,29,.28)!important;
+}
+.staff-modal-card .product-modal-head{
+  padding:20px 22px!important;
+  margin:0!important;
+  background:linear-gradient(135deg,#fffdf8,#f5f3ea)!important;
+  border-bottom:1px solid rgba(15,74,53,.08)!important;
+}
+.staff-modal-card .product-modal-head h2{color:#0f4a35!important;font-size:22px!important;margin:4px 0!important;}
+.staff-modal-card .product-modal-head p{color:#708076!important;line-height:1.7!important;}
+.staff-modal-body{
+  max-height:calc(90vh - 158px)!important;
+  overflow:auto!important;
+  padding:18px 22px!important;
+  display:grid!important;
+  gap:14px!important;
+}
+.staff-form-card,
+.staff-permission-box{
+  background:#fff!important;
+  border:1px solid rgba(15,74,53,.08)!important;
+  border-radius:22px!important;
+  padding:16px!important;
+  box-shadow:0 10px 26px rgba(15,74,53,.04)!important;
+  margin:0!important;
+}
+.staff-modal-section-title{margin-bottom:12px!important;}
+.staff-form-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;
+  margin:0!important;
+}
+.staff-form-grid .control,
+.staff-form-grid label{gap:7px!important;}
+.staff-form-grid input,
+.staff-form-grid select{
+  min-height:44px!important;
+  border-radius:14px!important;
+  background:#fffdf8!important;
+  border:1px solid rgba(15,74,53,.12)!important;
+}
+.staff-permission-table-wrap.modal-table{max-height:300px!important;}
+.staff-permission-table-wrap.modal-table .staff-permission-table{min-width:720px!important;}
+.staff-permission-switch{
+  background:#f8f7f1!important;
+  border-color:rgba(15,74,53,.10)!important;
+  color:#0f4a35!important;
+}
+.staff-permission-switch input{accent-color:#0f4a35!important;}
+.staff-permission-switch span{color:#0f4a35!important;}
+.staff-modal-card .product-modal-actions{
+  position:sticky!important;
+  bottom:0!important;
+  background:#fffdf8!important;
+  border-top:1px solid rgba(15,74,53,.08)!important;
+  padding:14px 22px!important;
+  margin:0!important;
+  justify-content:flex-start!important;
+}
+.staff-modal-card .admin-primary,
+.staff-modal-card .admin-secondary{
+  min-width:128px!important;
+  height:44px!important;
+  border-radius:14px!important;
+}
+@media (max-width:760px){
+  .product-modal-backdrop:has(.staff-modal-card){padding:10px!important;align-items:flex-start!important;}
+  .staff-modal-card{width:100%!important;max-height:calc(100vh - 20px)!important;border-radius:22px!important;}
+  .staff-modal-body{max-height:calc(100vh - 170px)!important;padding:14px!important;}
+  .staff-form-grid{grid-template-columns:1fr!important;}
+  .staff-permission-table-wrap.modal-table{max-height:280px!important;}
+  .staff-modal-card .product-modal-actions{padding:12px 14px!important;}
+  .staff-modal-card .admin-primary,.staff-modal-card .admin-secondary{flex:1!important;min-width:0!important;}
+}

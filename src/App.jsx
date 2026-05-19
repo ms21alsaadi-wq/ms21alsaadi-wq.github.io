@@ -5274,22 +5274,6 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
         </select>
       </div>
 
-      <div className="staff-permissions-overview">
-        <div>
-          <h3>جدول الصلاحيات حسب القسم</h3>
-          <p>كل صف يوضح القسم داخل لوحة التحكم وما الذي يسمح به عند تفعيل الصلاحية للموظف.</p>
-        </div>
-        <div className="staff-permission-table-wrap compact">
-          <table className="staff-permission-table">
-            <thead><tr><th>القسم</th><th>الصلاحية</th></tr></thead>
-            <tbody>
-              {Object.entries(permissionLabels).map(([key, label]) => (
-                <tr key={key}><td><b>{label}</b></td><td>{permissionDescriptions[key]}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
       <div className="staff-table-wrap">
         <table className="staff-table">
@@ -5338,6 +5322,26 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
         </table>
       </div>
 
+      <div className="staff-permissions-overview">
+        <div className="staff-permissions-overview-head">
+          <div>
+            <span>Permissions Map</span>
+            <h3>جدول الصلاحيات حسب القسم</h3>
+            <p>مرجع سريع يوضح معنى كل صلاحية في لوحة التحكم. هذا الجدول للشرح فقط، أما تحديد صلاحيات الموظف فيتم من نافذة الإضافة أو التعديل.</p>
+          </div>
+        </div>
+        <div className="staff-permission-table-wrap compact">
+          <table className="staff-permission-table">
+            <thead><tr><th>القسم</th><th>ما الذي تسمح به هذه الصلاحية؟</th></tr></thead>
+            <tbody>
+              {Object.entries(permissionLabels).map(([key, label]) => (
+                <tr key={key}><td><b>{label}</b></td><td>{permissionDescriptions[key]}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {modalOpen && (
         <div className="product-modal-backdrop" onClick={() => setModalOpen(false)}>
           <form className="product-modal-shell staff-modal-card" onSubmit={saveStaff} onClick={e => e.stopPropagation()}>
@@ -5350,31 +5354,41 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
               <button type="button" onClick={() => setModalOpen(false)}><X size={18}/></button>
             </div>
 
-            <div className="staff-form-grid">
-              <Control label="اسم الموظف"><input value={form.name} onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))} placeholder="مثال: محمد أحمد" /></Control>
-              <Control label="البريد الإلكتروني"><input type="email" value={form.email} onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))} placeholder="name@example.com" disabled={Boolean(editingStaff?.isOwner)} /></Control>
-              <Control label="رقم الجوال"><input value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="05xxxxxxxx" /></Control>
-              <Control label="الدور">
-                <select value={form.role} onChange={e => setRole(e.target.value)} disabled={Boolean(editingStaff?.isOwner)}>
-                  <option value="manager">مدير</option>
-                  <option value="products">موظف منتجات</option>
-                  <option value="orders">موظف طلبات</option>
-                  <option value="content">موظف محتوى</option>
-                  <option value="support">دعم عملاء</option>
-                </select>
-              </Control>
-              <Control label="الحالة">
-                <select value={form.status} onChange={e => setForm(prev => ({ ...prev, status: e.target.value }))} disabled={Boolean(editingStaff?.isOwner)}>
-                  <option value="active">نشط</option>
-                  <option value="disabled">معطل</option>
-                </select>
-              </Control>
-            </div>
+            <div className="staff-modal-body">
+              <div className="staff-form-card">
+                <div className="staff-modal-section-title">
+                  <span>Basic Info</span>
+                  <h3>بيانات الموظف</h3>
+                </div>
+                <div className="staff-form-grid">
+                  <Control label="اسم الموظف"><input value={form.name} onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))} placeholder="مثال: محمد أحمد" /></Control>
+                  <Control label="البريد الإلكتروني"><input type="email" value={form.email} onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))} placeholder="name@example.com" disabled={Boolean(editingStaff?.isOwner)} /></Control>
+                  <Control label="رقم الجوال"><input value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="05xxxxxxxx" /></Control>
+                  <Control label="الدور">
+                    <select value={form.role} onChange={e => setRole(e.target.value)} disabled={Boolean(editingStaff?.isOwner)}>
+                      <option value="manager">مدير</option>
+                      <option value="products">موظف منتجات</option>
+                      <option value="orders">موظف طلبات</option>
+                      <option value="content">موظف محتوى</option>
+                      <option value="support">دعم عملاء</option>
+                    </select>
+                  </Control>
+                  <Control label="الحالة">
+                    <select value={form.status} onChange={e => setForm(prev => ({ ...prev, status: e.target.value }))} disabled={Boolean(editingStaff?.isOwner)}>
+                      <option value="active">نشط</option>
+                      <option value="disabled">معطل</option>
+                    </select>
+                  </Control>
+                </div>
+              </div>
 
-            <div className="staff-permission-box">
-              <h3>الصلاحيات</h3>
-              <p>حدد الأقسام التي يستطيع الموظف الوصول إليها داخل لوحة التحكم.</p>
-              <div className="staff-permission-table-wrap">
+              <div className="staff-permission-box">
+                <div className="staff-modal-section-title">
+                  <span>Access</span>
+                  <h3>صلاحيات الموظف</h3>
+                  <p>حدد الأقسام التي يستطيع الموظف الوصول إليها داخل لوحة التحكم.</p>
+                </div>
+                <div className="staff-permission-table-wrap modal-table">
                 <table className="staff-permission-table">
                   <thead>
                     <tr>
@@ -5403,6 +5417,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
 
