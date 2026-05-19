@@ -1731,9 +1731,6 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
   ];
   const deliveryNote = product.deliveryInfo || settings?.deliveryInfo || "تجهيز الطلب خلال 24 إلى 48 ساعة، وتظهر تكلفة الشحن في السلة حسب الطلب.";
   const careNote = product.careGuide || product.usage || "يحفظ في مكان مناسب بعيدًا عن الظروف القاسية، واتبع تعليمات العناية المرفقة إن وجدت.";
-  const shareText = encodeURIComponent(`${product.name || "منتج"} - ${storeName}`);
-  const shareUrl = encodeURIComponent(typeof window !== "undefined" ? window.location.href : productPath(product));
-
   const handleAddQtyToCart = () => {
     for (let i = 0; i < safeQty; i += 1) addToCart(product);
   };
@@ -1839,11 +1836,12 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
               </div>
             </div>
 
-            <button type="button" className="product-detail-add product-cart-cta" onClick={handleAddQtyToCart} disabled={stock === 0}>
-              {stock === 0 ? "غير متوفر" : "أضف إلى السلة"}
-            </button>
-            <button type="button" className="product-buy-now" onClick={handleAddQtyToCart} disabled={stock === 0}>اشتري الآن</button>
-            <a className="product-whatsapp-share" href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noreferrer">مشاركة عبر واتساب</a>
+            <div className="product-action-row">
+              <button type="button" className="product-detail-add product-cart-cta" onClick={handleAddQtyToCart} disabled={stock === 0}>
+                {stock === 0 ? "غير متوفر" : "أضف إلى السلة"}
+              </button>
+              <button type="button" className="product-buy-now" onClick={handleAddQtyToCart} disabled={stock === 0}>اشتري الآن</button>
+            </div>
 
             <div className="product-mini-meta">
               {product.sku && <p><span>SKU</span><b>{product.sku}</b></p>}

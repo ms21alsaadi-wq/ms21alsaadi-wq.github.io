@@ -13427,3 +13427,77 @@ button.product-flat-top-btn:hover svg{
     grid-template-columns:1fr;
   }
 }
+
+/* ===== Product page buyer notes fix: equal compact cards + horizontal CTAs ===== */
+.product-commerce-shell{
+  align-items:stretch !important;
+}
+.product-gallery-column,
+.product-summary-column,
+.product-buy-box{
+  align-self:stretch !important;
+  height:auto !important;
+  min-height:0 !important;
+}
+.product-gallery-column{
+  position:relative !important;
+  top:auto !important;
+}
+.product-buy-box{
+  position:relative !important;
+  top:auto !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.product-main-photo{
+  min-height:0 !important;
+  height:100% !important;
+  max-height:none !important;
+}
+.product-main-photo img{
+  min-height:0 !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+.product-action-row{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:10px !important;
+  margin:8px 0 0 !important;
+}
+.product-action-row .product-cart-cta,
+.product-action-row .product-buy-now{
+  width:100% !important;
+  margin:0 !important;
+  min-height:48px !important;
+  padding:11px 12px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  white-space:nowrap !important;
+}
+.product-whatsapp-share{
+  display:none !important;
+}
+.product-buy-benefits{
+  grid-template-columns:1fr !important;
+}
+.product-mini-meta{
+  margin-top:12px !important;
+}
+
+@media (max-width:820px){
+  .product-action-row{
+    grid-template-columns:1fr 1fr !important;
+  }
+  .product-main-photo,
+  .product-main-photo img{
+    height:auto !important;
+    min-height:320px !important;
+  }
+}
+@media (max-width:420px){
+  .product-action-row{
+    grid-template-columns:1fr !important;
+  }
+}
