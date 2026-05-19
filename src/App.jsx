@@ -78,9 +78,11 @@ const normalizeStaffPermissions = (permissions = []) => {
 
 const isStaffDeleted = (user = {}) => {
   const record = user || {};
-  return Boolean(record.isDeleted || record.deleted) ||
-    record.status === "deleted" ||
-    record.status === "removed";
+  const status = String(record.status || "").toLowerCase();
+  return Boolean(record.isDeleted || record.deleted || record.deletedAt || record.deletedAtMs) ||
+    status === "deleted" ||
+    status === "removed" ||
+    status === "inactiveDeleted".toLowerCase();
 };
 
 const isStaffDisabled = (user = {}) => {
@@ -5476,22 +5478,23 @@ ${invite.body}`;
       const sameAdminSnap = await getDocs(query(collection(db, "admins"), where("email", "==", email)));
       const existingStaffDocs = sameEmailSnap.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }));
       const existingAdminDocs = sameAdminSnap.docs.map((adminDoc) => ({ id: adminDoc.id, ...(adminDoc.data() || {}) }));
-      const activeExisting = existingStaffDocs.find((item) => !isStaffDeleted(item));
-      restoredDeletedStaff = existingStaffDocs.find((item) => isStaffDeleted(item)) || null;
+      const activeExisting = existingStaffDocs.find((item) => !isStaffDisabled(item));
+      restoredDeletedStaff = existingStaffDocs.find((item) => isStaffDisabled(item) || isStaffDeleted(item)) || null;
       const existingAuthAdmin = existingAdminDocs.find((item) => item.id && !String(item.id).startsWith("staff-")) || existingAdminDocs[0] || null;
-      if (existingAuthAdmin?.id) {
-        authUid = existingAuthAdmin.id;
-        staffId = existingAuthAdmin.id;
-      }
 
       if (activeExisting) {
         onNotice("هذا البريد موجود بالفعل ضمن الموظفين");
         return;
       }
 
-      if (restoredDeletedStaff && !authUid) {
-        staffId = restoredDeletedStaff.id;
-        authUid = restoredDeletedStaff.authUid || (restoredDeletedStaff.id?.startsWith("staff-") ? "" : restoredDeletedStaff.id) || "";
+      if (restoredDeletedStaff) {
+        staffId = restoredDeletedStaff.id || staffId;
+        authUid = restoredDeletedStaff.authUid || (restoredDeletedStaff.id && !String(restoredDeletedStaff.id).startsWith("staff-") ? restoredDeletedStaff.id : "") || authUid;
+      }
+
+      if (existingAuthAdmin?.id) {
+        authUid = existingAuthAdmin.id;
+        staffId = existingAuthAdmin.id;
       }
 
       if (temporaryPassword.length < 6) {
@@ -5657,6 +5660,7 @@ ${invite.body}`;
       }));
 
       await Promise.all([...idsToDisable].map((adminDocId) => setDoc(doc(db, "admins", adminDocId), {
+        email,
         staffUser: true,
         status: "deleted",
         disabled: true,
@@ -5674,6 +5678,51 @@ ${invite.body}`;
       onNotice(firebaseError(error));
     }
   };
+
+  const issuePasswordReset = async (user) => {
+    const email = String(user?.email || "").trim().toLowerCase();
+    if (!email) {
+      onNotice("لا يوجد بريد إلكتروني لهذا الموظف");
+      return;
+    }
+    try {
+      const code = generateStaffTemporaryPassword();
+      const staffDocId = user.id;
+      if (staffDocId) {
+        await setDoc(doc(db, "staffUsers", staffDocId), {
+          recoveryCode: code,
+          recoveryCodeIssuedAtMs: Date.now(),
+          recoveryCodeStatus: "issued",
+          mustChangePassword: true,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+      const adminDocId = user.authUid || (user.id && !String(user.id).startsWith("staff-") ? user.id : "");
+      if (adminDocId) {
+        await setDoc(doc(db, "admins", adminDocId), {
+          email,
+          mustChangePassword: true,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+      } catch (resetError) {
+        // إذا فشل إرسال رابط Firebase، يبقى النص جاهز للنسخ اليدوي.
+      }
+      const invite = buildInviteMessage({ ...user, invitePassword: code });
+      const fullText = `${invite.subject}\n\n${invite.body}\n\nملاحظة للمالك: إذا لم يعمل الدخول بكلمة المرور المؤقتة لأن الحساب موجود سابقًا في Firebase، استخدم رابط إعادة تعيين كلمة المرور الذي تم إرساله للبريد أو أرسله يدويًا للموظف.`;
+      try {
+        await navigator.clipboard.writeText(fullText);
+        onNotice("تم إصدار رمز مؤقت ونسخ نص الاستعادة. تم أيضًا محاولة إرسال رابط إعادة تعيين كلمة المرور للبريد.");
+      } catch (copyError) {
+        window.prompt("انسخ نص استعادة الدخول", fullText);
+      }
+    } catch (error) {
+      onNotice(firebaseError(error));
+    }
+  };
+
 
   return (
     <section className="admin-card staff-admin-page">
@@ -5742,6 +5791,7 @@ ${invite.body}`;
                   <div className="staff-actions">
                     <button type="button" onClick={() => openInviteEmail(user)} title="إرسال دعوة"><Mail size={16}/></button>
                     <button type="button" onClick={() => copyInviteLink(user)} title="نسخ نص الدعوة"><ExternalLink size={16}/></button>
+                    <button type="button" onClick={() => issuePasswordReset(user)} title="إصدار رمز مؤقت / استعادة الدخول"><Lock size={16}/></button>
                     <button type="button" onClick={() => openEdit(user)} title="تعديل"><Pencil size={16}/></button>
                     <button type="button" onClick={() => toggleStatus(user)} title="تفعيل/تعطيل"><Lock size={16}/></button>
                     <button type="button" className="danger" onClick={() => removeStaff(user)} title="حذف"><Trash2 size={16}/></button>
@@ -5835,6 +5885,15 @@ ${invite.body}`;
                   <Mail size={16}/>
                   <p>تمت إضافة كلمة مرور مؤقتة للموظف. زر الدعوة يفتح البريد إن كان جهازك يدعم ذلك، وزر النسخ ينسخ نص الدعوة كاملًا مع كلمة المرور.</p>
                 </div>
+                {editingStaff && !editingStaff.isOwner && (
+                  <div className="staff-recovery-card">
+                    <div>
+                      <b>استعادة دخول الموظف</b>
+                      <p>لو الموظف نسي كلمة المرور، أصدر له رمزًا مؤقتًا وانسخ نص الاستعادة. وللحسابات الموجودة مسبقًا في Firebase يتم أيضًا إرسال رابط إعادة تعيين آمن للبريد.</p>
+                    </div>
+                    <button type="button" className="admin-secondary" onClick={() => issuePasswordReset(editingStaff)}>إصدار رمز مؤقت</button>
+                  </div>
+                )}
               </div>
 
               <div className="staff-permission-box staff-permission-badges-box">
