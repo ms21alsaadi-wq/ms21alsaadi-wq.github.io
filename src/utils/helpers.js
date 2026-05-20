@@ -8,7 +8,7 @@ export function formatOrderDate(value) {
   if (Number.isNaN(date.getTime())) return "غير متوفر";
   return new Intl.DateTimeFormat("ar-SA", {
     dateStyle: "medium",
-    timeStyle: "short"
+    timeStyle: "short",
   }).format(date);
 }
 
@@ -25,10 +25,14 @@ export function getTrackingUrl(company, trackingNumber, customShipping = "") {
 
   const name = String(company || customShipping || "").toLowerCase();
 
-  if (name.includes("aramex")) return `https://www.aramex.com/track/results?ShipmentNumber=${encodeURIComponent(code)}`;
-  if (name.includes("smsa") || name.includes("سمسا")) return `https://www.smsaexpress.com/sa/track?tracknumbers=${encodeURIComponent(code)}`;
-  if (name.includes("dhl")) return `https://www.dhl.com/sa-en/home/tracking.html?tracking-id=${encodeURIComponent(code)}`;
-  if (name.includes("fedex")) return `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(code)}`;
+  if (name.includes("aramex"))
+    return `https://www.aramex.com/track/results?ShipmentNumber=${encodeURIComponent(code)}`;
+  if (name.includes("smsa") || name.includes("سمسا"))
+    return `https://www.smsaexpress.com/sa/track?tracknumbers=${encodeURIComponent(code)}`;
+  if (name.includes("dhl"))
+    return `https://www.dhl.com/sa-en/home/tracking.html?tracking-id=${encodeURIComponent(code)}`;
+  if (name.includes("fedex"))
+    return `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(code)}`;
 
   return `https://www.google.com/search?q=${encodeURIComponent(`${customShipping || company || "tracking"} ${code}`)}`;
 }
@@ -39,7 +43,7 @@ export function orderStatusLabel(status) {
     processing: "قيد التجهيز",
     shipped: "تم الشحن",
     completed: "مكتمل",
-    cancelled: "ملغي"
+    cancelled: "ملغي",
   };
   return labels[status] || status || "تم تحديث الطلب";
 }
@@ -49,12 +53,15 @@ export function couponUsedByCustomer(coupon, customerId, customerEmail) {
   const usedEmails = coupon?.usedEmails || {};
   return Boolean(
     (customerId && usedBy[customerId]) ||
-    (customerEmail && usedEmails[customerEmail])
+      (customerEmail && usedEmails[customerEmail]),
   );
 }
 
 export function sizesArray(sizes) {
-  return String(sizes || "").split(",").map(s => s.trim()).filter(Boolean);
+  return String(sizes || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 export function uid() {
@@ -74,7 +81,8 @@ export function normalizePageHref(page, index = 0) {
   const href = String(page?.href || "").trim();
 
   if (href.startsWith("/page/")) return href;
-  if (href.startsWith("#")) return `/page/${makePageSlug(page?.label, `page-${index + 1}`)}`;
+  if (href.startsWith("#"))
+    return `/page/${makePageSlug(page?.label, `page-${index + 1}`)}`;
   if (!href) return `/page/${makePageSlug(page?.label, `page-${index + 1}`)}`;
   if (href.startsWith("/")) return href;
 
@@ -147,6 +155,7 @@ export function firebaseError(err) {
   if (code.includes("invalid-credential")) return "بيانات الدخول غير صحيحة";
   if (code.includes("email-already-in-use")) return "الإيميل مستخدم مسبقاً";
   if (code.includes("weak-password")) return "كلمة المرور ضعيفة";
-  if (code.includes("operation-not-allowed")) return "فعّل طريقة الدخول من Firebase Authentication";
+  if (code.includes("operation-not-allowed"))
+    return "فعّل طريقة الدخول من Firebase Authentication";
   return err?.message || "حدث خطأ غير معروف";
 }

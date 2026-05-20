@@ -2,10 +2,41 @@ import React, { useEffect, useMemo, useState } from "react";
 import { initializeApp, deleteApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import {
-  Search, Heart, Star, Truck, ShieldCheck, RotateCcw, X, Plus, Minus,
-  Trash2, LayoutDashboard, Palette, PackagePlus, LogOut, Pencil,
-  Save, Users, Lock, Mail, User, MapPin, Phone, Home,
-  ClipboardList, Download, Bell, Settings, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink, Clock, Languages, Grid3X3, Rows3
+  Search,
+  Heart,
+  Star,
+  Truck,
+  ShieldCheck,
+  RotateCcw,
+  X,
+  Plus,
+  Minus,
+  Trash2,
+  LayoutDashboard,
+  Palette,
+  PackagePlus,
+  LogOut,
+  Pencil,
+  Save,
+  Users,
+  Lock,
+  Mail,
+  User,
+  MapPin,
+  Phone,
+  Home,
+  ClipboardList,
+  Download,
+  Bell,
+  Settings,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
+  ExternalLink,
+  Clock,
+  Languages,
+  Grid3X3,
+  Rows3,
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -14,452 +45,62 @@ import {
   signOut,
   updateProfile,
   updatePassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import {
-  collection, doc, getDoc, setDoc, onSnapshot, deleteDoc, serverTimestamp,
-  addDoc, query, orderBy, where, getDocs
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+  deleteDoc,
+  serverTimestamp,
+  addDoc,
+  query,
+  orderBy,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { auth, db, firebaseConfig } from "./firebase.js";
-import { STORE_WHATSAPP, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, defaultSettings, defaultProducts, palettes } from "./data/storeData";
-import { formatPrice, formatOrderDate, orderTimestamp, getTrackingUrl, orderStatusLabel, couponUsedByCustomer, sizesArray, uid, makePageSlug, normalizePageHref, getTrafficSource, formatDuration, getGoogleDriveFileId, normalizeVideoUrl, isGoogleDriveVideo, firebaseError } from "./utils/helpers";
-
-
-
-
-
-
-
-
-
-
-const ADMIN_PERMISSION_LABELS = {
-  dashboard: "لوحة التحكم",
-  reports: "التقارير",
-  identity: "هوية المتجر",
-  homepage: "ثيم المتجر",
-  products: "المنتجات",
-  orders: "الطلبات",
-  customers: "العملاء",
-  coupons: "الكوبونات",
-  settings: "الإعدادات",
-  notifications: "الإشعارات",
-  users: "المستخدمين"
-};
-
-const ADMIN_PERMISSION_DESCRIPTIONS = {
-  dashboard: "مشاهدة ملخص الأداء ونبض المتجر",
-  reports: "مشاهدة وتصدير تقارير المبيعات والطلبات",
-  identity: "تعديل شعار وبيانات وهوية المتجر",
-  homepage: "تعديل أقسام الصفحة الرئيسية والبنرات والثيم",
-  products: "إضافة وتعديل وحذف المنتجات وخياراتها",
-  orders: "متابعة الطلبات وتحديث حالاتها",
-  customers: "عرض بيانات العملاء وسجل طلباتهم",
-  coupons: "إنشاء وتعديل وحذف كوبونات الخصم",
-  settings: "إدارة إعدادات المتجر العامة",
-  notifications: "مشاهدة تنبيهات المتجر ومركز الإشعارات",
-  users: "إضافة الموظفين وتعديل أدوارهم وصلاحياتهم"
-};
-
-const ADMIN_ROLE_DEFAULTS = {
-  owner: Object.keys(ADMIN_PERMISSION_LABELS),
-  manager: Object.keys(ADMIN_PERMISSION_LABELS).filter(key => key !== "users"),
-  products: ["dashboard", "products"],
-  orders: ["dashboard", "reports", "orders", "customers"],
-  content: ["dashboard", "identity", "homepage", "products"],
-  support: ["dashboard", "orders", "customers", "notifications"]
-};
-
-const normalizeStaffPermissions = (permissions = []) => {
-  const list = Array.isArray(permissions) ? permissions : [];
-  const normalized = list.map(item => item === "pages" ? "homepage" : item);
-  return [...new Set(normalized)].filter(key => ADMIN_PERMISSION_LABELS[key]);
-};
-
-const isStaffDeleted = (user = {}) => {
-  const record = user || {};
-  const status = String(record.status || "").toLowerCase();
-  return Boolean(record.isDeleted || record.deleted || record.deletedAt || record.deletedAtMs) ||
-    status === "deleted" ||
-    status === "removed" ||
-    status === "inactiveDeleted".toLowerCase();
-};
-
-const isStaffDisabled = (user = {}) => {
-  const record = user || {};
-  return isStaffDeleted(record) || record.status === "disabled" || Boolean(record.disabled);
-};
-
-const generateStaffTemporaryPassword = () => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-  let password = "Gd-";
-  for (let i = 0; i < 9; i += 1) {
-    password += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return password + "!";
-};
-
-function cleanSeoText(value, fallback = "") {
-  return String(value || fallback || "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function limitSeoText(value, max = 160) {
-  const text = cleanSeoText(value);
-  if (text.length <= max) return text;
-  return `${text.slice(0, max - 1).trim()}…`;
-}
-
-function productSlug(product) {
-  return makePageSlug(product?.seoSlug || product?.slug || product?.name || product?.id, product?.id || "product");
-}
-
-function productPath(product) {
-  return `/product/${productSlug(product)}`;
-}
-
-function pathProductSlug(path = "") {
-  const raw = String(path || "").replace(/^\/product\//, "").split("/")[0] || "";
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return raw;
-  }
-}
-
-function findProductByPath(products = [], path = "") {
-  if (!String(path || "").startsWith("/product/")) return null;
-  const slug = pathProductSlug(path);
-  return products.find((product) => {
-    if ((product?.status || "active") === "hidden") return false;
-    return productSlug(product) === slug || String(product?.id || "") === slug;
-  }) || null;
-}
-
-function setHeadTag(selector, createTag, attrs = {}, textContent = "") {
-  if (typeof document === "undefined") return null;
-  let tag = document.head.querySelector(selector);
-  if (!tag) {
-    tag = createTag();
-    document.head.appendChild(tag);
-  }
-  Object.entries(attrs).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === "") tag.removeAttribute(key);
-    else tag.setAttribute(key, String(value));
-  });
-  if (textContent !== undefined) tag.textContent = textContent;
-  return tag;
-}
-
-function pageTitleFromPath(path, settings) {
-  const storeName = cleanSeoText(settings?.storeName, "GREEN DIXAM");
-  const homePages = Array.isArray(settings?.homePages) ? settings.homePages : [];
-  const matchedPage = path?.startsWith("/page/")
-    ? homePages.find((page, index) => normalizePageHref(page, index) === path)
-    : null;
-
-  if (path?.startsWith("/admin")) return `لوحة التحكم | ${storeName}`;
-  if (path?.startsWith("/login")) return `دخول العميل | ${storeName}`;
-  if (path?.startsWith("/account")) return `حسابي | ${storeName}`;
-  if (matchedPage?.label) return `${matchedPage.label} | ${storeName}`;
-  return `${storeName} | ${cleanSeoText(settings?.tagline || settings?.homeHeaderSubtitle, "متجر نباتات ومنتجات فاخرة")}`;
-}
-
-function pageDescriptionFromPath(path, settings) {
-  const homePages = Array.isArray(settings?.homePages) ? settings.homePages : [];
-  const matchedPage = path?.startsWith("/page/")
-    ? homePages.find((page, index) => normalizePageHref(page, index) === path)
-    : null;
-
-  if (path?.startsWith("/admin")) return "صفحة إدارة داخلية غير مخصصة لمحركات البحث.";
-  if (path?.startsWith("/login")) return "تسجيل دخول العملاء لمتابعة الطلبات والبيانات المحفوظة.";
-  if (path?.startsWith("/account")) return "حساب العميل لمتابعة الطلبات وتحديث بيانات الشحن.";
-  if (matchedPage?.label) return limitSeoText(`${matchedPage.label} - ${settings?.homeProductsDesc || settings?.homeHeroDesc || settings?.heroSubtitle}`, 155);
-  return limitSeoText(settings?.homeHeroDesc || settings?.heroSubtitle || "متجر نباتات ومنتجات فاخرة مختارة بعناية، مع تغليف أنيق وتوصيل سريع داخل السعودية.", 155);
-}
-
-function SEOManager({ path, settings, products = [] }) {
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-
-    const origin = window.location.origin || "";
-    const canonicalPath = path || window.location.pathname || "/";
-    const canonicalUrl = `${origin}${canonicalPath}`;
-    const storeName = cleanSeoText(settings?.storeName, "GREEN DIXAM");
-    const currentProduct = findProductByPath(products, canonicalPath);
-    const title = currentProduct
-      ? cleanSeoText(currentProduct.seoTitle || `${currentProduct.name || "منتج"} | ${storeName}`)
-      : pageTitleFromPath(canonicalPath, settings);
-    const description = currentProduct
-      ? limitSeoText(currentProduct.seoDescription || currentProduct.description || `${currentProduct.name || "منتج"} من ${storeName}`, 155)
-      : pageDescriptionFromPath(canonicalPath, settings);
-    const image = currentProduct?.image || settings?.homeHeroImage || settings?.homeHeaderImage || settings?.logo || products.find(p => p?.image)?.image || "";
-    const isPrivatePage = canonicalPath.startsWith("/admin") || canonicalPath.startsWith("/login") || canonicalPath.startsWith("/account");
-    const categories = [...new Set(products.map(p => p?.category).filter(Boolean))].slice(0, 8);
-    const keywords = [
-      storeName,
-      "متجر نباتات",
-      "نباتات داخلية",
-      "نباتات فاخرة",
-      "هدايا نباتات",
-      "توصيل نباتات",
-      ...categories
-    ].join(", ");
-
-    document.documentElement.lang = "ar";
-    document.documentElement.dir = "rtl";
-    document.title = title;
-
-    setHeadTag('meta[name="description"]', () => document.createElement("meta"), { name: "description", content: description });
-    setHeadTag('meta[name="keywords"]', () => document.createElement("meta"), { name: "keywords", content: keywords });
-    setHeadTag('meta[name="robots"]', () => document.createElement("meta"), { name: "robots", content: isPrivatePage ? "noindex,nofollow" : "index,follow,max-image-preview:large" });
-    setHeadTag('link[rel="canonical"]', () => {
-      const link = document.createElement("link");
-      link.rel = "canonical";
-      return link;
-    }, { href: canonicalUrl });
-
-    setHeadTag('meta[property="og:type"]', () => document.createElement("meta"), { property: "og:type", content: currentProduct ? "product" : "website" });
-    setHeadTag('meta[property="og:locale"]', () => document.createElement("meta"), { property: "og:locale", content: "ar_SA" });
-    setHeadTag('meta[property="og:site_name"]', () => document.createElement("meta"), { property: "og:site_name", content: storeName });
-    setHeadTag('meta[property="og:title"]', () => document.createElement("meta"), { property: "og:title", content: title });
-    setHeadTag('meta[property="og:description"]', () => document.createElement("meta"), { property: "og:description", content: description });
-    setHeadTag('meta[property="og:url"]', () => document.createElement("meta"), { property: "og:url", content: canonicalUrl });
-    if (image) setHeadTag('meta[property="og:image"]', () => document.createElement("meta"), { property: "og:image", content: image });
-
-    setHeadTag('meta[name="twitter:card"]', () => document.createElement("meta"), { name: "twitter:card", content: image ? "summary_large_image" : "summary" });
-    setHeadTag('meta[name="twitter:title"]', () => document.createElement("meta"), { name: "twitter:title", content: title });
-    setHeadTag('meta[name="twitter:description"]', () => document.createElement("meta"), { name: "twitter:description", content: description });
-    if (image) setHeadTag('meta[name="twitter:image"]', () => document.createElement("meta"), { name: "twitter:image", content: image });
-
-    const visibleProducts = products
-      .filter(p => (p?.status || "active") !== "hidden")
-      .slice(0, 12);
-
-    const structuredData = [
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        name: storeName,
-        url: origin,
-        logo: settings?.logo || settings?.homeHeaderImage || undefined
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: storeName,
-        url: origin,
-        inLanguage: "ar-SA",
-        description
-      },
-      currentProduct ? {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: cleanSeoText(currentProduct.name, "منتج"),
-        description,
-        image: currentProduct.image || undefined,
-        sku: currentProduct.sku || undefined,
-        brand: currentProduct.brand ? { "@type": "Brand", name: currentProduct.brand } : undefined,
-        category: currentProduct.category || undefined,
-        offers: {
-          "@type": "Offer",
-          url: canonicalUrl,
-          priceCurrency: "SAR",
-          price: Number(currentProduct.price || 0),
-          availability: Number(currentProduct.stock || 0) === 0 ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
-        }
-      } : null,
-      !currentProduct && visibleProducts.length ? {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        name: `${storeName} products`,
-        itemListElement: visibleProducts.map((product, index) => ({
-          "@type": "ListItem",
-          position: index + 1,
-          url: `${origin}${productPath(product)}`,
-          item: {
-            "@type": "Product",
-            name: cleanSeoText(product.name, "منتج"),
-            description: limitSeoText(product.description || product.category || settings?.homeProductsDesc, 180),
-            image: product.image || undefined,
-            sku: product.sku || undefined,
-            category: product.category || undefined,
-            offers: {
-              "@type": "Offer",
-              priceCurrency: "SAR",
-              price: Number(product.price || 0),
-              availability: Number(product.stock || 0) === 0 ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
-            }
-          }
-        }))
-      } : null
-    ].filter(Boolean);
-
-    setHeadTag('script[data-seo-jsonld="store"]', () => {
-      const script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.dataset.seoJsonld = "store";
-      return script;
-    }, {}, JSON.stringify(structuredData));
-  }, [path, settings, products]);
-
-  return null;
-}
-
-async function sendOrderStatusEmail(order, status) {
-  const email = order?.customerEmail || order?.email;
-  if (!email) return false;
-
-  const company =
-    order?.shippingCompany === "other"
-      ? (order?.customShipping || "أخرى")
-      : (order?.shippingCompany || "لم تحدد بعد");
-
-  const trackingUrl = order?.trackingNumber
-    ? getTrackingUrl(order.shippingCompany, order.trackingNumber, order.customShipping)
-    : "لم يصدر رقم التتبع بعد";
-
-  const params = {
-    name: order?.customerName || order?.name || "عميل Green Dixam",
-    email,
-    order_id: order?.id || "",
-    status: orderStatusLabel(status || order?.status),
-    company,
-    tracking_number: order?.trackingNumber || "—",
-    tracking_url: trackingUrl
-  };
-
-  try {
-    const emailjs = await import("@emailjs/browser");
-    await emailjs.default.send(
-      EMAILJS_SERVICE_ID,
-      EMAILJS_TEMPLATE_ID,
-      params,
-      EMAILJS_PUBLIC_KEY
-    );
-    return true;
-  } catch (error) {
-    console.error("EmailJS send failed:", error);
-    return false;
-  }
-}
-
-
-
-function fileToDataUrl(file, options = {}) {
-  const {
-    maxWidth = 900,
-    maxHeight = 900,
-    quality = 0.82,
-    mimeType = "image/jpeg"
-  } = options;
-
-  return new Promise((resolve, reject) => {
-    if (!file) return resolve("");
-
-    if (!file.type || !file.type.startsWith("image/")) {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result);
-      r.onerror = reject;
-      r.readAsDataURL(file);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        let { width, height } = img;
-
-        const scale = Math.min(maxWidth / width, maxHeight / height, 1);
-        width = Math.round(width * scale);
-        height = Math.round(height * scale);
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#F5F1E8";
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
-
-        resolve(canvas.toDataURL(mimeType, quality));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-
-
-
-
-
-async function getVisitorGeo() {
-  try {
-    const cached = localStorage.getItem("gdVisitorGeo");
-    if (cached) return JSON.parse(cached);
-
-    const res = await fetch("https://ipwho.is/");
-    const data = await res.json();
-
-    const geo = {
-      city: data.city || "",
-      country: data.country || "",
-      countryCode: data.country_code || "",
-      latitude: Number(data.latitude || 0),
-      longitude: Number(data.longitude || 0),
-      timezone: data.timezone?.id || ""
-    };
-
-    localStorage.setItem("gdVisitorGeo", JSON.stringify(geo));
-    return geo;
-  } catch {
-    return {
-      city: "",
-      country: "",
-      countryCode: "",
-      latitude: 0,
-      longitude: 0,
-      timezone: ""
-    };
-  }
-}
-
-
-
-
-
-async function trackFunnelStep(step, extra = {}) {
-  try {
-    const visitorId = localStorage.getItem("gdVisitorId");
-    if (!visitorId) return;
-
-    const eventTime = Date.now();
-
-    await setDoc(doc(db, "funnelEvents", `${visitorId}-${step}-${eventTime}`), {
-      visitorId,
-      step,
-      createdAtMs: eventTime,
-      createdAt: serverTimestamp(),
-      path: window.location.pathname || "/",
-      ...extra
-    }, { merge: true });
-  } catch {}
-}
-
-
-
-
-
-
-
+import {
+  STORE_WHATSAPP,
+  defaultSettings,
+  defaultProducts,
+  palettes,
+} from "./data/storeData";
+import {
+  formatPrice,
+  formatOrderDate,
+  orderTimestamp,
+  getTrackingUrl,
+  couponUsedByCustomer,
+  sizesArray,
+  uid,
+  makePageSlug,
+  normalizePageHref,
+  getTrafficSource,
+  formatDuration,
+  normalizeVideoUrl,
+  isGoogleDriveVideo,
+  firebaseError,
+} from "./utils/helpers";
+import {
+  SEOManager,
+  findProductByPath,
+  productPath,
+} from "./components/SEOManager.jsx";
+import {
+  ADMIN_PERMISSION_DESCRIPTIONS,
+  ADMIN_PERMISSION_LABELS,
+  ADMIN_ROLE_DEFAULTS,
+  generateStaffTemporaryPassword,
+  isStaffDeleted,
+  isStaffDisabled,
+  normalizeStaffPermissions,
+} from "./data/adminPermissions.js";
+import { getVisitorGeo, trackFunnelStep } from "./services/analytics.js";
+import { sendOrderStatusEmail } from "./services/orderNotifications.js";
+import { fileToDataUrl } from "./utils/media.js";
 
 export default function App() {
   const [path, setPath] = useState(window.location.pathname);
@@ -503,20 +144,36 @@ export default function App() {
       setIsAdmin(false);
       if (u) {
         const adminDoc = await getDoc(doc(db, "admins", u.uid));
-        const adminData = adminDoc.exists() ? (adminDoc.data() || {}) : null;
-        let adminAllowed = Boolean(adminDoc.exists() && !isStaffDisabled(adminData));
+        const adminData = adminDoc.exists() ? adminDoc.data() || {} : null;
+        let adminAllowed = Boolean(
+          adminDoc.exists() && !isStaffDisabled(adminData),
+        );
         if (adminAllowed && adminData?.staffUser) {
           const staffByUid = await getDoc(doc(db, "staffUsers", u.uid));
-          let staffRecord = staffByUid.exists() ? { id: u.uid, ...(staffByUid.data() || {}) } : null;
+          let staffRecord = staffByUid.exists()
+            ? { id: u.uid, ...(staffByUid.data() || {}) }
+            : null;
           if (!staffRecord && u.email) {
-            const staffByEmail = await getDocs(query(collection(db, "staffUsers"), where("email", "==", String(u.email).toLowerCase())));
-            staffRecord = staffByEmail.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) })).find((item) => !isStaffDisabled(item)) || null;
+            const staffByEmail = await getDocs(
+              query(
+                collection(db, "staffUsers"),
+                where("email", "==", String(u.email).toLowerCase()),
+              ),
+            );
+            staffRecord =
+              staffByEmail.docs
+                .map((staffDoc) => ({
+                  id: staffDoc.id,
+                  ...(staffDoc.data() || {}),
+                }))
+                .find((item) => !isStaffDisabled(item)) || null;
           }
           adminAllowed = Boolean(staffRecord && !isStaffDisabled(staffRecord));
         }
         setIsAdmin(adminAllowed);
         const customerDoc = await getDoc(doc(db, "customers", u.uid));
-        if (customerDoc.exists()) setCustomer({ id: u.uid, ...customerDoc.data() });
+        if (customerDoc.exists())
+          setCustomer({ id: u.uid, ...customerDoc.data() });
       }
       setLoading(false);
     });
@@ -524,32 +181,48 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const unsubSettings = onSnapshot(doc(db, "store", "settings"), async (snap) => {
-      if (snap.exists()) setSettings({ ...defaultSettings, ...snap.data() });
-      else await setDoc(doc(db, "store", "settings"), defaultSettings);
-    });
+    const unsubSettings = onSnapshot(
+      doc(db, "store", "settings"),
+      async (snap) => {
+        if (snap.exists()) setSettings({ ...defaultSettings, ...snap.data() });
+        else await setDoc(doc(db, "store", "settings"), defaultSettings);
+      },
+    );
 
-    const unsubProducts = onSnapshot(collection(db, "products"), async (snap) => {
-      const seedRef = doc(db, "store", "productsSeed");
+    const unsubProducts = onSnapshot(
+      collection(db, "products"),
+      async (snap) => {
+        const seedRef = doc(db, "store", "productsSeed");
 
-      if (snap.empty) {
-        const seedSnap = await getDoc(seedRef);
+        if (snap.empty) {
+          const seedSnap = await getDoc(seedRef);
 
-        if (!seedSnap.exists()) {
-          await Promise.all([
-            ...defaultProducts.map(p => setDoc(doc(db, "products", p.id), p)),
-            setDoc(seedRef, { seeded: true, seededAt: serverTimestamp() }, { merge: true })
-          ]);
-        } else {
-          setProducts([]);
+          if (!seedSnap.exists()) {
+            await Promise.all([
+              ...defaultProducts.map((p) =>
+                setDoc(doc(db, "products", p.id), p),
+              ),
+              setDoc(
+                seedRef,
+                { seeded: true, seededAt: serverTimestamp() },
+                { merge: true },
+              ),
+            ]);
+          } else {
+            setProducts([]);
+          }
+
+          return;
         }
 
-        return;
-      }
-
-      await setDoc(seedRef, { seeded: true, updatedAt: serverTimestamp() }, { merge: true });
-      setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+        await setDoc(
+          seedRef,
+          { seeded: true, updatedAt: serverTimestamp() },
+          { merge: true },
+        );
+        setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      },
+    );
 
     return () => {
       unsubSettings();
@@ -564,7 +237,7 @@ export default function App() {
     }
 
     const unsubCustomers = onSnapshot(collection(db, "customers"), (snap) => {
-      setCustomers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 
     return unsubCustomers;
@@ -578,21 +251,31 @@ export default function App() {
 
     const ordersQuery = isAdmin
       ? query(collection(db, "orders"), orderBy("createdAt", "desc"))
-      : query(collection(db, "orders"), where("customerId", "==", authUser.uid));
+      : query(
+          collection(db, "orders"),
+          where("customerId", "==", authUser.uid),
+        );
 
     let fallbackUnsub = null;
-    const unsubOrders = onSnapshot(ordersQuery, (snap) => {
-      setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, () => {
-      if (isAdmin && !fallbackUnsub) {
-        fallbackUnsub = onSnapshot(collection(db, "orders"), (snap) => {
-          const rows = snap.docs
-            .map(d => ({ id: d.id, ...d.data() }))
-            .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
-          setOrders(rows);
-        });
-      }
-    });
+    const unsubOrders = onSnapshot(
+      ordersQuery,
+      (snap) => {
+        setOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      },
+      () => {
+        if (isAdmin && !fallbackUnsub) {
+          fallbackUnsub = onSnapshot(collection(db, "orders"), (snap) => {
+            const rows = snap.docs
+              .map((d) => ({ id: d.id, ...d.data() }))
+              .sort(
+                (a, b) =>
+                  orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt),
+              );
+            setOrders(rows);
+          });
+        }
+      },
+    );
 
     return () => {
       unsubOrders();
@@ -607,7 +290,7 @@ export default function App() {
     }
 
     const unsubCoupons = onSnapshot(collection(db, "coupons"), (snap) => {
-      setCoupons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setCoupons(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 
     return unsubCoupons;
@@ -671,58 +354,83 @@ function AdminLogin({ go, settings }) {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const adminSnap = await getDoc(doc(db, "admins", cred.user.uid));
-      const adminData = adminSnap.exists() ? (adminSnap.data() || {}) : null;
+      const adminData = adminSnap.exists() ? adminSnap.data() || {} : null;
       const adminBlocked = Boolean(
         adminData?.disabled ||
-        adminData?.isDeleted ||
-        adminData?.deleted ||
-        adminData?.status === "deleted" ||
-        adminData?.status === "disabled"
+          adminData?.isDeleted ||
+          adminData?.deleted ||
+          adminData?.status === "deleted" ||
+          adminData?.status === "disabled",
       );
 
       const staffByUidSnap = await getDoc(doc(db, "staffUsers", cred.user.uid));
-      let staffRecord = staffByUidSnap.exists() ? { id: cred.user.uid, ...staffByUidSnap.data() } : null;
+      let staffRecord = staffByUidSnap.exists()
+        ? { id: cred.user.uid, ...staffByUidSnap.data() }
+        : null;
 
-      const staffByEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
-      const emailStaffRecords = staffByEmailSnap.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }));
-      const activeEmailStaff = emailStaffRecords.find((item) => !isStaffDisabled(item));
+      const staffByEmailSnap = await getDocs(
+        query(collection(db, "staffUsers"), where("email", "==", email)),
+      );
+      const emailStaffRecords = staffByEmailSnap.docs.map((staffDoc) => ({
+        id: staffDoc.id,
+        ...(staffDoc.data() || {}),
+      }));
+      const activeEmailStaff = emailStaffRecords.find(
+        (item) => !isStaffDisabled(item),
+      );
       if (!staffRecord || isStaffDisabled(staffRecord)) {
         staffRecord = activeEmailStaff || staffRecord;
       }
 
-      const canEnterAsStaff = Boolean(staffRecord && !isStaffDisabled(staffRecord));
+      const canEnterAsStaff = Boolean(
+        staffRecord && !isStaffDisabled(staffRecord),
+      );
       const isStaffAdminAccount = Boolean(adminData?.staffUser || staffRecord);
 
-      if ((adminBlocked && !canEnterAsStaff) || (!adminSnap.exists() && !canEnterAsStaff) || (isStaffAdminAccount && !canEnterAsStaff)) {
+      if (
+        (adminBlocked && !canEnterAsStaff) ||
+        (!adminSnap.exists() && !canEnterAsStaff) ||
+        (isStaffAdminAccount && !canEnterAsStaff)
+      ) {
         await signOut(auth);
-        setMessage("هذا الحساب غير مصرح له بدخول لوحة التحكم أو تم حذفه/تعطيله.");
+        setMessage(
+          "هذا الحساب غير مصرح له بدخول لوحة التحكم أو تم حذفه/تعطيله.",
+        );
         return;
       }
 
       if (canEnterAsStaff) {
-        await setDoc(doc(db, "staffUsers", cred.user.uid), {
-          ...staffRecord,
-          email,
-          authUid: cred.user.uid,
-          status: staffRecord.status === "disabled" ? "disabled" : "active",
-          disabled: false,
-          isDeleted: false,
-          deleted: false,
-          invitationStatus: "accepted",
-          lastLoginAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-        await setDoc(doc(db, "admins", cred.user.uid), {
-          email,
-          role: staffRecord.role || "staff",
-          permissions: normalizeStaffPermissions(staffRecord.permissions),
-          staffUser: true,
-          status: staffRecord.status === "disabled" ? "disabled" : "active",
-          disabled: staffRecord.status === "disabled",
-          isDeleted: false,
-          deleted: false,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+        await setDoc(
+          doc(db, "staffUsers", cred.user.uid),
+          {
+            ...staffRecord,
+            email,
+            authUid: cred.user.uid,
+            status: staffRecord.status === "disabled" ? "disabled" : "active",
+            disabled: false,
+            isDeleted: false,
+            deleted: false,
+            invitationStatus: "accepted",
+            lastLoginAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
+        await setDoc(
+          doc(db, "admins", cred.user.uid),
+          {
+            email,
+            role: staffRecord.role || "staff",
+            permissions: normalizeStaffPermissions(staffRecord.permissions),
+            staffUser: true,
+            status: staffRecord.status === "disabled" ? "disabled" : "active",
+            disabled: staffRecord.status === "disabled",
+            isDeleted: false,
+            deleted: false,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
       }
     } catch (err) {
       setMessage(firebaseError(err));
@@ -736,11 +444,34 @@ function AdminLogin({ go, settings }) {
       subtitle="لوحة التحكم مخصصة لحسابات الأدمن المصرح لها فقط."
     >
       <form onSubmit={submit} className="login-form">
-        <label><span><Mail size={16}/> الإيميل</span><input name="email" type="email" required defaultValue={new URLSearchParams(window.location.search).get("email") || ""} /></label>
-        <label><span><Lock size={16}/> كلمة المرور</span><input name="password" type="password" required minLength="6" /></label>
+        <label>
+          <span>
+            <Mail size={16} /> الإيميل
+          </span>
+          <input
+            name="email"
+            type="email"
+            required
+            defaultValue={
+              new URLSearchParams(window.location.search).get("email") || ""
+            }
+          />
+        </label>
+        <label>
+          <span>
+            <Lock size={16} /> كلمة المرور
+          </span>
+          <input name="password" type="password" required minLength="6" />
+        </label>
         {message && <div className="error">{message}</div>}
         <button className="admin-primary">دخول</button>
-        <button type="button" className="admin-secondary" onClick={() => go("/")}>رجوع للمتجر</button>
+        <button
+          type="button"
+          className="admin-secondary"
+          onClick={() => go("/")}
+        >
+          رجوع للمتجر
+        </button>
       </form>
     </AuthShell>
   );
@@ -771,21 +502,31 @@ function StaffTemporaryPasswordGate({ staffProfile, settings }) {
       if (!currentUser) throw new Error("no-current-user");
 
       await updatePassword(currentUser, newPassword);
-      await setDoc(doc(db, "staffUsers", currentUser.uid), {
-        mustChangePassword: false,
-        invitePassword: "",
-        invitationStatus: "accepted",
-        passwordChangedAtMs: Date.now(),
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-      await setDoc(doc(db, "admins", currentUser.uid), {
-        mustChangePassword: false,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        doc(db, "staffUsers", currentUser.uid),
+        {
+          mustChangePassword: false,
+          invitePassword: "",
+          invitationStatus: "accepted",
+          passwordChangedAtMs: Date.now(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+      await setDoc(
+        doc(db, "admins", currentUser.uid),
+        {
+          mustChangePassword: false,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
       setMessage("تم تغيير كلمة المرور بنجاح. جاري فتح لوحة التحكم...");
     } catch (error) {
       if (error?.code === "auth/requires-recent-login") {
-        setMessage("انتهت صلاحية جلسة الدخول. سجّل خروج ثم ادخل بكلمة المرور المؤقتة وحاول مرة أخرى.");
+        setMessage(
+          "انتهت صلاحية جلسة الدخول. سجّل خروج ثم ادخل بكلمة المرور المؤقتة وحاول مرة أخرى.",
+        );
       } else {
         setMessage(firebaseError(error));
       }
@@ -795,26 +536,66 @@ function StaffTemporaryPasswordGate({ staffProfile, settings }) {
   }
 
   return (
-    <div className="staff-password-modal-lock" dir="rtl" role="dialog" aria-modal="true" aria-labelledby="staff-password-title">
+    <div
+      className="staff-password-modal-lock"
+      dir="rtl"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="staff-password-title"
+    >
       <div className="staff-password-modal-backdrop" />
       <div className="staff-password-modal-card staff-password-card">
         <div className="login-brand-mark">
-          {settings?.logo ? <img src={settings.logo} alt="logo"/> : <ShieldCheck size={34}/>}
+          {settings?.logo ? (
+            <img src={settings.logo} alt="logo" />
+          ) : (
+            <ShieldCheck size={34} />
+          )}
         </div>
         <span className="staff-password-eyebrow">حماية الحساب</span>
         <h1 id="staff-password-title">غيّر كلمة المرور المؤقتة</h1>
-        <p>مرحبًا {staffProfile?.name || auth.currentUser?.email || ""}، دخلت بنجاح. قبل استخدام لوحة التحكم لازم تختار كلمة مرور جديدة خاصة بك.</p>
+        <p>
+          مرحبًا {staffProfile?.name || auth.currentUser?.email || ""}، دخلت
+          بنجاح. قبل استخدام لوحة التحكم لازم تختار كلمة مرور جديدة خاصة بك.
+        </p>
         <form onSubmit={submit} className="login-form staff-password-form">
           <label>
-            <span><Lock size={16}/> كلمة المرور الجديدة</span>
-            <input name="newPassword" type="password" minLength="8" required placeholder="8 أحرف أو أكثر" autoComplete="new-password" autoFocus />
+            <span>
+              <Lock size={16} /> كلمة المرور الجديدة
+            </span>
+            <input
+              name="newPassword"
+              type="password"
+              minLength="8"
+              required
+              placeholder="8 أحرف أو أكثر"
+              autoComplete="new-password"
+              autoFocus
+            />
           </label>
           <label>
-            <span><Lock size={16}/> تأكيد كلمة المرور</span>
-            <input name="confirmPassword" type="password" minLength="8" required placeholder="أعد كتابة كلمة المرور" autoComplete="new-password" />
+            <span>
+              <Lock size={16} /> تأكيد كلمة المرور
+            </span>
+            <input
+              name="confirmPassword"
+              type="password"
+              minLength="8"
+              required
+              placeholder="أعد كتابة كلمة المرور"
+              autoComplete="new-password"
+            />
           </label>
-          <button className="admin-primary" disabled={busy}>{busy ? "جاري الحفظ..." : "تغيير كلمة المرور والمتابعة"}</button>
-          <button type="button" className="admin-secondary" onClick={() => signOut(auth)}>تسجيل خروج</button>
+          <button className="admin-primary" disabled={busy}>
+            {busy ? "جاري الحفظ..." : "تغيير كلمة المرور والمتابعة"}
+          </button>
+          <button
+            type="button"
+            className="admin-secondary"
+            onClick={() => signOut(auth)}
+          >
+            تسجيل خروج
+          </button>
           {message && <p className="auth-message">{message}</p>}
         </form>
       </div>
@@ -836,7 +617,11 @@ function CustomerAuth({ go, settings }) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         const name = e.target.name.value.trim();
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const cred = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password,
+        );
         await updateProfile(cred.user, { displayName: name });
         await setDoc(doc(db, "customers", cred.user.uid), {
           name,
@@ -845,7 +630,7 @@ function CustomerAuth({ go, settings }) {
           city: "",
           address: "",
           createdAt: serverTimestamp(),
-          ordersCount: 0
+          ordersCount: 0,
         });
       }
       go("/account");
@@ -855,17 +640,50 @@ function CustomerAuth({ go, settings }) {
   }
 
   return (
-    <AuthShell settings={settings} title={mode === "login" ? "دخول العميل" : "إنشاء حساب عميل"} subtitle="سجل حسابك لحفظ بياناتك واستخدامها في الطلبات القادمة.">
+    <AuthShell
+      settings={settings}
+      title={mode === "login" ? "دخول العميل" : "إنشاء حساب عميل"}
+      subtitle="سجل حسابك لحفظ بياناتك واستخدامها في الطلبات القادمة."
+    >
       <form onSubmit={submit} className="login-form">
-        {mode === "signup" && <label><span><User size={16}/> الاسم</span><input name="name" required /></label>}
-        <label><span><Mail size={16}/> الإيميل</span><input name="email" type="email" required /></label>
-        <label><span><Lock size={16}/> كلمة المرور</span><input name="password" type="password" required minLength="6" /></label>
+        {mode === "signup" && (
+          <label>
+            <span>
+              <User size={16} /> الاسم
+            </span>
+            <input name="name" required />
+          </label>
+        )}
+        <label>
+          <span>
+            <Mail size={16} /> الإيميل
+          </span>
+          <input name="email" type="email" required />
+        </label>
+        <label>
+          <span>
+            <Lock size={16} /> كلمة المرور
+          </span>
+          <input name="password" type="password" required minLength="6" />
+        </label>
         {message && <div className="error">{message}</div>}
-        <button className="admin-primary">{mode === "login" ? "دخول" : "إنشاء حساب"}</button>
-        <button type="button" className="admin-secondary" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
+        <button className="admin-primary">
+          {mode === "login" ? "دخول" : "إنشاء حساب"}
+        </button>
+        <button
+          type="button"
+          className="admin-secondary"
+          onClick={() => setMode(mode === "login" ? "signup" : "login")}
+        >
           {mode === "login" ? "إنشاء حساب جديد" : "عندي حساب"}
         </button>
-        <button type="button" className="admin-secondary" onClick={() => go("/")}>رجوع للمتجر</button>
+        <button
+          type="button"
+          className="admin-secondary"
+          onClick={() => go("/")}
+        >
+          رجوع للمتجر
+        </button>
       </form>
     </AuthShell>
   );
@@ -876,7 +694,16 @@ function AuthShell({ title, subtitle, children, settings }) {
     <div className="login-page" dir="rtl">
       <div className="login-card">
         <div className="login-brand-mark">
-          {settings?.logo ? <img src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <span>{settings?.storeName || "GREEN DIXAM"}</span>}
+          {settings?.logo ? (
+            <img
+              src={settings.logo}
+              alt="logo"
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <span>{settings?.storeName || "GREEN DIXAM"}</span>
+          )}
         </div>
         <h1>{title}</h1>
         <p>{subtitle}</p>
@@ -886,7 +713,17 @@ function AuthShell({ title, subtitle, children, settings }) {
   );
 }
 
-function Store({ settings, products, authUser, customer, setCustomer, orders = [], coupons = [], go, path }) {
+function Store({
+  settings,
+  products,
+  authUser,
+  customer,
+  setCustomer,
+  orders = [],
+  coupons = [],
+  go,
+  path,
+}) {
   const [queryText, setQueryText] = useState("");
   const [brand, setBrand] = useState("All");
   const [category, setCategory] = useState("All");
@@ -918,7 +755,10 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
 
     const touchVisitor = async () => {
       try {
-        const cartCount = cart.reduce((sum, item) => sum + Number(item.qty || 1), 0);
+        const cartCount = cart.reduce(
+          (sum, item) => sum + Number(item.qty || 1),
+          0,
+        );
         const now = Date.now();
         const geo = await getVisitorGeo();
 
@@ -928,29 +768,37 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           localStorage.setItem("gdSessionStart", String(sessionStart));
         }
 
-        await setDoc(visitorRef, {
-          firstSeen: sessionStart,
-          lastSeen: now,
-          sessionDuration: now - sessionStart,
-          source: localStorage.getItem("gdTrafficSource") || getTrafficSource(),
-          path: window.location.pathname || "/",
-          pageTitle: document.title || "",
-          cartCount,
-          cartItems: cart.slice(0, 5).map(item => ({
-            name: item.name || "منتج",
-            qty: Number(item.qty || 1)
-          })),
-          language: navigator.language || "",
-          timezone: geo.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "",
-          city: geo.city || "",
-          country: geo.country || "",
-          countryCode: geo.countryCode || "",
-          latitude: Number(geo.latitude || 0),
-          longitude: Number(geo.longitude || 0),
-          screen: `${window.innerWidth || 0}x${window.innerHeight || 0}`,
-          lastAction: cartCount > 0 ? "لديه منتجات في السلة" : "يتصفح المتجر",
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+        await setDoc(
+          visitorRef,
+          {
+            firstSeen: sessionStart,
+            lastSeen: now,
+            sessionDuration: now - sessionStart,
+            source:
+              localStorage.getItem("gdTrafficSource") || getTrafficSource(),
+            path: window.location.pathname || "/",
+            pageTitle: document.title || "",
+            cartCount,
+            cartItems: cart.slice(0, 5).map((item) => ({
+              name: item.name || "منتج",
+              qty: Number(item.qty || 1),
+            })),
+            language: navigator.language || "",
+            timezone:
+              geo.timezone ||
+              Intl.DateTimeFormat().resolvedOptions().timeZone ||
+              "",
+            city: geo.city || "",
+            country: geo.country || "",
+            countryCode: geo.countryCode || "",
+            latitude: Number(geo.latitude || 0),
+            longitude: Number(geo.longitude || 0),
+            screen: `${window.innerWidth || 0}x${window.innerHeight || 0}`,
+            lastAction: cartCount > 0 ? "لديه منتجات في السلة" : "يتصفح المتجر",
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
 
         if (!localStorage.getItem("gdTrafficSource")) {
           localStorage.setItem("gdTrafficSource", getTrafficSource());
@@ -978,7 +826,6 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     };
   }, [path, cart]);
 
-
   useEffect(() => {
     trackFunnelStep("visit_store");
   }, []);
@@ -986,7 +833,11 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   const [searchQuery, setSearchQuery] = useState("");
   const [siteLang, setSiteLang] = useState(() => {
     try {
-      return localStorage.getItem("green-dixam-lang") || settings.homeHeaderLang || "AR";
+      return (
+        localStorage.getItem("green-dixam-lang") ||
+        settings.homeHeaderLang ||
+        "AR"
+      );
     } catch {
       return settings.homeHeaderLang || "AR";
     }
@@ -1000,46 +851,88 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     } catch {}
   }, [siteLang]);
 
-  const brands = ["All", ...new Set(products.map(p => p.brand).filter(Boolean))];
-  const categories = ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
-  const filtered = useMemo(() => products.filter(p => (p.status || "active") !== "hidden").filter(p => {
-    const q = queryText.toLowerCase().trim();
-    const searchable = `${p.name || ""} ${p.brand || ""} ${p.category || ""}`.toLowerCase();
-    return (!q || searchable.includes(q)) &&
-      (brand === "All" || p.brand === brand) &&
-      (category === "All" || p.category === category);
-  }), [products, queryText, brand, category]);
+  const brands = [
+    "All",
+    ...new Set(products.map((p) => p.brand).filter(Boolean)),
+  ];
+  const categories = [
+    "All",
+    ...new Set(products.map((p) => p.category).filter(Boolean)),
+  ];
+  const filtered = useMemo(
+    () =>
+      products
+        .filter((p) => (p.status || "active") !== "hidden")
+        .filter((p) => {
+          const q = queryText.toLowerCase().trim();
+          const searchable =
+            `${p.name || ""} ${p.brand || ""} ${p.category || ""}`.toLowerCase();
+          return (
+            (!q || searchable.includes(q)) &&
+            (brand === "All" || p.brand === brand) &&
+            (category === "All" || p.category === category)
+          );
+        }),
+    [products, queryText, brand, category],
+  );
 
   const cartCount = cart.reduce((n, i) => n + Number(i.qty || 0), 0);
-  const subtotal = cart.reduce((n, i) => n + Number(i.qty || 0) * Number(i.price || 0), 0);
+  const subtotal = cart.reduce(
+    (n, i) => n + Number(i.qty || 0) * Number(i.price || 0),
+    0,
+  );
   const shippingFee = subtotal ? 35 : 0;
-  const discount = appliedCoupon ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100)) : 0;
+  const discount = appliedCoupon
+    ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100))
+    : 0;
   const total = Math.max(0, subtotal - discount) + shippingFee;
-  const filteredProducts = useMemo(() => products
-    .filter((p) => (p.status || "active") !== "hidden")
-    .filter((p) => {
-      const q = searchQuery.trim().toLowerCase();
-      if (!q) return true;
-      return `${p.name || ""} ${p.category || ""} ${p.description || ""}`.toLowerCase().includes(q);
-    }), [products, searchQuery]);
+  const filteredProducts = useMemo(
+    () =>
+      products
+        .filter((p) => (p.status || "active") !== "hidden")
+        .filter((p) => {
+          const q = searchQuery.trim().toLowerCase();
+          if (!q) return true;
+          return `${p.name || ""} ${p.category || ""} ${p.description || ""}`
+            .toLowerCase()
+            .includes(q);
+        }),
+    [products, searchQuery],
+  );
 
-  const visibleHomePages = (settings.homePages || [
-    { label: "النباتات", href: "/page/products", visible: true },
-    { label: "العروض", href: "/page/offers", visible: true },
-    { label: "دليل العناية", href: "/page/care-guide", visible: true }
-  ]).filter(page => page.visible !== false);
+  const visibleHomePages = (
+    settings.homePages || [
+      { label: "النباتات", href: "/page/products", visible: true },
+      { label: "العروض", href: "/page/offers", visible: true },
+      { label: "دليل العناية", href: "/page/care-guide", visible: true },
+    ]
+  ).filter((page) => page.visible !== false);
 
   const currentStorePage = path.startsWith("/page/")
-    ? visibleHomePages.find((page, index) => normalizePageHref(page, index) === path)
+    ? visibleHomePages.find(
+        (page, index) => normalizePageHref(page, index) === path,
+      )
     : null;
-  const currentProduct = path.startsWith("/product/") ? findProductByPath(products, path) : null;
+  const currentProduct = path.startsWith("/product/")
+    ? findProductByPath(products, path)
+    : null;
   const isProductPath = path.startsWith("/product/");
 
-  if (path.startsWith("/login")) return <CustomerAuth go={go} settings={settings} />;
+  if (path.startsWith("/login"))
+    return <CustomerAuth go={go} settings={settings} />;
   if (path.startsWith("/account")) {
-    return authUser
-      ? <Account customer={customer} setCustomer={setCustomer} orders={orders} coupons={coupons} go={go} settings={settings} />
-      : <CustomerAuth go={go} settings={settings} />;
+    return authUser ? (
+      <Account
+        customer={customer}
+        setCustomer={setCustomer}
+        orders={orders}
+        coupons={coupons}
+        go={go}
+        settings={settings}
+      />
+    ) : (
+      <CustomerAuth go={go} settings={settings} />
+    );
   }
 
   async function applyCoupon() {
@@ -1050,7 +943,9 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     }
 
     const couponSnap = await getDoc(doc(db, "coupons", code));
-    const coupon = couponSnap.exists() ? { id: couponSnap.id, ...couponSnap.data() } : null;
+    const coupon = couponSnap.exists()
+      ? { id: couponSnap.id, ...couponSnap.data() }
+      : null;
     if (!coupon) {
       setAppliedCoupon(null);
       setCouponMessage("الكوبون غير موجود");
@@ -1087,10 +982,16 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
   }
 
   function addToCart(product) {
-    const size = selectedSize[product.id] || sizesArray(product.sizes)[0] || "Free";
-    setCart(prev => {
-      const found = prev.find(i => i.id === product.id && i.size === size);
-      if (found) return prev.map(i => i.id === product.id && i.size === size ? { ...i, qty: Number(i.qty || 0) + 1 } : i);
+    const size =
+      selectedSize[product.id] || sizesArray(product.sizes)[0] || "Free";
+    setCart((prev) => {
+      const found = prev.find((i) => i.id === product.id && i.size === size);
+      if (found)
+        return prev.map((i) =>
+          i.id === product.id && i.size === size
+            ? { ...i, qty: Number(i.qty || 0) + 1 }
+            : i,
+        );
       return [...prev, { ...product, size, qty: 1 }];
     });
 
@@ -1099,25 +1000,36 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       if (visitorId) {
         const eventTime = Date.now();
 
-        setDoc(doc(db, "liveVisitors", visitorId), {
-          lastAction: `أضاف للسلة: ${product.name || "منتج"}`,
-          lastAddedProduct: product.name || "",
-          lastCartAt: eventTime,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+        setDoc(
+          doc(db, "liveVisitors", visitorId),
+          {
+            lastAction: `أضاف للسلة: ${product.name || "منتج"}`,
+            lastAddedProduct: product.name || "",
+            lastCartAt: eventTime,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
 
-        setDoc(doc(db, "liveEvents", `${visitorId}-${eventTime}`), {
-          type: "cart",
-          title: `أضاف للسلة: ${product.name || "منتج"}`,
-          path: window.location.pathname || "/",
-          visitorId,
-          createdAtMs: eventTime,
-          createdAt: serverTimestamp()
-        }, { merge: true });
+        setDoc(
+          doc(db, "liveEvents", `${visitorId}-${eventTime}`),
+          {
+            type: "cart",
+            title: `أضاف للسلة: ${product.name || "منتج"}`,
+            path: window.location.pathname || "/",
+            visitorId,
+            createdAtMs: eventTime,
+            createdAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
       }
     } catch {}
 
-    trackFunnelStep("add_to_cart", { productId: product.id, productName: product.name });
+    trackFunnelStep("add_to_cart", {
+      productId: product.id,
+      productName: product.name,
+    });
 
     setCartOpen(true);
   }
@@ -1128,8 +1040,15 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       go("/login");
       return;
     }
-    if (!customer?.name || !customer?.phone || !customer?.city || !customer?.address) {
-      setCouponMessage("أكمل بيانات حسابك أولاً: الاسم، الجوال، المدينة، العنوان");
+    if (
+      !customer?.name ||
+      !customer?.phone ||
+      !customer?.city ||
+      !customer?.address
+    ) {
+      setCouponMessage(
+        "أكمل بيانات حسابك أولاً: الاسم، الجوال، المدينة، العنوان",
+      );
       go("/account");
       return;
     }
@@ -1139,14 +1058,18 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       const visitorId = localStorage.getItem("gdVisitorId");
       if (visitorId) {
         const eventTime = Date.now();
-        await setDoc(doc(db, "liveEvents", `${visitorId}-${eventTime}`), {
-          type: "checkout",
-          title: "وصل إلى إتمام الطلب",
-          path: window.location.pathname || "/checkout",
-          visitorId,
-          createdAtMs: eventTime,
-          createdAt: serverTimestamp()
-        }, { merge: true });
+        await setDoc(
+          doc(db, "liveEvents", `${visitorId}-${eventTime}`),
+          {
+            type: "checkout",
+            title: "وصل إلى إتمام الطلب",
+            path: window.location.pathname || "/checkout",
+            visitorId,
+            createdAtMs: eventTime,
+            createdAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
       }
     } catch {}
 
@@ -1159,8 +1082,13 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       customerPhone: customer.phone,
       customerCity: customer.city,
       customerAddress: customer.address,
-      items: cart.map(i => ({
-        id: i.id, name: i.name, brand: i.brand, size: i.size, qty: i.qty, price: i.price
+      items: cart.map((i) => ({
+        id: i.id,
+        name: i.name,
+        brand: i.brand,
+        size: i.size,
+        qty: i.qty,
+        price: i.price,
       })),
       subtotal,
       shippingFee,
@@ -1169,27 +1097,50 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
       couponPercent: appliedCoupon?.percent || 0,
       total,
       status: "new",
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     };
     const orderRef = await addDoc(collection(db, "orders"), order);
 
     if (appliedCoupon?.code) {
-      await setDoc(doc(db, "coupons", String(appliedCoupon.code).toUpperCase()), {
-        usedBy: { [authUser.uid]: { orderId: orderRef.id, usedAt: serverTimestamp() } },
-        usedEmails: { [authUser.email]: { orderId: orderRef.id, usedAt: serverTimestamp() } },
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        doc(db, "coupons", String(appliedCoupon.code).toUpperCase()),
+        {
+          usedBy: {
+            [authUser.uid]: { orderId: orderRef.id, usedAt: serverTimestamp() },
+          },
+          usedEmails: {
+            [authUser.email]: {
+              orderId: orderRef.id,
+              usedAt: serverTimestamp(),
+            },
+          },
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
     }
 
-    await setDoc(doc(db, "customers", authUser.uid), {
-      ...customer,
-      ordersCount: Number(customer.ordersCount || 0) + 1,
-      lastOrderAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(
+      doc(db, "customers", authUser.uid),
+      {
+        ...customer,
+        ordersCount: Number(customer.ordersCount || 0) + 1,
+        lastOrderAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
 
-    const items = cart.map((item) => `• ${item.name}\nالالحجم: ${item.size}\nالكمية: ${item.qty}\nالسعر: ${formatPrice(item.price)} ر.س`).join("\n\n");
+    const items = cart
+      .map(
+        (item) =>
+          `• ${item.name}\nالالحجم: ${item.size}\nالكمية: ${item.qty}\nالسعر: ${formatPrice(item.price)} ر.س`,
+      )
+      .join("\n\n");
     const message = `🛒 طلب جديد من المتجر:\n\n👤 العميل: ${customer.name}\n📱 الجوال: ${customer.phone}\n📧 الإيميل: ${customer.email || authUser.email}\n📍 المدينة: ${customer.city}\n🏠 العنوان: ${customer.address}\n\n${items}\n\n💰 الإجمالي: ${formatPrice(total)} ر.س\n\n📦 الرجاء تأكيد الطلب`;
-    window.open(`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`, "_blank");
+    window.open(
+      `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`,
+      "_blank",
+    );
     setCart([]);
     setAppliedCoupon(null);
     setCouponCode("");
@@ -1207,36 +1158,45 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     "--product-h": `${settings.productImageHeight}px`,
     "--home-header-bg": settings.homeHeaderBg || "#F5F1E8",
     "--topbar-bg": settings.homeTopBarBg || "#0F3D2E",
-    "--topbar-text": settings.homeTopBarText || "#FFFFFF"
+    "--topbar-text": settings.homeTopBarText || "#FFFFFF",
   };
 
   return (
-    <div className="store" style={theme} dir={siteLang === "EN" ? "ltr" : "rtl"}>
+    <div
+      className="store"
+      style={theme}
+      dir={siteLang === "EN" ? "ltr" : "rtl"}
+    >
       <HeroStyle />
       <header
         className={`store-header ${settings.homeHeaderSticky === false ? "" : "header-sticky-pro"}`}
         style={{
-          background: settings.homeHeaderBg || undefined
+          background: settings.homeHeaderBg || undefined,
         }}
       >
+        {settings.homeTopBarEnabled !== false &&
+          (settings.homeHeaderTopBar || "").trim() && (
+            <div
+              className="top-announcement-bar"
+              style={{
+                background: settings.homeTopBarBg || "#0F3D2E",
+                color: settings.homeTopBarText || "#FFFFFF",
+              }}
+            >
+              <span>{settings.homeHeaderTopBar}</span>
+            </div>
+          )}
 
-        {settings.homeTopBarEnabled !== false && (settings.homeHeaderTopBar || "").trim() && (
-          <div
-            className="top-announcement-bar"
-            style={{
-              background: settings.homeTopBarBg || "#0F3D2E",
-              color: settings.homeTopBarText || "#FFFFFF"
-            }}
-          >
-            <span>{settings.homeHeaderTopBar}</span>
-          </div>
-        )}
-
-<div className="container luxe-nav">
+        <div className="container luxe-nav">
           <div className="luxe-nav-right">
             <button className="luxe-logo" onClick={() => go("/")}>
               {settings.homeHeaderImage ? (
-                <img src={settings.homeHeaderImage} alt="logo" loading="eager" decoding="async" />
+                <img
+                  src={settings.homeHeaderImage}
+                  alt="logo"
+                  loading="eager"
+                  decoding="async"
+                />
               ) : (
                 <b>{settings.homeHeaderTitle || settings.storeName}</b>
               )}
@@ -1254,23 +1214,30 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
                 }
               }}
             >
-<input
+              <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={siteLang === "EN" ? "Search products..." : "ابحث عن منتج..."}
+                placeholder={
+                  siteLang === "EN" ? "Search products..." : "ابحث عن منتج..."
+                }
               />
-              <button type="submit" className="search-icon-submit" aria-label={siteLang === "EN" ? "Search" : "بحث"}><Search size={18} /></button>
+              <button
+                type="submit"
+                className="search-icon-submit"
+                aria-label={siteLang === "EN" ? "Search" : "بحث"}
+              >
+                <Search size={18} />
+              </button>
             </form>
           </nav>
 
           <div className="luxe-nav-left">
-
-<div className="language-menu-wrap">
+            <div className="language-menu-wrap">
               <button
                 className="language-toggle"
                 type="button"
                 title={siteLang === "EN" ? "Language" : "اللغة"}
-                onClick={() => setLangMenuOpen(v => !v)}
+                onClick={() => setLangMenuOpen((v) => !v)}
               >
                 🌐
               </button>
@@ -1305,7 +1272,15 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
               className="luxe-icon-btn"
               aria-label="حسابي"
               onClick={() => go(authUser ? "/account" : "/login")}
-              title={siteLang === "EN" ? (authUser ? "Account" : "Login") : (authUser ? "حسابي" : "دخول العميل")}
+              title={
+                siteLang === "EN"
+                  ? authUser
+                    ? "Account"
+                    : "Login"
+                  : authUser
+                    ? "حسابي"
+                    : "دخول العميل"
+              }
             >
               👤
             </button>
@@ -1322,31 +1297,29 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
           </div>
         </div>
 
-
         <section className="home-pages-strip">
-                <div className="container home-pages-inner">
-                  <span>{settings.homePagesTitle || "الصفحات"}</span>
-                  <div className="home-pages-links">
-                    {visibleHomePages.map((page, index) => (
-                      <a
-                        key={index}
-                        href={normalizePageHref(page, index)}
-                        className={currentStorePage === page ? "active" : ""}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          go(normalizePageHref(page, index));
-                        }}
-                      >
-                        {page.label}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </section>
+          <div className="container home-pages-inner">
+            <span>{settings.homePagesTitle || "الصفحات"}</span>
+            <div className="home-pages-links">
+              {visibleHomePages.map((page, index) => (
+                <a
+                  key={index}
+                  href={normalizePageHref(page, index)}
+                  className={currentStorePage === page ? "active" : ""}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    go(normalizePageHref(page, index));
+                  }}
+                >
+                  {page.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
       </header>
 
-
-{isProductPath ? (
+      {isProductPath ? (
         <ProductDetailPage
           product={currentProduct}
           products={products}
@@ -1360,102 +1333,265 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         <StoreCustomPage page={currentStorePage} products={products} go={go} />
       ) : (
         <>
-<HeroSection settings={settings} products={products} />
+          <HeroSection settings={settings} products={products} />
 
-      <section className="container feature-grid">
-        <Feature icon={<Truck/>} title="توصيل سريع" text="تغليف فاخر للنباتات مع تغليف يحافظ عليها." />
-        <Feature icon={<ShieldCheck/>} title="حسابات عملاء" text=" يحفظ بياناته وطلباته لتجربة أسهل." />
-        <Feature icon={<RotateCcw/>} title="طلبات منظمة" text="كل طلب محفوظ ومنظم داخل لوحة التحكم." />
-      </section>
+          <section className="container feature-grid">
+            <Feature
+              icon={<Truck />}
+              title="توصيل سريع"
+              text="تغليف فاخر للنباتات مع تغليف يحافظ عليها."
+            />
+            <Feature
+              icon={<ShieldCheck />}
+              title="حسابات عملاء"
+              text=" يحفظ بياناته وطلباته لتجربة أسهل."
+            />
+            <Feature
+              icon={<RotateCcw />}
+              title="طلبات منظمة"
+              text="كل طلب محفوظ ومنظم داخل لوحة التحكم."
+            />
+          </section>
 
-      <section className="container plant-categories">
-        <div className="section-title">
-          <span>Brand Essence</span>
-          <h2>{settings.homePlantSectionsTitle || "اختر طابعك الأخضر"}</h2>
-          <p className="home-section-desc">{settings.homePlantSectionsDesc || "نباتات داخلية، نباتات سهلة العناية، وأصص وإكسسوارات بطابع فاخر."}</p>
-        </div>
+          <section className="container plant-categories">
+            <div className="section-title">
+              <span>Brand Essence</span>
+              <h2>{settings.homePlantSectionsTitle || "اختر طابعك الأخضر"}</h2>
+              <p className="home-section-desc">
+                {settings.homePlantSectionsDesc ||
+                  "نباتات داخلية، نباتات سهلة العناية، وأصص وإكسسوارات بطابع فاخر."}
+              </p>
+            </div>
 
-        {settings.homePlantSectionsImage && (
-          <div className="home-admin-section-image">
-            <img src={settings.homePlantSectionsImage} alt="أقسام النباتات" loading="lazy" decoding="async" />
-          </div>
-        )}
+            {settings.homePlantSectionsImage && (
+              <div className="home-admin-section-image">
+                <img
+                  src={settings.homePlantSectionsImage}
+                  alt="أقسام النباتات"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            )}
 
-        <div className="plant-category-grid">
-          <a href="#products" className="plant-category-card">
-            <img src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80" alt="نباتات داخلية" loading="lazy" decoding="async" />
-            <div><b>نباتات داخلية</b><span>نباتات راقية للمنازل والمكاتب</span></div>
-          </a>
-          <a href="#products" className="plant-category-card">
-            <img src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80" alt="نباتات سهلة العناية" loading="lazy" decoding="async" />
-            <div><b>سهلة العناية</b><span>اختيارات هادئة وسهلة العناية</span></div>
-          </a>
-          <a href="#products" className="plant-category-card">
-            <img src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80" alt="أصص وإكسسوارات" loading="lazy" decoding="async" />
-            <div><b>أصص وإكسسوارات</b><span>أصص وإكسسوارات بطابع فاخر</span></div>
-          </a>
-        </div>
-      </section>
-
-      <section className="container care-strip cms-care-strip" style={{ backgroundImage: settings.homeCareImage ? `linear-gradient(135deg, rgba(15,61,46,.90), rgba(23,77,57,.82)), url(${settings.homeCareImage})` : undefined }}>
-        <div>
-          <span>Care Guide</span>
-          <h2>{settings.homeCareTitle || "عناية هادئة لنباتات تدوم"}</h2>
-          <p>{settings.homeCareDesc || "اختر الإضاءة المناسبة، اسقِ النبات بدون إفراط، واستخدم أصيص بتصريف جيد."}</p>
-        </div>
-        <div className="care-items">
-          <div><b>01</b><span>اختر الإضاءة المناسبة</span></div>
-          <div><b>02</b><span>اسقِ النبات بانتظام بدون إفراط</span></div>
-          <div><b>03</b><span>استخدم أصيص بتصريف جيد</span></div>
-        </div>
-      </section>
-
-      <section className="container promo" style={{ backgroundImage: (settings.homeOfferImage || settings.bannerImage) ? `linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.2)), url(${settings.homeOfferImage || settings.bannerImage})` : undefined }}>
-        <div>
-          <span>Exclusive Campaign</span>
-          <h2>{settings.homeOfferTitle || settings.bannerTitle}</h2>
-          <p>{settings.homeOfferDesc || settings.bannerSubtitle}</p>
-        </div>
-      </section>
-
-      <section className="container filters">
-        <div className="search-box"><Search size={18}/><input value={queryText} onChange={e=>setQueryText(e.target.value)} placeholder="ابحث عن منتج أو براند..." /></div>
-        <select value={brand} onChange={e=>setBrand(e.target.value)}>{brands.map(b => <option key={b} value={b}>{b==="All"?"كل النوع/الموردات":b}</option>)}</select>
-        <select value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c => <option key={c} value={c}>{c==="All"?"كل النباتات":c}</option>)}</select>
-      </section>
-<section id="products" className="container product-section">
-        <div className="section-title"><span>Rare Catalogue</span><h2>{settings.homeProductsTitle || "نباتات نادرة ومنتجات فاخرة مختارة بعناية"}</h2><p className="home-section-desc">{settings.homeProductsDesc || "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}</p></div>
-        <div className="products-grid">
-          {filtered.map(p => {
-            const sizes = sizesArray(p.sizes);
-            return (
-              <article
-                className="product product-link-card"
-                key={p.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => go(productPath(p))}
-                onKeyDown={(e) => { if (e.key === "Enter") go(productPath(p)); }}
-              >
-                <div className="product-img">
-                  <img src={p.image} alt={p.name} loading="lazy" decoding="async" />
-                  <span>{p.tag}</span>
-                  <button onClick={(e) => { e.stopPropagation(); setFavorites(prev => prev.includes(p.id) ? prev.filter(x=>x!==p.id) : [...prev,p.id]); }}><Heart className={favorites.includes(p.id) ? "heart-on" : ""}/></button>
+            <div className="plant-category-grid">
+              <a href="#products" className="plant-category-card">
+                <img
+                  src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80"
+                  alt="نباتات داخلية"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div>
+                  <b>نباتات داخلية</b>
+                  <span>نباتات راقية للمنازل والمكاتب</span>
                 </div>
-                <div className="product-body">
-                  <div className="product-top"><div><small>{p.brand}</small><h3>{p.name}</h3></div><em>{p.category}</em></div>
-                  <div className="rating"><Star size={15} fill="currentColor"/> {p.rating}</div>
-                  <div className="sizes">{sizes.map(s => <button className={(selectedSize[p.id] || sizes[0]) === s ? "active" : ""} key={s} onClick={(e) => { e.stopPropagation(); setSelectedSize(prev => ({...prev, [p.id]: s})); }}>{s}</button>)}</div>
-                  <div className="product-foot"><div><b>{formatPrice(p.price)} ر.س</b><del>{formatPrice(p.oldPrice)} ر.س</del></div><button onClick={(e) => { e.stopPropagation(); addToCart(p); }}>أضف</button></div>
+              </a>
+              <a href="#products" className="plant-category-card">
+                <img
+                  src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80"
+                  alt="نباتات سهلة العناية"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div>
+                  <b>سهلة العناية</b>
+                  <span>اختيارات هادئة وسهلة العناية</span>
                 </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+              </a>
+              <a href="#products" className="plant-category-card">
+                <img
+                  src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80"
+                  alt="أصص وإكسسوارات"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div>
+                  <b>أصص وإكسسوارات</b>
+                  <span>أصص وإكسسوارات بطابع فاخر</span>
+                </div>
+              </a>
+            </div>
+          </section>
 
-      <StoreReturnPolicy />
+          <section
+            className="container care-strip cms-care-strip"
+            style={{
+              backgroundImage: settings.homeCareImage
+                ? `linear-gradient(135deg, rgba(15,61,46,.90), rgba(23,77,57,.82)), url(${settings.homeCareImage})`
+                : undefined,
+            }}
+          >
+            <div>
+              <span>Care Guide</span>
+              <h2>{settings.homeCareTitle || "عناية هادئة لنباتات تدوم"}</h2>
+              <p>
+                {settings.homeCareDesc ||
+                  "اختر الإضاءة المناسبة، اسقِ النبات بدون إفراط، واستخدم أصيص بتصريف جيد."}
+              </p>
+            </div>
+            <div className="care-items">
+              <div>
+                <b>01</b>
+                <span>اختر الإضاءة المناسبة</span>
+              </div>
+              <div>
+                <b>02</b>
+                <span>اسقِ النبات بانتظام بدون إفراط</span>
+              </div>
+              <div>
+                <b>03</b>
+                <span>استخدم أصيص بتصريف جيد</span>
+              </div>
+            </div>
+          </section>
 
+          <section
+            className="container promo"
+            style={{
+              backgroundImage:
+                settings.homeOfferImage || settings.bannerImage
+                  ? `linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.2)), url(${settings.homeOfferImage || settings.bannerImage})`
+                  : undefined,
+            }}
+          >
+            <div>
+              <span>Exclusive Campaign</span>
+              <h2>{settings.homeOfferTitle || settings.bannerTitle}</h2>
+              <p>{settings.homeOfferDesc || settings.bannerSubtitle}</p>
+            </div>
+          </section>
+
+          <section className="container filters">
+            <div className="search-box">
+              <Search size={18} />
+              <input
+                value={queryText}
+                onChange={(e) => setQueryText(e.target.value)}
+                placeholder="ابحث عن منتج أو براند..."
+              />
+            </div>
+            <select value={brand} onChange={(e) => setBrand(e.target.value)}>
+              {brands.map((b) => (
+                <option key={b} value={b}>
+                  {b === "All" ? "كل النوع/الموردات" : b}
+                </option>
+              ))}
+            </select>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c === "All" ? "كل النباتات" : c}
+                </option>
+              ))}
+            </select>
+          </section>
+          <section id="products" className="container product-section">
+            <div className="section-title">
+              <span>Rare Catalogue</span>
+              <h2>
+                {settings.homeProductsTitle ||
+                  "نباتات نادرة ومنتجات فاخرة مختارة بعناية"}
+              </h2>
+              <p className="home-section-desc">
+                {settings.homeProductsDesc ||
+                  "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}
+              </p>
+            </div>
+            <div className="products-grid">
+              {filtered.map((p) => {
+                const sizes = sizesArray(p.sizes);
+                return (
+                  <article
+                    className="product product-link-card"
+                    key={p.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => go(productPath(p))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") go(productPath(p));
+                    }}
+                  >
+                    <div className="product-img">
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <span>{p.tag}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFavorites((prev) =>
+                            prev.includes(p.id)
+                              ? prev.filter((x) => x !== p.id)
+                              : [...prev, p.id],
+                          );
+                        }}
+                      >
+                        <Heart
+                          className={favorites.includes(p.id) ? "heart-on" : ""}
+                        />
+                      </button>
+                    </div>
+                    <div className="product-body">
+                      <div className="product-top">
+                        <div>
+                          <small>{p.brand}</small>
+                          <h3>{p.name}</h3>
+                        </div>
+                        <em>{p.category}</em>
+                      </div>
+                      <div className="rating">
+                        <Star size={15} fill="currentColor" /> {p.rating}
+                      </div>
+                      <div className="sizes">
+                        {sizes.map((s) => (
+                          <button
+                            className={
+                              (selectedSize[p.id] || sizes[0]) === s
+                                ? "active"
+                                : ""
+                            }
+                            key={s}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedSize((prev) => ({
+                                ...prev,
+                                [p.id]: s,
+                              }));
+                            }}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="product-foot">
+                        <div>
+                          <b>{formatPrice(p.price)} ر.س</b>
+                          <del>{formatPrice(p.oldPrice)} ر.س</del>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(p);
+                          }}
+                        >
+                          أضف
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <StoreReturnPolicy />
         </>
       )}
 
@@ -1465,18 +1601,66 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
         <div className="cart-overlay">
           <div className="cart-bg" onClick={() => setCartOpen(false)} />
           <aside className="cart-panel">
-            <div className="cart-head"><h3>سلة الشراء</h3><button onClick={() => setCartOpen(false)}><X/></button></div>
+            <div className="cart-head">
+              <h3>سلة الشراء</h3>
+              <button onClick={() => setCartOpen(false)}>
+                <X />
+              </button>
+            </div>
             <div className="cart-body">
-              {cart.length === 0 ? <div className="empty">السلة فارغة</div> :
+              {cart.length === 0 ? (
+                <div className="empty">السلة فارغة</div>
+              ) : (
                 cart.map((item, i) => (
                   <div className="cart-item" key={`${item.id}-${i}`}>
-                    <img src={item.image} alt={item.name || "منتج"} loading="lazy" decoding="async" />
+                    <img
+                      src={item.image}
+                      alt={item.name || "منتج"}
+                      loading="lazy"
+                      decoding="async"
+                    />
                     <div>
-                      <b>{item.name}</b><span>الحجم: {item.size}</span><span>{formatPrice(item.price)} ر.س</span>
-                      <div className="qty"><button onClick={() => setCart(c => c.map((x,idx)=>idx===i?{...x, qty: Math.max(1,x.qty-1)}:x))}><Minus size={14}/></button><b>{item.qty}</b><button onClick={() => setCart(c => c.map((x,idx)=>idx===i?{...x, qty:x.qty+1}:x))}><Plus size={14}/></button><button onClick={() => setCart(c => c.filter((_,idx)=>idx!==i))}><Trash2 size={14}/></button></div>
+                      <b>{item.name}</b>
+                      <span>الحجم: {item.size}</span>
+                      <span>{formatPrice(item.price)} ر.س</span>
+                      <div className="qty">
+                        <button
+                          onClick={() =>
+                            setCart((c) =>
+                              c.map((x, idx) =>
+                                idx === i
+                                  ? { ...x, qty: Math.max(1, x.qty - 1) }
+                                  : x,
+                              ),
+                            )
+                          }
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <b>{item.qty}</b>
+                        <button
+                          onClick={() =>
+                            setCart((c) =>
+                              c.map((x, idx) =>
+                                idx === i ? { ...x, qty: x.qty + 1 } : x,
+                              ),
+                            )
+                          }
+                        >
+                          <Plus size={14} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCart((c) => c.filter((_, idx) => idx !== i))
+                          }
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                ))}
+                ))
+              )}
             </div>
             <div className="cart-foot">
               <div className="coupon-box">
@@ -1484,20 +1668,52 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
                 <div className="coupon-input-row">
                   <input
                     value={couponCode}
-                    onChange={e => setCouponCode(e.target.value)}
+                    onChange={(e) => setCouponCode(e.target.value)}
                     placeholder="مثال: GREEN10"
                   />
-                  <button type="button" onClick={applyCoupon}>تطبيق</button>
+                  <button type="button" onClick={applyCoupon}>
+                    تطبيق
+                  </button>
                 </div>
-                {couponMessage && <span className={appliedCoupon ? "coupon-success" : "coupon-error"}>{couponMessage}</span>}
-                {appliedCoupon && <button type="button" className="remove-coupon" onClick={removeCoupon}>إزالة الكوبون</button>}
+                {couponMessage && (
+                  <span
+                    className={
+                      appliedCoupon ? "coupon-success" : "coupon-error"
+                    }
+                  >
+                    {couponMessage}
+                  </span>
+                )}
+                {appliedCoupon && (
+                  <button
+                    type="button"
+                    className="remove-coupon"
+                    onClick={removeCoupon}
+                  >
+                    إزالة الكوبون
+                  </button>
+                )}
               </div>
 
               <div className="cart-summary-lines">
-                <p><span>المجموع الفرعي</span><b>{formatPrice(subtotal)} ر.س</b></p>
-                {appliedCoupon && <p className="discount-line"><span>خصم {appliedCoupon.percent}%</span><b>- {formatPrice(discount)} ر.س</b></p>}
-                <p><span>الشحن</span><b>{formatPrice(shippingFee)} ر.س</b></p>
-                <p className="total-line"><span>الإجمالي</span><b>{formatPrice(total)} ر.س</b></p>
+                <p>
+                  <span>المجموع الفرعي</span>
+                  <b>{formatPrice(subtotal)} ر.س</b>
+                </p>
+                {appliedCoupon && (
+                  <p className="discount-line">
+                    <span>خصم {appliedCoupon.percent}%</span>
+                    <b>- {formatPrice(discount)} ر.س</b>
+                  </p>
+                )}
+                <p>
+                  <span>الشحن</span>
+                  <b>{formatPrice(shippingFee)} ر.س</b>
+                </p>
+                <p className="total-line">
+                  <span>الإجمالي</span>
+                  <b>{formatPrice(total)} ر.س</b>
+                </p>
               </div>
 
               <button onClick={checkoutWhatsApp}>إتمام الطلب عبر واتساب</button>
@@ -1508,7 +1724,6 @@ function Store({ settings, products, authUser, customer, setCustomer, orders = [
     </div>
   );
 }
-
 
 function HeroSection({ settings, products }) {
   const layout = settings.homeHeroLayout || "split";
@@ -1529,7 +1744,9 @@ function HeroSection({ settings, products }) {
       <p>{desc}</p>
       {buttonText?.trim() && (
         <div className="hero-actions">
-          <a href={buttonLink} className="primary">{buttonText}</a>
+          <a href={buttonLink} className="primary">
+            {buttonText}
+          </a>
         </div>
       )}
     </div>
@@ -1548,12 +1765,27 @@ function HeroSection({ settings, products }) {
               allowFullScreen
             />
           ) : (
-            <video className="hero-full-video" src={video} autoPlay muted loop playsInline />
+            <video
+              className="hero-full-video"
+              src={video}
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
           )
         ) : image ? (
-          <img className="hero-full-video" src={image} alt={title} loading="eager" decoding="async" />
+          <img
+            className="hero-full-video"
+            src={image}
+            alt={title}
+            loading="eager"
+            decoding="async"
+          />
         ) : (
-          <div className="hero-full-placeholder">ارفع فيديو الهيرو من لوحة التحكم</div>
+          <div className="hero-full-placeholder">
+            ارفع فيديو الهيرو من لوحة التحكم
+          </div>
         )}
         <div className="hero-media-overlay" />
         <div className="container hero-media-content">{content}</div>
@@ -1565,9 +1797,17 @@ function HeroSection({ settings, products }) {
     return (
       <section className="hero-full-media hero-banner-mode">
         {image ? (
-          <img className="hero-full-video" src={image} alt={title} loading="eager" decoding="async" />
+          <img
+            className="hero-full-video"
+            src={image}
+            alt={title}
+            loading="eager"
+            decoding="async"
+          />
         ) : (
-          <div className="hero-full-placeholder">ارفع بنر الهيرو من لوحة التحكم</div>
+          <div className="hero-full-placeholder">
+            ارفع بنر الهيرو من لوحة التحكم
+          </div>
         )}
         <div className="hero-media-overlay light" />
         <div className="container hero-media-content centered">{content}</div>
@@ -1579,7 +1819,9 @@ function HeroSection({ settings, products }) {
     <section
       className={`hero-layered hero-layered-${imagePosition}`}
       style={{
-        backgroundImage: bgImage ? `linear-gradient(90deg, rgba(245,241,232,.86), rgba(245,241,232,.48)), url(${bgImage})` : undefined
+        backgroundImage: bgImage
+          ? `linear-gradient(90deg, rgba(245,241,232,.86), rgba(245,241,232,.48)), url(${bgImage})`
+          : undefined,
       }}
     >
       <div className="container hero-layered-inner">
@@ -1589,7 +1831,9 @@ function HeroSection({ settings, products }) {
           {image ? (
             <img src={image} alt={title} loading="eager" decoding="async" />
           ) : (
-            <div className="hero-full-placeholder">ارفع الصورة الأمامية للهيرو</div>
+            <div className="hero-full-placeholder">
+              ارفع الصورة الأمامية للهيرو
+            </div>
           )}
         </div>
       </div>
@@ -1900,8 +2144,15 @@ function HeroStyle() {
   );
 }
 
-
-function ProductDetailPage({ product, products = [], settings, go, addToCart, selectedSize, setSelectedSize }) {
+function ProductDetailPage({
+  product,
+  products = [],
+  settings,
+  go,
+  addToCart,
+  selectedSize,
+  setSelectedSize,
+}) {
   const [activeImage, setActiveImage] = useState(product?.image || "");
   const [qty, setQty] = useState(1);
 
@@ -1911,14 +2162,23 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
   }, [product?.id, product?.image]);
 
   const relatedProducts = (products || [])
-    .filter((item) => item?.id !== product?.id && (item?.status || "active") !== "hidden")
+    .filter(
+      (item) =>
+        item?.id !== product?.id && (item?.status || "active") !== "hidden",
+    )
     .filter((item) => !product?.category || item.category === product.category)
     .slice(0, 4);
 
   if (!product) {
     return (
       <main className="container product-detail-page product-not-found">
-        <button type="button" className="primary store-page-back" onClick={() => go("/")}>← رجوع للمتجر</button>
+        <button
+          type="button"
+          className="primary store-page-back"
+          onClick={() => go("/")}
+        >
+          ← رجوع للمتجر
+        </button>
         <div className="store-page-empty">
           <h1>المنتج غير موجود</h1>
           <p>الرابط غير صحيح أو المنتج مخفي من لوحة التحكم.</p>
@@ -1927,29 +2187,54 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
     );
   }
 
-  const gallery = [...new Set([product.image, ...(Array.isArray(product.gallery) ? product.gallery : [])].filter(Boolean))];
-  const sizes = sizesArray(Array.isArray(product.sizes) ? product.sizes.join(",") : product.sizes);
+  const gallery = [
+    ...new Set(
+      [
+        product.image,
+        ...(Array.isArray(product.gallery) ? product.gallery : []),
+      ].filter(Boolean),
+    ),
+  ];
+  const sizes = sizesArray(
+    Array.isArray(product.sizes) ? product.sizes.join(",") : product.sizes,
+  );
   const selected = selectedSize[product.id] || sizes[0] || "Free";
   const oldPrice = Number(product.oldPrice || 0);
   const price = Number(product.price || 0);
   const stock = Number(product.stock || 0);
   const hasDiscount = oldPrice > price;
-  const discountPercent = hasDiscount ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
+  const discountPercent = hasDiscount
+    ? Math.round(((oldPrice - price) / oldPrice) * 100)
+    : 0;
   const rating = Number(product.rating || 5);
   const reviewCount = Number(product.reviewCount || product.reviews || 24);
   const safeQty = Math.max(1, Math.min(Number(qty || 1), stock || 1));
   const storeName = settings?.storeName || "GREEN DIXAM";
-  const productDescription = product.longDescription || product.description || "منتج مختار بعناية من المتجر.";
+  const productDescription =
+    product.longDescription ||
+    product.description ||
+    "منتج مختار بعناية من المتجر.";
   const productFeatures = Array.isArray(product.features)
     ? product.features.filter(Boolean)
-    : String(product.features || "").split(/[\n،,]+/).map(x => x.trim()).filter(Boolean);
-  const fallbackFeatures = productFeatures.length ? productFeatures : [
-    "مختار بعناية ليناسب الهدايا والاستخدام اليومي",
-    "تغليف أنيق يحافظ على جودة المنتج أثناء التوصيل",
-    "خيار مناسب للمنزل أو المكتب أو المناسبات"
-  ];
-  const deliveryNote = product.deliveryInfo || settings?.deliveryInfo || "تجهيز الطلب خلال 24 إلى 48 ساعة، وتظهر تكلفة الشحن في السلة حسب الطلب.";
-  const careNote = product.careGuide || product.usage || "يحفظ في مكان مناسب بعيدًا عن الظروف القاسية، واتبع تعليمات العناية المرفقة إن وجدت.";
+    : String(product.features || "")
+        .split(/[\n،,]+/)
+        .map((x) => x.trim())
+        .filter(Boolean);
+  const fallbackFeatures = productFeatures.length
+    ? productFeatures
+    : [
+        "مختار بعناية ليناسب الهدايا والاستخدام اليومي",
+        "تغليف أنيق يحافظ على جودة المنتج أثناء التوصيل",
+        "خيار مناسب للمنزل أو المكتب أو المناسبات",
+      ];
+  const deliveryNote =
+    product.deliveryInfo ||
+    settings?.deliveryInfo ||
+    "تجهيز الطلب خلال 24 إلى 48 ساعة، وتظهر تكلفة الشحن في السلة حسب الطلب.";
+  const careNote =
+    product.careGuide ||
+    product.usage ||
+    "يحفظ في مكان مناسب بعيدًا عن الظروف القاسية، واتبع تعليمات العناية المرفقة إن وجدت.";
   const handleAddQtyToCart = () => {
     for (let i = 0; i < safeQty; i += 1) addToCart(product);
   };
@@ -1958,35 +2243,76 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
     <main className="product-detail-page product-commerce-page">
       <div className="container">
         <div className="product-breadcrumbs">
-          <button type="button" onClick={() => go("/")}>المتجر</button>
+          <button type="button" onClick={() => go("/")}>
+            المتجر
+          </button>
           <span>/</span>
-          {product.category && <><button type="button" onClick={() => go(`/page/${makePageSlug(product.category)}`)}>{product.category}</button><span>/</span></>}
+          {product.category && (
+            <>
+              <button
+                type="button"
+                onClick={() => go(`/page/${makePageSlug(product.category)}`)}
+              >
+                {product.category}
+              </button>
+              <span>/</span>
+            </>
+          )}
           <b>{product.name}</b>
         </div>
 
         <section className="product-commerce-shell">
           <aside className="product-gallery-column">
             <div className="product-gallery-rail" aria-label="صور المنتج">
-              {(gallery.length ? gallery : [product.image]).slice(0, 6).map((img, index) => (
-                <button
-                  type="button"
-                  key={`${img || "empty"}-${index}`}
-                  className={activeImage === img || (!activeImage && index === 0) ? "active" : ""}
-                  onClick={() => setActiveImage(img)}
-                  aria-label={`عرض صورة ${index + 1}`}
-                >
-                  {img ? <img src={img} alt={`${product.name || "منتج"} ${index + 1}`} loading="lazy" decoding="async" /> : <PackagePlus size={22} />}
-                </button>
-              ))}
+              {(gallery.length ? gallery : [product.image])
+                .slice(0, 6)
+                .map((img, index) => (
+                  <button
+                    type="button"
+                    key={`${img || "empty"}-${index}`}
+                    className={
+                      activeImage === img || (!activeImage && index === 0)
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() => setActiveImage(img)}
+                    aria-label={`عرض صورة ${index + 1}`}
+                  >
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={`${product.name || "منتج"} ${index + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <PackagePlus size={22} />
+                    )}
+                  </button>
+                ))}
             </div>
 
             <div className="product-main-photo">
-              {hasDiscount && <span className="product-sale-ribbon">خصم {discountPercent}%</span>}
-              {product.tag && <span className="product-tag-ribbon">{product.tag}</span>}
+              {hasDiscount && (
+                <span className="product-sale-ribbon">
+                  خصم {discountPercent}%
+                </span>
+              )}
+              {product.tag && (
+                <span className="product-tag-ribbon">{product.tag}</span>
+              )}
               {activeImage || product.image ? (
-                <img src={activeImage || product.image} alt={product.name || "منتج"} loading="eager" decoding="async" />
+                <img
+                  src={activeImage || product.image}
+                  alt={product.name || "منتج"}
+                  loading="eager"
+                  decoding="async"
+                />
               ) : (
-                <div className="product-photo-placeholder"><PackagePlus size={44} /><span>لا توجد صورة</span></div>
+                <div className="product-photo-placeholder">
+                  <PackagePlus size={44} />
+                  <span>لا توجد صورة</span>
+                </div>
               )}
             </div>
           </aside>
@@ -1998,34 +2324,72 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
             </div>
             <h1>{product.name}</h1>
             <div className="product-rating-line">
-              <span className="stars"><Star size={16} fill="currentColor"/> {rating.toFixed(1)}</span>
+              <span className="stars">
+                <Star size={16} fill="currentColor" /> {rating.toFixed(1)}
+              </span>
               <button type="button">{reviewCount} تقييم</button>
-              {stock > 0 ? <b className="in-stock">متوفر الآن</b> : <b className="out-stock">غير متوفر</b>}
+              {stock > 0 ? (
+                <b className="in-stock">متوفر الآن</b>
+              ) : (
+                <b className="out-stock">غير متوفر</b>
+              )}
             </div>
-            <p className="product-short-description">{product.description || "منتج مختار بعناية من المتجر."}</p>
+            <p className="product-short-description">
+              {product.description || "منتج مختار بعناية من المتجر."}
+            </p>
 
             <div className="product-feature-list">
-              {fallbackFeatures.slice(0, 3).map((feature, index) => <span key={`${feature}-${index}`}>✓ {feature}</span>)}
+              {fallbackFeatures.slice(0, 3).map((feature, index) => (
+                <span key={`${feature}-${index}`}>✓ {feature}</span>
+              ))}
             </div>
 
             <div className="product-compact-specs" aria-label="ملخص المنتج">
-              <p><span>التوصيل</span><b>24 - 48 ساعة</b></p>
-              <p><span>الاسترجاع</span><b>حسب سياسة المتجر</b></p>
-              <p><span>التوفر</span><b>{stock > 0 ? "متوفر" : "غير متوفر"}</b></p>
-              {product.sku && <p><span>الكود</span><b>{product.sku}</b></p>}
+              <p>
+                <span>التوصيل</span>
+                <b>24 - 48 ساعة</b>
+              </p>
+              <p>
+                <span>الاسترجاع</span>
+                <b>حسب سياسة المتجر</b>
+              </p>
+              <p>
+                <span>التوفر</span>
+                <b>{stock > 0 ? "متوفر" : "غير متوفر"}</b>
+              </p>
+              {product.sku && (
+                <p>
+                  <span>الكود</span>
+                  <b>{product.sku}</b>
+                </p>
+              )}
             </div>
           </section>
 
           <aside className="product-buy-box">
             <div className="product-buy-price">
               <b>{formatPrice(price)} ر.س</b>
-              {hasDiscount && <><del>{formatPrice(oldPrice)} ر.س</del><span>وفّر {formatPrice(oldPrice - price)} ر.س</span></>}
+              {hasDiscount && (
+                <>
+                  <del>{formatPrice(oldPrice)} ر.س</del>
+                  <span>وفّر {formatPrice(oldPrice - price)} ر.س</span>
+                </>
+              )}
             </div>
 
             <div className="product-buy-benefits">
-              <div><Truck size={18}/><span>توصيل سريع</span></div>
-              <div><ShieldCheck size={18}/><span>دفع آمن</span></div>
-              <div><RotateCcw size={18}/><span>استرجاع حسب سياسة المتجر</span></div>
+              <div>
+                <Truck size={18} />
+                <span>توصيل سريع</span>
+              </div>
+              <div>
+                <ShieldCheck size={18} />
+                <span>دفع آمن</span>
+              </div>
+              <div>
+                <RotateCcw size={18} />
+                <span>استرجاع حسب سياسة المتجر</span>
+              </div>
             </div>
 
             {sizes.length > 0 && (
@@ -2037,7 +2401,12 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
                       type="button"
                       key={size}
                       className={selected === size ? "active" : ""}
-                      onClick={() => setSelectedSize(prev => ({ ...prev, [product.id]: size }))}
+                      onClick={() =>
+                        setSelectedSize((prev) => ({
+                          ...prev,
+                          [product.id]: size,
+                        }))
+                      }
                     >
                       {size}
                     </button>
@@ -2049,22 +2418,58 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
             <div className="product-quantity-row">
               <span>الكمية</span>
               <div className="quantity-stepper">
-                <button type="button" onClick={() => setQty(prev => Math.max(1, Number(prev || 1) - 1))}>−</button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQty((prev) => Math.max(1, Number(prev || 1) - 1))
+                  }
+                >
+                  −
+                </button>
                 <b>{safeQty}</b>
-                <button type="button" onClick={() => setQty(prev => Math.min(stock || 99, Number(prev || 1) + 1))}>+</button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQty((prev) =>
+                      Math.min(stock || 99, Number(prev || 1) + 1),
+                    )
+                  }
+                >
+                  +
+                </button>
               </div>
             </div>
 
             <div className="product-action-row">
-              <button type="button" className="product-detail-add product-cart-cta" onClick={handleAddQtyToCart} disabled={stock === 0}>
+              <button
+                type="button"
+                className="product-detail-add product-cart-cta"
+                onClick={handleAddQtyToCart}
+                disabled={stock === 0}
+              >
                 {stock === 0 ? "غير متوفر" : "أضف إلى السلة"}
               </button>
-              <button type="button" className="product-buy-now" onClick={handleAddQtyToCart} disabled={stock === 0}>اشتري الآن</button>
+              <button
+                type="button"
+                className="product-buy-now"
+                onClick={handleAddQtyToCart}
+                disabled={stock === 0}
+              >
+                اشتري الآن
+              </button>
             </div>
 
             <div className="product-mini-meta">
-              {product.sku && <p><span>SKU</span><b>{product.sku}</b></p>}
-              <p><span>المخزون</span><b>{stock > 0 ? `${stock} قطعة` : "غير متوفر"}</b></p>
+              {product.sku && (
+                <p>
+                  <span>SKU</span>
+                  <b>{product.sku}</b>
+                </p>
+              )}
+              <p>
+                <span>المخزون</span>
+                <b>{stock > 0 ? `${stock} قطعة` : "غير متوفر"}</b>
+              </p>
             </div>
           </aside>
         </section>
@@ -2076,7 +2481,11 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
           </article>
           <article>
             <h2>المميزات</h2>
-            <ul>{fallbackFeatures.map((feature, index) => <li key={`${feature}-panel-${index}`}>{feature}</li>)}</ul>
+            <ul>
+              {fallbackFeatures.map((feature, index) => (
+                <li key={`${feature}-panel-${index}`}>{feature}</li>
+              ))}
+            </ul>
           </article>
           <article>
             <h2>العناية والاستخدام</h2>
@@ -2091,17 +2500,47 @@ function ProductDetailPage({ product, products = [], settings, go, addToCart, se
 
       {relatedProducts.length > 0 && (
         <section className="container product-detail-related">
-          <div className="section-title"><span>منتجات مشابهة</span><h2>قد يعجبك أيضًا</h2></div>
+          <div className="section-title">
+            <span>منتجات مشابهة</span>
+            <h2>قد يعجبك أيضًا</h2>
+          </div>
           <div className="products-grid">
             {relatedProducts.map((item) => (
-              <article className="product product-link-card" key={item.id} role="button" tabIndex={0} onClick={() => go(productPath(item))} onKeyDown={(e) => { if (e.key === "Enter") go(productPath(item)); }}>
+              <article
+                className="product product-link-card"
+                key={item.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => go(productPath(item))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") go(productPath(item));
+                }}
+              >
                 <div className="product-img">
-                  <img src={item.image} alt={item.name} loading="lazy" decoding="async" />
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <span>{item.tag}</span>
                 </div>
                 <div className="product-body">
-                  <div className="product-top"><div><small>{item.brand}</small><h3>{item.name}</h3></div><em>{item.category}</em></div>
-                  <div className="product-foot"><div><b>{formatPrice(item.price)} ر.س</b>{item.oldPrice && <del>{formatPrice(item.oldPrice)} ر.س</del>}</div></div>
+                  <div className="product-top">
+                    <div>
+                      <small>{item.brand}</small>
+                      <h3>{item.name}</h3>
+                    </div>
+                    <em>{item.category}</em>
+                  </div>
+                  <div className="product-foot">
+                    <div>
+                      <b>{formatPrice(item.price)} ر.س</b>
+                      {item.oldPrice && (
+                        <del>{formatPrice(item.oldPrice)} ر.س</del>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </article>
             ))}
@@ -2118,13 +2557,22 @@ function StoreCustomPage({ page, products, go }) {
   const keyword = label.toLowerCase();
 
   const pageProducts = products.filter((product) => {
-    const text = `${product.name || ""} ${product.category || ""} ${product.brand || ""} ${product.description || ""}`.toLowerCase();
+    const text =
+      `${product.name || ""} ${product.category || ""} ${product.brand || ""} ${product.description || ""}`.toLowerCase();
 
-    if (slug.includes("offer") || keyword.includes("عرض") || keyword.includes("العروض")) {
+    if (
+      slug.includes("offer") ||
+      keyword.includes("عرض") ||
+      keyword.includes("العروض")
+    ) {
       return Number(product.oldPrice || 0) > Number(product.price || 0);
     }
 
-    if (slug.includes("product") || keyword.includes("نبات") || keyword.includes("منتج")) {
+    if (
+      slug.includes("product") ||
+      keyword.includes("نبات") ||
+      keyword.includes("منتج")
+    ) {
       return true;
     }
 
@@ -2133,27 +2581,43 @@ function StoreCustomPage({ page, products, go }) {
 
   return (
     <main className="container store-page-view">
-      <button type="button" className="primary store-page-back" onClick={() => go("/")}>← رجوع للرئيسية</button>
+      <button
+        type="button"
+        className="primary store-page-back"
+        onClick={() => go("/")}
+      >
+        ← رجوع للرئيسية
+      </button>
 
       <div className="store-page-hero">
         <span>Store Page</span>
         <h1>{label}</h1>
-        <p>هذه صفحة مستقلة داخل المتجر ويمكن التحكم باسمها ورابطها وظهورها من قسم الصفحات في لوحة التحكم.</p>
+        <p>
+          هذه صفحة مستقلة داخل المتجر ويمكن التحكم باسمها ورابطها وظهورها من قسم
+          الصفحات في لوحة التحكم.
+        </p>
       </div>
 
       {pageProducts.length > 0 ? (
         <div className="products-grid store-page-products">
-          {pageProducts.map(product => (
+          {pageProducts.map((product) => (
             <article
               className="product product-link-card"
               key={product.id}
               role="button"
               tabIndex={0}
               onClick={() => go(productPath(product))}
-              onKeyDown={(e) => { if (e.key === "Enter") go(productPath(product)); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") go(productPath(product));
+              }}
             >
               <div className="product-img">
-                <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  loading="lazy"
+                  decoding="async"
+                />
                 <span>{product.tag}</span>
               </div>
               <div className="product-body">
@@ -2164,11 +2628,15 @@ function StoreCustomPage({ page, products, go }) {
                   </div>
                   <em>{product.category}</em>
                 </div>
-                <div className="rating"><Star size={15} fill="currentColor"/> {product.rating}</div>
+                <div className="rating">
+                  <Star size={15} fill="currentColor" /> {product.rating}
+                </div>
                 <div className="product-foot">
                   <div>
                     <b>{formatPrice(product.price)} ر.س</b>
-                    {product.oldPrice && <del>{formatPrice(product.oldPrice)} ر.س</del>}
+                    {product.oldPrice && (
+                      <del>{formatPrice(product.oldPrice)} ر.س</del>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2178,15 +2646,24 @@ function StoreCustomPage({ page, products, go }) {
       ) : (
         <div className="store-page-empty">
           <h2>{label}</h2>
-          <p>لا يوجد محتوى مخصص لهذه الصفحة حتى الآن. تقدر تغيّر اسم الصفحة أو رابطها من لوحة التحكم.</p>
+          <p>
+            لا يوجد محتوى مخصص لهذه الصفحة حتى الآن. تقدر تغيّر اسم الصفحة أو
+            رابطها من لوحة التحكم.
+          </p>
         </div>
       )}
     </main>
   );
 }
 
-
-function Account({ customer, setCustomer, orders = [], coupons = [], go, settings }) {
+function Account({
+  customer,
+  setCustomer,
+  orders = [],
+  coupons = [],
+  go,
+  settings,
+}) {
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState("profile");
 
@@ -2194,15 +2671,19 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
   const currentUid = auth.currentUser?.uid || customer?.id || "";
 
   const myOrders = (orders || [])
-    .filter(order =>
-      (currentEmail && (order.customerEmail === currentEmail || order.email === currentEmail)) ||
-      (currentUid && (order.customerId === currentUid || order.uid === currentUid))
+    .filter(
+      (order) =>
+        (currentEmail &&
+          (order.customerEmail === currentEmail ||
+            order.email === currentEmail)) ||
+        (currentUid &&
+          (order.customerId === currentUid || order.uid === currentUid)),
     )
-    .map(order => ({
+    .map((order) => ({
       ...order,
       status: order.status || "new",
       total: Number(order.total || 0),
-      items: order.items || []
+      items: order.items || [],
     }))
     .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
 
@@ -2211,7 +2692,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
     processing: "قيد التجهيز",
     shipped: "تم الشحن",
     completed: "مكتمل",
-    cancelled: "ملغي"
+    cancelled: "ملغي",
   };
 
   const couponStatus = (coupon) => {
@@ -2238,9 +2719,11 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
       phone: e.target.phone.value,
       city: e.target.city.value,
       address: e.target.address.value,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
-    await setDoc(doc(db, "customers", auth.currentUser.uid), data, { merge: true });
+    await setDoc(doc(db, "customers", auth.currentUser.uid), data, {
+      merge: true,
+    });
     setCustomer({ id: auth.currentUser.uid, ...customer, ...data });
     setMessage("تم حفظ بياناتك");
     setTimeout(() => setMessage(""), 2200);
@@ -2251,7 +2734,16 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
       <header className="store-header header-sticky-pro">
         <div className="container luxe-nav account-nav">
           <button className="luxe-logo" onClick={() => go("/")}>
-            {settings?.logo ? <img src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>حسابي</b>}
+            {settings?.logo ? (
+              <img
+                src={settings.logo}
+                alt="logo"
+                loading="eager"
+                decoding="async"
+              />
+            ) : (
+              <b>حسابي</b>
+            )}
             <span>Customer Profile</span>
           </button>
           <nav className="luxe-nav-center">
@@ -2267,21 +2759,56 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
             <div>
               <span>Customer Center</span>
               <h1>حساب العميل</h1>
-              <p>إدارة بياناتك، متابعة طلباتك، الكوبونات والمحفظة من مكان واحد.</p>
+              <p>
+                إدارة بياناتك، متابعة طلباتك، الكوبونات والمحفظة من مكان واحد.
+              </p>
             </div>
 
             <div className="account-mini-stats">
-              <div><b>{myOrders.length}</b><small>طلب</small></div>
-              <div><b>{formatPrice(myOrders.reduce((sum, o) => sum + o.total, 0))}</b><small>إجمالي مشتريات</small></div>
+              <div>
+                <b>{myOrders.length}</b>
+                <small>طلب</small>
+              </div>
+              <div>
+                <b>
+                  {formatPrice(myOrders.reduce((sum, o) => sum + o.total, 0))}
+                </b>
+                <small>إجمالي مشتريات</small>
+              </div>
             </div>
           </div>
 
           <div className="account-tabs-pro">
-            <button className={tab === "profile" ? "active" : ""} onClick={() => setTab("profile")}>بياناتي</button>
-            <button className={tab === "orders" ? "active" : ""} onClick={() => setTab("orders")}>طلباتي</button>
-            <button className={tab === "appearance" ? "active" : ""} onClick={() => setTab("appearance")}>المظهر</button>
-            <button className={tab === "coupons" ? "active" : ""} onClick={() => setTab("coupons")}>الكوبونات</button>
-            <button className={tab === "wallet" ? "active" : ""} onClick={() => setTab("wallet")}>المحفظة</button>
+            <button
+              className={tab === "profile" ? "active" : ""}
+              onClick={() => setTab("profile")}
+            >
+              بياناتي
+            </button>
+            <button
+              className={tab === "orders" ? "active" : ""}
+              onClick={() => setTab("orders")}
+            >
+              طلباتي
+            </button>
+            <button
+              className={tab === "appearance" ? "active" : ""}
+              onClick={() => setTab("appearance")}
+            >
+              المظهر
+            </button>
+            <button
+              className={tab === "coupons" ? "active" : ""}
+              onClick={() => setTab("coupons")}
+            >
+              الكوبونات
+            </button>
+            <button
+              className={tab === "wallet" ? "active" : ""}
+              onClick={() => setTab("wallet")}
+            >
+              المحفظة
+            </button>
           </div>
 
           {message && <div className="notice">{message}</div>}
@@ -2295,12 +2822,61 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                   <p>أكمل بياناتك حتى نستخدمها تلقائياً عند إتمام الطلب.</p>
                 </div>
 
-                <form onSubmit={saveProfile} className="profile-form account-profile-grid">
-                  <label><span><User/> الاسم</span><input name="name" defaultValue={customer?.name || auth.currentUser?.displayName || ""} required /></label>
-                  <label><span><Mail/> الإيميل</span><input value={auth.currentUser?.email || ""} disabled /></label>
-                  <label><span><Phone/> رقم الجوال</span><input name="phone" defaultValue={customer?.phone || ""} placeholder="+9665XXXXXXXX" required /></label>
-                  <label><span><MapPin/> المدينة</span><input name="city" defaultValue={customer?.city || ""} placeholder="الرياض" required /></label>
-                  <label className="wide"><span><Home/> العنوان</span><textarea name="address" defaultValue={customer?.address || ""} placeholder="الحي، الشارع، رقم المبنى" required /></label>
+                <form
+                  onSubmit={saveProfile}
+                  className="profile-form account-profile-grid"
+                >
+                  <label>
+                    <span>
+                      <User /> الاسم
+                    </span>
+                    <input
+                      name="name"
+                      defaultValue={
+                        customer?.name || auth.currentUser?.displayName || ""
+                      }
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>
+                      <Mail /> الإيميل
+                    </span>
+                    <input value={auth.currentUser?.email || ""} disabled />
+                  </label>
+                  <label>
+                    <span>
+                      <Phone /> رقم الجوال
+                    </span>
+                    <input
+                      name="phone"
+                      defaultValue={customer?.phone || ""}
+                      placeholder="+9665XXXXXXXX"
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>
+                      <MapPin /> المدينة
+                    </span>
+                    <input
+                      name="city"
+                      defaultValue={customer?.city || ""}
+                      placeholder="الرياض"
+                      required
+                    />
+                  </label>
+                  <label className="wide">
+                    <span>
+                      <Home /> العنوان
+                    </span>
+                    <textarea
+                      name="address"
+                      defaultValue={customer?.address || ""}
+                      placeholder="الحي، الشارع، رقم المبنى"
+                      required
+                    />
+                  </label>
                   <button className="primary">حفظ البيانات</button>
                 </form>
               </section>
@@ -2315,7 +2891,7 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                 </div>
 
                 <div className="customer-orders-grid">
-                  {myOrders.map(order => (
+                  {myOrders.map((order) => (
                     <article className="customer-order-pro" key={order.id}>
                       <div className="customer-order-head">
                         <div>
@@ -2323,29 +2899,54 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                           <h3>{formatPrice(order.total)} ر.س</h3>
                           <p>{formatOrderDate(order.createdAt)}</p>
                         </div>
-                        <em className={`customer-order-status ${order.status}`}>{statusText[order.status] || order.status}</em>
+                        <em className={`customer-order-status ${order.status}`}>
+                          {statusText[order.status] || order.status}
+                        </em>
                       </div>
 
                       <div className="customer-order-items">
                         {order.items.slice(0, 3).map((item, index) => (
                           <div key={index}>
-                            {item.image && <img src={item.image} alt={item.name || "product"} loading="lazy" decoding="async" />}
+                            {item.image && (
+                              <img
+                                src={item.image}
+                                alt={item.name || "product"}
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            )}
                             <span>{item.name || "منتج"}</span>
                             <b>{item.qty || 1}x</b>
                           </div>
                         ))}
-                        {order.items.length > 3 && <small>+{order.items.length - 3} منتجات أخرى</small>}
+                        {order.items.length > 3 && (
+                          <small>+{order.items.length - 3} منتجات أخرى</small>
+                        )}
                       </div>
 
                       <div className="customer-shipping-grid">
-                        <div><span>شركة الشحن</span><b>{order.shippingCompany === "other" ? (order.customShipping || "أخرى") : (order.shippingCompany || "لم تحدد بعد")}</b></div>
-                        <div><span>رقم التتبع</span><b>{order.trackingNumber || "لم يصدر بعد"}</b></div>
+                        <div>
+                          <span>شركة الشحن</span>
+                          <b>
+                            {order.shippingCompany === "other"
+                              ? order.customShipping || "أخرى"
+                              : order.shippingCompany || "لم تحدد بعد"}
+                          </b>
+                        </div>
+                        <div>
+                          <span>رقم التتبع</span>
+                          <b>{order.trackingNumber || "لم يصدر بعد"}</b>
+                        </div>
                       </div>
 
                       {order.trackingNumber && (
                         <a
                           className="tracking-link-customer"
-                          href={getTrackingUrl(order.shippingCompany, order.trackingNumber, order.customShipping)}
+                          href={getTrackingUrl(
+                            order.shippingCompany,
+                            order.trackingNumber,
+                            order.customShipping,
+                          )}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -2358,8 +2959,16 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                   {myOrders.length === 0 && (
                     <div className="account-empty-state">
                       <h3>لا توجد طلبات بعد</h3>
-                      <p>بعد إتمام أول طلب سيظهر هنا مع حالة الطلب والشحن والتتبع.</p>
-                      <button className="secondary product-flat-top-btn" onClick={() => go("/")}>تصفح المنتجات</button>
+                      <p>
+                        بعد إتمام أول طلب سيظهر هنا مع حالة الطلب والشحن
+                        والتتبع.
+                      </p>
+                      <button
+                        className="secondary product-flat-top-btn"
+                        onClick={() => go("/")}
+                      >
+                        تصفح المنتجات
+                      </button>
                     </div>
                   )}
                 </div>
@@ -2375,7 +2984,9 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                 </div>
                 <div className="account-placeholder-card">
                   <b>قريبًا</b>
-                  <span>سنضيف خيارات مثل الوضع الليلي وتفضيلات العرض لاحقًا.</span>
+                  <span>
+                    سنضيف خيارات مثل الوضع الليلي وتفضيلات العرض لاحقًا.
+                  </span>
                 </div>
               </section>
             )}
@@ -2389,29 +3000,46 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
                 </div>
 
                 <div className="customer-coupons-grid">
-                  {coupons.length ? coupons
-                    .slice()
-                    .sort((a,b) => String(a.code || "").localeCompare(String(b.code || "")))
-                    .map(coupon => (
-                      <div className={`customer-coupon-card ${couponClass(coupon)}`} key={coupon.id}>
-                        <div>
-                          <span>كود الخصم</span>
-                          <h3>{coupon.code}</h3>
-                          <p>خصم {coupon.percent}%</p>
+                  {coupons.length ? (
+                    coupons
+                      .slice()
+                      .sort((a, b) =>
+                        String(a.code || "").localeCompare(
+                          String(b.code || ""),
+                        ),
+                      )
+                      .map((coupon) => (
+                        <div
+                          className={`customer-coupon-card ${couponClass(coupon)}`}
+                          key={coupon.id}
+                        >
+                          <div>
+                            <span>كود الخصم</span>
+                            <h3>{coupon.code}</h3>
+                            <p>خصم {coupon.percent}%</p>
+                          </div>
+                          <div className="coupon-status-pill">
+                            {couponStatus(coupon)}
+                          </div>
+                          <div className="coupon-meta">
+                            <span>الاستخدام: مرة واحدة لكل عميل</span>
+                            {couponUsedByCustomer(
+                              coupon,
+                              currentUid,
+                              currentEmail,
+                            ) && <span>تم استخدامه سابقًا</span>}
+                            <span>
+                              ينتهي: {coupon.expiresAt || "بدون تاريخ"}
+                            </span>
+                          </div>
                         </div>
-                        <div className="coupon-status-pill">{couponStatus(coupon)}</div>
-                        <div className="coupon-meta">
-                          <span>الاستخدام: مرة واحدة لكل عميل</span>
-                          {couponUsedByCustomer(coupon, currentUid, currentEmail) && <span>تم استخدامه سابقًا</span>}
-                          <span>ينتهي: {coupon.expiresAt || "بدون تاريخ"}</span>
-                        </div>
-                      </div>
-                    )) : (
-                      <div className="account-placeholder-card">
-                        <b>لا توجد كوبونات حاليًا</b>
-                        <span>عند إضافة كوبونات من الأدمن ستظهر هنا.</span>
-                      </div>
-                    )}
+                      ))
+                  ) : (
+                    <div className="account-placeholder-card">
+                      <b>لا توجد كوبونات حاليًا</b>
+                      <span>عند إضافة كوبونات من الأدمن ستظهر هنا.</span>
+                    </div>
+                  )}
                 </div>
               </section>
             )}
@@ -2437,14 +3065,24 @@ function Account({ customer, setCustomer, orders = [], coupons = [], go, setting
   );
 }
 
-
-
 function StoreReturnPolicy() {
   const items = [
-    { title: "مدة الاسترجاع", text: "يمكن طلب الاسترجاع أو الاستبدال خلال 7 أيام من استلام الطلب." },
-    { title: "حالة المنتج", text: "يشترط أن يكون المنتج بحالته الأصلية وغير مستخدم ومع كامل التغليف إن وجد." },
-    { title: "المنتجات المستثناة", text: "قد لا يشمل الاسترجاع المنتجات المتضررة بسبب سوء العناية أو المنتجات المخصصة حسب الطلب." },
-    { title: "طريقة الطلب", text: "للاسترجاع أو الاستبدال تواصل معنا عبر الواتساب مع رقم الطلب وصور المنتج." }
+    {
+      title: "مدة الاسترجاع",
+      text: "يمكن طلب الاسترجاع أو الاستبدال خلال 7 أيام من استلام الطلب.",
+    },
+    {
+      title: "حالة المنتج",
+      text: "يشترط أن يكون المنتج بحالته الأصلية وغير مستخدم ومع كامل التغليف إن وجد.",
+    },
+    {
+      title: "المنتجات المستثناة",
+      text: "قد لا يشمل الاسترجاع المنتجات المتضررة بسبب سوء العناية أو المنتجات المخصصة حسب الطلب.",
+    },
+    {
+      title: "طريقة الطلب",
+      text: "للاسترجاع أو الاستبدال تواصل معنا عبر الواتساب مع رقم الطلب وصور المنتج.",
+    },
   ];
 
   return (
@@ -2452,10 +3090,13 @@ function StoreReturnPolicy() {
       <div className="store-return-policy-head">
         <span>Return Policy</span>
         <h2>سياسة الاسترجاع والاستبدال</h2>
-        <p>حرصًا على تجربة شراء واضحة، هذه السياسة توضح أهم شروط الاسترجاع والاستبدال قبل إتمام الطلب.</p>
+        <p>
+          حرصًا على تجربة شراء واضحة، هذه السياسة توضح أهم شروط الاسترجاع
+          والاستبدال قبل إتمام الطلب.
+        </p>
       </div>
       <div className="store-return-policy-grid">
-        {items.map(item => (
+        {items.map((item) => (
           <div className="store-return-policy-card" key={item.title}>
             <CheckCircle2 size={20} />
             <div>
@@ -2474,28 +3115,80 @@ function Footer({ settings }) {
     <footer className="footer">
       <div className="container footer-grid">
         <div className="footer-brand">
-          {settings.logo ? <img src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>{settings.storeName}</b>}
+          {settings.logo ? (
+            <img
+              src={settings.logo}
+              alt="logo"
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <b>{settings.storeName}</b>
+          )}
           <p>{settings.tagline}</p>
         </div>
-        <div><b>النباتات</b><p>نباتات داخلية<br/>أصص<br/>هدايا خضراء</p></div>
-        <div><b>الدعم</b><p>الشحن<br/>الدفع<br/>الاستبدال</p></div>
-        <div><b>تواصل</b><p>support@greenhaven.com<br/>الرياض، السعودية</p></div>
+        <div>
+          <b>النباتات</b>
+          <p>
+            نباتات داخلية
+            <br />
+            أصص
+            <br />
+            هدايا خضراء
+          </p>
+        </div>
+        <div>
+          <b>الدعم</b>
+          <p>
+            الشحن
+            <br />
+            الدفع
+            <br />
+            الاستبدال
+          </p>
+        </div>
+        <div>
+          <b>تواصل</b>
+          <p>
+            support@greenhaven.com
+            <br />
+            الرياض، السعودية
+          </p>
+        </div>
       </div>
     </footer>
   );
 }
 
-function Feature({icon, title, text}) {
-  return <div className="feature"><div>{icon}</div><h3>{title}</h3><p>{text}</p></div>;
+function Feature({ icon, title, text }) {
+  return (
+    <div className="feature">
+      <div>{icon}</div>
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </div>
+  );
 }
 
-function Admin({ settings, setSettings, products, customers, orders, coupons = [], go }) {
+function Admin({
+  settings,
+  setSettings,
+  products,
+  customers,
+  orders,
+  coupons = [],
+  go,
+}) {
   const [tab, setTab] = useState("dashboard");
   const [openSection, setOpenSection] = useState(null);
   const [themeMenuOpen, setThemeMenuOpen] = useState(true);
-  const [adminLanguage, setAdminLanguage] = useState(() => localStorage.getItem("adminLanguage") || "ar");
+  const [adminLanguage, setAdminLanguage] = useState(
+    () => localStorage.getItem("adminLanguage") || "ar",
+  );
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
-  const [productsViewMode, setProductsViewMode] = useState(() => localStorage.getItem("productsViewMode") || "cards");
+  const [productsViewMode, setProductsViewMode] = useState(
+    () => localStorage.getItem("productsViewMode") || "cards",
+  );
 
   const adminI18n = {
     ar: {
@@ -2525,7 +3218,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       previewStore: "معاينة المتجر",
       active: "نشط",
       unsaved: "التغييرات غير محفوظة حتى تضغط حفظ",
-      unsavedDesc: "أي تعديل في هوية المتجر أو ثيم المتجر لن يظهر في المتجر إلا بعد الحفظ.",
+      unsavedDesc:
+        "أي تعديل في هوية المتجر أو ثيم المتجر لن يظهر في المتجر إلا بعد الحفظ.",
       cancelChanges: "إلغاء التغييرات",
       saveChanges: "حفظ التغييرات",
       dashboardIntro: "نظرة سريعة على أداء المتجر والطلبات والمبيعات.",
@@ -2560,11 +3254,13 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       quickNumbers: "أرقام سريعة",
       inventory: "المخزون",
       reportsCenter: "مركز التقارير",
-      reportsIntro: "قراءة سريعة لأداء المتجر، المبيعات، الطلبات، المنتجات، والتنبيهات المهمة.",
+      reportsIntro:
+        "قراءة سريعة لأداء المتجر، المبيعات، الطلبات، المنتجات، والتنبيهات المهمة.",
       exportCsv: "تصدير التقرير CSV",
       thisMonth: "هذا الشهر",
       allPeriod: "كل الفترة",
-      advancedFiltersLater: "سيتم ربط الفلاتر المتقدمة لاحقاً بدون التأثير على البيانات الحالية.",
+      advancedFiltersLater:
+        "سيتم ربط الفلاتر المتقدمة لاحقاً بدون التأثير على البيانات الحالية.",
       needsFollowUp: "تحتاج متابعة",
       newOrProcessing: "طلبات جديدة أو قيد المعالجة",
       averageOrder: "متوسط الطلب",
@@ -2582,7 +3278,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       newCustomersWeek: "عملاء جدد خلال الأسبوع",
       couponUses: "استخدامات الكوبونات",
       manageCoupons: "إدارة الكوبونات",
-      couponIntro: "أنشئ كوبونات خصم بنسبة مئوية. كل كوبون مخصص للاستخدام مرة واحدة لكل عميل.",
+      couponIntro:
+        "أنشئ كوبونات خصم بنسبة مئوية. كل كوبون مخصص للاستخدام مرة واحدة لكل عميل.",
       coupon: "كوبون",
       addCoupon: "إضافة كوبون",
       activeCoupon: "كوبون مفعل",
@@ -2593,8 +3290,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       readyColors: "ألوان جاهزة",
       editIdentity: "تعديل هوية المتجر",
       logo: "الشعار",
-      logoHint: "يفضل رفع شعار PNG أو JPG بحجم صغير. سيتم ضغطه تلقائيًا قبل الحفظ.",
-      productIntro: "أضف، استورد، وابحث عن المنتجات من نفس المكان بدون نماذج مفتوحة داخل الصفحة.",
+      logoHint:
+        "يفضل رفع شعار PNG أو JPG بحجم صغير. سيتم ضغطه تلقائيًا قبل الحفظ.",
+      productIntro:
+        "أضف، استورد، وابحث عن المنتجات من نفس المكان بدون نماذج مفتوحة داخل الصفحة.",
       newProduct: "منتج جديد",
       excelTemplate: "قالب Excel",
       uploadExcel: "رفع Excel",
@@ -2613,7 +3312,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       pricingStock: "الأسعار والمخزون",
       images: "الصور",
       options: "الخيارات",
-      seo: "SEO"
+      seo: "SEO",
     },
     en: {
       dashboard: "Dashboard",
@@ -2642,10 +3341,12 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       previewStore: "Preview store",
       active: "Active",
       unsaved: "Changes are not saved until you click save",
-      unsavedDesc: "Store identity or theme changes will not appear in the store until saved.",
+      unsavedDesc:
+        "Store identity or theme changes will not appear in the store until saved.",
       cancelChanges: "Discard changes",
       saveChanges: "Save changes",
-      dashboardIntro: "A quick overview of store performance, orders, and sales.",
+      dashboardIntro:
+        "A quick overview of store performance, orders, and sales.",
       lastUpdate: "Last update",
       visitorsNow: "Visitors now",
       ordersToday: "Orders today",
@@ -2677,11 +3378,13 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       quickNumbers: "Quick numbers",
       inventory: "Inventory",
       reportsCenter: "Reports center",
-      reportsIntro: "A quick read of sales, orders, products, and important alerts.",
+      reportsIntro:
+        "A quick read of sales, orders, products, and important alerts.",
       exportCsv: "Export CSV report",
       thisMonth: "This month",
       allPeriod: "All time",
-      advancedFiltersLater: "Advanced filters will be connected later without affecting current data.",
+      advancedFiltersLater:
+        "Advanced filters will be connected later without affecting current data.",
       needsFollowUp: "Needs follow-up",
       newOrProcessing: "New or processing orders",
       averageOrder: "Average order",
@@ -2699,7 +3402,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       newCustomersWeek: "New customers this week",
       couponUses: "Coupon uses",
       manageCoupons: "Manage coupons",
-      couponIntro: "Create percentage discount coupons. Each coupon is limited to one use per customer.",
+      couponIntro:
+        "Create percentage discount coupons. Each coupon is limited to one use per customer.",
       coupon: "Coupon",
       addCoupon: "Add coupon",
       activeCoupon: "Active coupon",
@@ -2710,8 +3414,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       readyColors: "Ready colors",
       editIdentity: "Edit store identity",
       logo: "Logo",
-      logoHint: "PNG or JPG logo is recommended. It will be compressed before saving.",
-      productIntro: "Add, import, and search products from one clean place without open forms on the page.",
+      logoHint:
+        "PNG or JPG logo is recommended. It will be compressed before saving.",
+      productIntro:
+        "Add, import, and search products from one clean place without open forms on the page.",
       newProduct: "New product",
       excelTemplate: "Excel template",
       uploadExcel: "Upload Excel",
@@ -2730,11 +3436,12 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       pricingStock: "Pricing & stock",
       images: "Images",
       options: "Options",
-      seo: "SEO"
-    }
+      seo: "SEO",
+    },
   };
 
-  const t = (key) => adminI18n[adminLanguage]?.[key] || adminI18n.ar[key] || key;
+  const t = (key) =>
+    adminI18n[adminLanguage]?.[key] || adminI18n.ar[key] || key;
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
@@ -2745,7 +3452,9 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [productStatusFilter, setProductStatusFilter] = useState("all");
   const [productCategoryFilter, setProductCategoryFilter] = useState("all");
   const [productSort, setProductSort] = useState("newest");
-  const [productOptions, setProductOptions] = useState([{ size: "", color: "", stock: "", price: "", sku: "" }]);
+  const [productOptions, setProductOptions] = useState([
+    { size: "", color: "", stock: "", price: "", sku: "" },
+  ]);
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productFormTab, setProductFormTab] = useState("info");
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -2754,42 +3463,55 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const [liveVisitorRows, setLiveVisitorRows] = useState([]);
   const [showLiveVisitors, setShowLiveVisitors] = useState(false);
   const [liveEvents, setLiveEvents] = useState([]);
-  const [funnelStats, setFunnelStats] = useState({ visit_store:0, view_product:0, add_to_cart:0, checkout:0, purchase:0 });
+  const [funnelStats, setFunnelStats] = useState({
+    visit_store: 0,
+    view_product: 0,
+    add_to_cart: 0,
+    checkout: 0,
+    purchase: 0,
+  });
   const [staffUsers, setStaffUsers] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "staffUsers"), async (snapshot) => {
-      if (snapshot.empty) {
-        const currentAdmin = auth.currentUser;
-        if (currentAdmin?.uid) {
-          await setDoc(doc(db, "staffUsers", currentAdmin.uid), {
-            name: currentAdmin.displayName || "مالك المتجر",
-            email: currentAdmin.email || "",
-            phone: "",
-            role: "owner",
-            permissions: Object.keys(ADMIN_PERMISSION_LABELS),
-            status: "active",
-            isOwner: true,
-            lastLogin: Date.now(),
-            createdAtMs: Date.now(),
-            updatedAt: serverTimestamp()
-          }, { merge: true });
+    const unsubscribe = onSnapshot(
+      collection(db, "staffUsers"),
+      async (snapshot) => {
+        if (snapshot.empty) {
+          const currentAdmin = auth.currentUser;
+          if (currentAdmin?.uid) {
+            await setDoc(
+              doc(db, "staffUsers", currentAdmin.uid),
+              {
+                name: currentAdmin.displayName || "مالك المتجر",
+                email: currentAdmin.email || "",
+                phone: "",
+                role: "owner",
+                permissions: Object.keys(ADMIN_PERMISSION_LABELS),
+                status: "active",
+                isOwner: true,
+                lastLogin: Date.now(),
+                createdAtMs: Date.now(),
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+          }
+          setStaffUsers([]);
+          return;
         }
-        setStaffUsers([]);
-        return;
-      }
 
-      const rows = snapshot.docs
-        .map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }))
-        .filter((staffUser) => !isStaffDeleted(staffUser))
-        .sort((a, b) => {
-          if (a.isOwner && !b.isOwner) return -1;
-          if (!a.isOwner && b.isOwner) return 1;
-          return Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0);
-        });
+        const rows = snapshot.docs
+          .map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }))
+          .filter((staffUser) => !isStaffDeleted(staffUser))
+          .sort((a, b) => {
+            if (a.isOwner && !b.isOwner) return -1;
+            if (!a.isOwner && b.isOwner) return 1;
+            return Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0);
+          });
 
-      setStaffUsers(rows);
-    });
+        setStaffUsers(rows);
+      },
+    );
 
     return () => unsubscribe();
   }, []);
@@ -2798,23 +3520,26 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setDraftSettings(settings);
   }, [settings]);
 
-
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "liveVisitors"), (snapshot) => {
-      const now = Date.now();
-      const rows = snapshot.docs
-        .map((visitorDoc) => ({ id: visitorDoc.id, ...(visitorDoc.data() || {}) }))
-        .filter((visitor) => Number(visitor.lastSeen || 0) > now - 60000)
-        .sort((a, b) => Number(b.lastSeen || 0) - Number(a.lastSeen || 0));
+    const unsubscribe = onSnapshot(
+      collection(db, "liveVisitors"),
+      (snapshot) => {
+        const now = Date.now();
+        const rows = snapshot.docs
+          .map((visitorDoc) => ({
+            id: visitorDoc.id,
+            ...(visitorDoc.data() || {}),
+          }))
+          .filter((visitor) => Number(visitor.lastSeen || 0) > now - 60000)
+          .sort((a, b) => Number(b.lastSeen || 0) - Number(a.lastSeen || 0));
 
-      setLiveVisitorRows(rows);
-      setLiveVisitors(rows.length);
-    });
+        setLiveVisitorRows(rows);
+        setLiveVisitors(rows.length);
+      },
+    );
 
     return () => unsubscribe();
   }, []);
-
-
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "liveEvents"), (snapshot) => {
@@ -2831,55 +3556,58 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     return () => unsubscribe();
   }, []);
 
-
-
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "funnelEvents"), (snapshot) => {
-      const stats = {
-        visit_store: 0,
-        view_product: 0,
-        add_to_cart: 0,
-        checkout: 0,
-        purchase: 0
-      };
+    const unsubscribe = onSnapshot(
+      collection(db, "funnelEvents"),
+      (snapshot) => {
+        const stats = {
+          visit_store: 0,
+          view_product: 0,
+          add_to_cart: 0,
+          checkout: 0,
+          purchase: 0,
+        };
 
-      snapshot.docs.forEach((eventDoc) => {
-        const data = eventDoc.data() || {};
-        if (stats[data.step] !== undefined) {
-          stats[data.step] += 1;
-        }
-      });
+        snapshot.docs.forEach((eventDoc) => {
+          const data = eventDoc.data() || {};
+          if (stats[data.step] !== undefined) {
+            stats[data.step] += 1;
+          }
+        });
 
-      setFunnelStats(stats);
-    });
+        setFunnelStats(stats);
+      },
+    );
 
     return () => unsubscribe();
   }, []);
 
-
   useEffect(() => {
     setImagePreview(editing?.image || "");
     setGalleryImages(Array.isArray(editing?.gallery) ? editing.gallery : []);
-    const currentOptions = Array.isArray(editing?.options) && editing.options.length
-      ? editing.options
-      : [{ size: "", color: "", stock: "", price: "", sku: "" }];
-    setProductOptions(currentOptions.map(option => ({
-      size: option.size || "",
-      color: option.color || "",
-      stock: option.stock ?? "",
-      price: option.price ?? "",
-      oldPrice: option.oldPrice ?? "",
-      sku: option.sku || ""
-    })));
+    const currentOptions =
+      Array.isArray(editing?.options) && editing.options.length
+        ? editing.options
+        : [{ size: "", color: "", stock: "", price: "", sku: "" }];
+    setProductOptions(
+      currentOptions.map((option) => ({
+        size: option.size || "",
+        color: option.color || "",
+        stock: option.stock ?? "",
+        price: option.price ?? "",
+        oldPrice: option.oldPrice ?? "",
+        sku: option.sku || "",
+      })),
+    );
   }, [editing]);
 
   const updateDraft = (key, value) => {
-    setDraftSettings(prev => ({ ...prev, [key]: value }));
+    setDraftSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const saveDraftSettings = async () => {
     const ok = await saveSettings(draftSettings);
-    if (ok) setDraftSettings(prev => ({ ...prev }));
+    if (ok) setDraftSettings((prev) => ({ ...prev }));
   };
 
   const resetDraftSettings = () => {
@@ -2888,15 +3616,24 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setTimeout(() => setNotice(""), 1800);
   };
 
-  const adminProductCategories = useMemo(() => ["all", ...new Set(products.map(product => product.category).filter(Boolean))], [products]);
+  const adminProductCategories = useMemo(
+    () => [
+      "all",
+      ...new Set(products.map((product) => product.category).filter(Boolean)),
+    ],
+    [products],
+  );
 
   const filteredAdminProducts = products
-    .filter(product => {
+    .filter((product) => {
       const q = productSearch.trim().toLowerCase();
-      const searchable = `${product.name || ""} ${product.description || ""} ${product.category || ""} ${product.brand || ""} ${product.sku || ""}`.toLowerCase();
+      const searchable =
+        `${product.name || ""} ${product.description || ""} ${product.category || ""} ${product.brand || ""} ${product.sku || ""}`.toLowerCase();
       const matchesSearch = !q || searchable.includes(q);
 
-      const matchesCategory = productCategoryFilter === "all" || product.category === productCategoryFilter;
+      const matchesCategory =
+        productCategoryFilter === "all" ||
+        product.category === productCategoryFilter;
 
       const matchesStatus =
         productStatusFilter === "all" ||
@@ -2908,24 +3645,33 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       return matchesSearch && matchesCategory && matchesStatus;
     })
     .sort((a, b) => {
-      if (productSort === "price_high") return Number(b.price || 0) - Number(a.price || 0);
-      if (productSort === "price_low") return Number(a.price || 0) - Number(b.price || 0);
-      if (productSort === "stock_low") return Number(a.stock || 0) - Number(b.stock || 0);
-      if (productSort === "name") return String(a.name || "").localeCompare(String(b.name || ""), "ar");
-      if (productSort === "newest") return String(b.id || "").localeCompare(String(a.id || ""));
+      if (productSort === "price_high")
+        return Number(b.price || 0) - Number(a.price || 0);
+      if (productSort === "price_low")
+        return Number(a.price || 0) - Number(b.price || 0);
+      if (productSort === "stock_low")
+        return Number(a.stock || 0) - Number(b.stock || 0);
+      if (productSort === "name")
+        return String(a.name || "").localeCompare(String(b.name || ""), "ar");
+      if (productSort === "newest")
+        return String(b.id || "").localeCompare(String(a.id || ""));
       return Number(a.order ?? 999999) - Number(b.order ?? 999999);
     });
 
   const toggleProductSelection = (id) => {
-    setSelectedProducts(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+    setSelectedProducts((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
   };
 
   const toggleAllVisibleProducts = () => {
-    const visibleIds = filteredAdminProducts.map(product => product.id);
-    const allSelected = visibleIds.length && visibleIds.every(id => selectedProducts.includes(id));
+    const visibleIds = filteredAdminProducts.map((product) => product.id);
+    const allSelected =
+      visibleIds.length &&
+      visibleIds.every((id) => selectedProducts.includes(id));
 
-    setSelectedProducts(prev => {
-      if (allSelected) return prev.filter(id => !visibleIds.includes(id));
+    setSelectedProducts((prev) => {
+      if (allSelected) return prev.filter((id) => !visibleIds.includes(id));
       return [...new Set([...prev, ...visibleIds])];
     });
   };
@@ -2936,7 +3682,11 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     if (!selectedProducts.length) return;
 
     try {
-      await Promise.all(selectedProducts.map(id => setDoc(doc(db, "products", id), patch, { merge: true })));
+      await Promise.all(
+        selectedProducts.map((id) =>
+          setDoc(doc(db, "products", id), patch, { merge: true }),
+        ),
+      );
       setNotice(successMessage);
       setTimeout(() => setNotice(""), 2600);
       clearProductSelection();
@@ -2950,11 +3700,15 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const deleteSelectedProducts = async () => {
     if (!selectedProducts.length) return;
 
-    const ok = window.confirm(`هل أنت متأكد من حذف ${selectedProducts.length} منتج محدد؟`);
+    const ok = window.confirm(
+      `هل أنت متأكد من حذف ${selectedProducts.length} منتج محدد؟`,
+    );
     if (!ok) return;
 
     try {
-      await Promise.all(selectedProducts.map(id => deleteDoc(doc(db, "products", id))));
+      await Promise.all(
+        selectedProducts.map((id) => deleteDoc(doc(db, "products", id))),
+      );
       setNotice("تم حذف المنتجات المحددة");
       setTimeout(() => setNotice(""), 2600);
       clearProductSelection();
@@ -2968,18 +3722,22 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const deleteProduct = async (product) => {
     if (!product?.id) return;
 
-    const ok = window.confirm(`هل أنت متأكد من حذف المنتج: ${product.name || "بدون اسم"}؟`);
+    const ok = window.confirm(
+      `هل أنت متأكد من حذف المنتج: ${product.name || "بدون اسم"}؟`,
+    );
     if (!ok) return;
 
     try {
       await deleteDoc(doc(db, "products", product.id));
-      setEditing(current => current?.id === product.id ? null : current);
-      setSelectedProducts(prev => prev.filter(id => id !== product.id));
+      setEditing((current) => (current?.id === product.id ? null : current));
+      setSelectedProducts((prev) => prev.filter((id) => id !== product.id));
       setNotice("تم حذف المنتج بنجاح");
       setTimeout(() => setNotice(""), 2400);
     } catch (error) {
       console.error("Delete product failed:", error);
-      setNotice("تعذر حذف المنتج. تأكد من الاتصال والصلاحيات ثم حاول مرة أخرى.");
+      setNotice(
+        "تعذر حذف المنتج. تأكد من الاتصال والصلاحيات ثم حاول مرة أخرى.",
+      );
       setTimeout(() => setNotice(""), 4000);
     }
   };
@@ -3006,7 +3764,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       featured: false,
       order: Date.now(),
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
 
     delete copy.id;
@@ -3026,8 +3784,8 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     if (!sourceId || !targetId || sourceId === targetId) return;
 
     const current = [...filteredAdminProducts];
-    const fromIndex = current.findIndex(product => product.id === sourceId);
-    const toIndex = current.findIndex(product => product.id === targetId);
+    const fromIndex = current.findIndex((product) => product.id === sourceId);
+    const toIndex = current.findIndex((product) => product.id === targetId);
 
     if (fromIndex < 0 || toIndex < 0) return;
 
@@ -3035,9 +3793,15 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     current.splice(toIndex, 0, moved);
 
     try {
-      await Promise.all(current.map((product, index) =>
-        setDoc(doc(db, "products", product.id), { order: index + 1, updatedAt: serverTimestamp() }, { merge: true })
-      ));
+      await Promise.all(
+        current.map((product, index) =>
+          setDoc(
+            doc(db, "products", product.id),
+            { order: index + 1, updatedAt: serverTimestamp() },
+            { merge: true },
+          ),
+        ),
+      );
       setProductSort("custom");
       setNotice("تم ترتيب المنتجات");
       setTimeout(() => setNotice(""), 1800);
@@ -3055,11 +3819,15 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       return;
     }
 
-    const ok = window.confirm(`هل أنت متأكد من حذف كل المنتجات؟ سيتم حذف ${products.length} منتج نهائيًا.`);
+    const ok = window.confirm(
+      `هل أنت متأكد من حذف كل المنتجات؟ سيتم حذف ${products.length} منتج نهائيًا.`,
+    );
     if (!ok) return;
 
     try {
-      await Promise.all(products.map(product => deleteDoc(doc(db, "products", product.id))));
+      await Promise.all(
+        products.map((product) => deleteDoc(doc(db, "products", product.id))),
+      );
       setEditing(null);
       setImagePreview("");
       setGalleryImages([]);
@@ -3073,18 +3841,24 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     }
   };
 
-  const totalValue = products.reduce((n,p)=>n+Number(p.price || 0),0);
+  const totalValue = products.reduce((n, p) => n + Number(p.price || 0), 0);
 
   const saveSettings = async (patch) => {
     try {
-      await setDoc(doc(db, "store", "settings"), { ...settings, ...patch }, { merge: true });
-      setSettings(s => ({ ...s, ...patch }));
+      await setDoc(
+        doc(db, "store", "settings"),
+        { ...settings, ...patch },
+        { merge: true },
+      );
+      setSettings((s) => ({ ...s, ...patch }));
       setNotice("تم حفظ التغييرات بنجاح");
       setTimeout(() => setNotice(""), 2200);
       return true;
     } catch (error) {
       console.error("Save settings failed:", error);
-      setNotice("تعذر الحفظ. غالبًا حجم الصورة كبير، جرّب شعار أصغر أو ارفعه مرة ثانية.");
+      setNotice(
+        "تعذر الحفظ. غالبًا حجم الصورة كبير، جرّب شعار أصغر أو ارفعه مرة ثانية.",
+      );
       setTimeout(() => setNotice(""), 5000);
       return false;
     }
@@ -3096,21 +3870,28 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     if (key === "homeHeroVideo") {
       const maxVideoSize = 750 * 1024;
       if (file.size > maxVideoSize) {
-        setNotice("حجم الفيديو كبير جدًا للرفع المباشر. استخدم رابط فيديو خارجي أو ارفع فيديو أقل من 750KB.");
+        setNotice(
+          "حجم الفيديو كبير جدًا للرفع المباشر. استخدم رابط فيديو خارجي أو ارفع فيديو أقل من 750KB.",
+        );
         setTimeout(() => setNotice(""), 6000);
         return;
       }
     }
 
-    const data = await fileToDataUrl(file, key === "logo" ? {
-      maxWidth: 520,
-      maxHeight: 220,
-      quality: 0.78
-    } : {
-      maxWidth: 1400,
-      maxHeight: 900,
-      quality: 0.82
-    });
+    const data = await fileToDataUrl(
+      file,
+      key === "logo"
+        ? {
+            maxWidth: 520,
+            maxHeight: 220,
+            quality: 0.78,
+          }
+        : {
+            maxWidth: 1400,
+            maxHeight: 900,
+            quality: 0.82,
+          },
+    );
     updateDraft(key, data);
   };
 
@@ -3121,11 +3902,15 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     try {
       const uploaded = [];
       for (const file of files) {
-        const data = await fileToDataUrl(file, { maxWidth: 1200, maxHeight: 1000, quality: 0.82 });
+        const data = await fileToDataUrl(file, {
+          maxWidth: 1200,
+          maxHeight: 1000,
+          quality: 0.82,
+        });
         uploaded.push(data);
       }
 
-      setGalleryImages(prev => [...prev, ...uploaded]);
+      setGalleryImages((prev) => [...prev, ...uploaded]);
     } catch (error) {
       console.error("Upload gallery failed:", error);
       setNotice("تعذر رفع صور المعرض");
@@ -3134,7 +3919,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   };
 
   const removeGalleryImage = (index) => {
-    setGalleryImages(prev => prev.filter((_, i) => i !== index));
+    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const makeGalleryImagePrimary = (image) => {
@@ -3142,15 +3927,26 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   };
 
   const updateProductOption = (index, key, value) => {
-    setProductOptions(prev => prev.map((option, i) => i === index ? { ...option, [key]: value } : option));
+    setProductOptions((prev) =>
+      prev.map((option, i) =>
+        i === index ? { ...option, [key]: value } : option,
+      ),
+    );
   };
 
   const addProductOption = () => {
-    setProductOptions(prev => [...prev, { size: "", color: "", stock: "", price: "", sku: "" }]);
+    setProductOptions((prev) => [
+      ...prev,
+      { size: "", color: "", stock: "", price: "", sku: "" },
+    ]);
   };
 
   const removeProductOption = (index) => {
-    setProductOptions(prev => prev.length > 1 ? prev.filter((_, i) => i !== index) : [{ size: "", color: "", stock: "", price: "", sku: "" }]);
+    setProductOptions((prev) =>
+      prev.length > 1
+        ? prev.filter((_, i) => i !== index)
+        : [{ size: "", color: "", stock: "", price: "", sku: "" }],
+    );
   };
 
   const resetProductEditor = () => {
@@ -3172,28 +3968,54 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     e.preventDefault();
     const f = e.target;
     let image = f.imageUrl.value.trim();
-    if (f.imageFile.files[0]) image = await fileToDataUrl(f.imageFile.files[0], { maxWidth: 1100, maxHeight: 900, quality: 0.82 });
+    if (f.imageFile.files[0])
+      image = await fileToDataUrl(f.imageFile.files[0], {
+        maxWidth: 1100,
+        maxHeight: 900,
+        quality: 0.82,
+      });
     const id = editing?.id || uid();
     const cleanOptions = productOptions
-      .map(option => ({
+      .map((option) => ({
         size: String(option.size || "").trim(),
         color: String(option.color || "").trim(),
         stock: option.stock === "" ? "" : Number(option.stock || 0),
         price: option.price === "" ? "" : Number(option.price || 0),
-        oldPrice: option.oldPrice === "" || option.oldPrice == null ? "" : Number(option.oldPrice || 0),
-        sku: String(option.sku || "").trim()
+        oldPrice:
+          option.oldPrice === "" || option.oldPrice == null
+            ? ""
+            : Number(option.oldPrice || 0),
+        sku: String(option.sku || "").trim(),
       }))
-      .filter(option => option.size || option.color || option.stock !== "" || option.price !== "" || option.oldPrice !== "" || option.sku);
+      .filter(
+        (option) =>
+          option.size ||
+          option.color ||
+          option.stock !== "" ||
+          option.price !== "" ||
+          option.oldPrice !== "" ||
+          option.sku,
+      );
 
     const sizes = cleanOptions.length
-      ? [...new Set(cleanOptions.map(option => option.size).filter(Boolean))]
-      : String(f.sizes.value || "").split(",").map(item => item.trim()).filter(Boolean);
+      ? [...new Set(cleanOptions.map((option) => option.size).filter(Boolean))]
+      : String(f.sizes.value || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
 
     const colors = cleanOptions.length
-      ? [...new Set(cleanOptions.map(option => option.color).filter(Boolean))]
-      : String(f.colors.value || "").split(",").map(item => item.trim()).filter(Boolean);
+      ? [...new Set(cleanOptions.map((option) => option.color).filter(Boolean))]
+      : String(f.colors.value || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
 
-    const gallery = [...new Set([image || editing?.image || "", ...galleryImages].filter(Boolean))];
+    const gallery = [
+      ...new Set(
+        [image || editing?.image || "", ...galleryImages].filter(Boolean),
+      ),
+    ];
 
     const product = {
       name: f.name.value.trim(),
@@ -3207,7 +4029,10 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       options: cleanOptions,
       tag: f.tag.value.trim(),
       description: f.description.value.trim(),
-      seoSlug: makePageSlug(f.seoSlug?.value?.trim() || f.name.value.trim() || id, id),
+      seoSlug: makePageSlug(
+        f.seoSlug?.value?.trim() || f.name.value.trim() || id,
+        id,
+      ),
       seoTitle: f.seoTitle?.value?.trim() || "",
       seoDescription: f.seoDescription?.value?.trim() || "",
       stock: Number(f.stock.value || 0),
@@ -3218,7 +4043,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       gallery,
       order: editing?.order ?? Date.now(),
       createdAt: editing?.createdAt || serverTimestamp(),
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
     await setDoc(doc(db, "products", id), product, { merge: true });
     setNotice(editing ? "تم تعديل المنتج بنجاح" : "تم إضافة المنتج بنجاح");
@@ -3231,7 +4056,12 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const normalizeExcelProduct = (row) => {
     const pick = (...keys) => {
       for (const key of keys) {
-        if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== "") return row[key];
+        if (
+          row[key] !== undefined &&
+          row[key] !== null &&
+          String(row[key]).trim() !== ""
+        )
+          return row[key];
       }
       return "";
     };
@@ -3245,24 +4075,34 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
     return {
       name,
-      brand: String(pick("brand", "النوع/المورد", "المورد") || "GREEN DIXAM").trim(),
+      brand: String(
+        pick("brand", "النوع/المورد", "المورد") || "GREEN DIXAM",
+      ).trim(),
       category: String(pick("category", "القسم") || "نباتات داخلية").trim(),
       price,
       oldPrice: Number(oldPriceRaw || price),
       rating: Number(pick("rating", "التقييم") || 4.8),
-      sizes: String(pick("sizes", "الأحجام/الخيارات", "الخيارات") || "صغير,متوسط,كبير").trim(),
+      sizes: String(
+        pick("sizes", "الأحجام/الخيارات", "الخيارات") || "صغير,متوسط,كبير",
+      ).trim(),
       tag: String(pick("tag", "الشارة") || "Rare").trim(),
       description: String(pick("description", "الوصف") || "").trim(),
       stock: Number(pick("stock", "المخزون") || 0),
       sku: String(pick("sku", "SKU") || "").trim(),
       status: String(pick("status", "الحالة") || "active").trim(),
-      featured: String(pick("featured", "مميز") || "").toLowerCase() === "true" || String(pick("featured", "مميز") || "") === "نعم",
+      featured:
+        String(pick("featured", "مميز") || "").toLowerCase() === "true" ||
+        String(pick("featured", "مميز") || "") === "نعم",
       image,
       gallery: galleryImages,
-      colors: f.colors?.value?.split(",").map(v => v.trim()).filter(Boolean) || [],
+      colors:
+        f.colors?.value
+          ?.split(",")
+          .map((v) => v.trim())
+          .filter(Boolean) || [],
       seoTitle: f.seoTitle?.value?.trim() || "",
       seoDescription: f.seoDescription?.value?.trim() || "",
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
   };
 
@@ -3271,35 +4111,37 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       {
         "اسم المنتج": "مونستيرا فاخرة",
         "النوع/المورد": "Monstera",
-        "القسم": "نباتات داخلية",
-        "السعر": 189,
+        القسم: "نباتات داخلية",
+        السعر: 189,
         "السعر قبل الخصم": 239,
-        "المخزون": 12,
-        "SKU": "GD-PLANT-001",
-        "الحالة": "active",
-        "التقييم": 4.9,
-        "الشارة": "Luxury",
+        المخزون: 12,
+        SKU: "GD-PLANT-001",
+        الحالة: "active",
+        التقييم: 4.9,
+        الشارة: "Luxury",
         "الأحجام/الخيارات": "صغير,متوسط,كبير",
-        "رابط الصورة": "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80",
-        "الوصف": "نبتة داخلية فاخرة تضيف لمسة طبيعية راقية.",
-        "مميز": "نعم"
+        "رابط الصورة":
+          "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=1200&q=80",
+        الوصف: "نبتة داخلية فاخرة تضيف لمسة طبيعية راقية.",
+        مميز: "نعم",
       },
       {
         "اسم المنتج": "أصيص سيراميك ذهبي",
         "النوع/المورد": "Golden Ceramic",
-        "القسم": "أصص فاخرة",
-        "السعر": 89,
+        القسم: "أصص فاخرة",
+        السعر: 89,
         "السعر قبل الخصم": 119,
-        "المخزون": 25,
-        "SKU": "GD-POT-002",
-        "الحالة": "active",
-        "التقييم": 4.8,
-        "الشارة": "Gold",
+        المخزون: 25,
+        SKU: "GD-POT-002",
+        الحالة: "active",
+        التقييم: 4.8,
+        الشارة: "Gold",
         "الأحجام/الخيارات": "S,M,L",
-        "رابط الصورة": "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80",
-        "الوصف": "أصيص أنيق يناسب النباتات الداخلية.",
-        "مميز": "لا"
-      }
+        "رابط الصورة":
+          "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=80",
+        الوصف: "أصيص أنيق يناسب النباتات الداخلية.",
+        مميز: "لا",
+      },
     ];
 
     const helpRows = [
@@ -3308,7 +4150,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       ["الحالة: active للظهور أو hidden للإخفاء."],
       ["مميز: اكتب نعم أو true إذا تريد المنتج مميز."],
       ["رابط الصورة يجب أن يكون رابط مباشر لصورة."],
-      ["السعر والمخزون والتقييم أرقام فقط."]
+      ["السعر والمخزون والتقييم أرقام فقط."],
     ];
 
     const XLSX = await import("xlsx");
@@ -3339,7 +4181,9 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       }
 
       setPendingImport(productsToImport);
-      setNotice(`تم تجهيز ${productsToImport.length} منتج للمعاينة. اضغط حفظ المنتجات المستوردة للتأكيد.`);
+      setNotice(
+        `تم تجهيز ${productsToImport.length} منتج للمعاينة. اضغط حفظ المنتجات المستوردة للتأكيد.`,
+      );
       setTimeout(() => setNotice(""), 4500);
       event.target.value = "";
     } catch (error) {
@@ -3381,7 +4225,9 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const saveCoupon = async (e) => {
     e.preventDefault();
     const f = e.target;
-    const code = String(f.code.value || "").trim().toUpperCase();
+    const code = String(f.code.value || "")
+      .trim()
+      .toUpperCase();
     const percent = Number(f.percent.value || 0);
     const expiresAt = f.expiresAt.value || "";
 
@@ -3391,15 +4237,19 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       return;
     }
 
-    await setDoc(doc(db, "coupons", code), {
-      code,
-      percent,
-      active: f.active.checked,
-      usage: "once_per_customer",
-      type: "percent",
-      expiresAt,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(
+      doc(db, "coupons", code),
+      {
+        code,
+        percent,
+        active: f.active.checked,
+        usage: "once_per_customer",
+        type: "percent",
+        expiresAt,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
 
     setNotice("تم حفظ الكوبون");
     setTimeout(() => setNotice(""), 2500);
@@ -3407,12 +4257,15 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   };
 
   const toggleCoupon = async (coupon) => {
-    await setDoc(doc(db, "coupons", coupon.id), {
-      active: !coupon.active,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(
+      doc(db, "coupons", coupon.id),
+      {
+        active: !coupon.active,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
   };
-
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -3421,38 +4274,60 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   weekStart.setDate(weekStart.getDate() - 7);
   weekStart.setHours(0, 0, 0, 0);
 
-  const dashboardOrders = orders.map(o => ({
+  const dashboardOrders = orders.map((o) => ({
     ...o,
     total: Number(o.total || 0),
-    items: o.items || []
+    items: o.items || [],
   }));
 
-  const todayOrders = dashboardOrders.filter(o => orderTimestamp(o.createdAt) >= todayStart.getTime());
-  const weekOrders = dashboardOrders.filter(o => orderTimestamp(o.createdAt) >= weekStart.getTime());
+  const todayOrders = dashboardOrders.filter(
+    (o) => orderTimestamp(o.createdAt) >= todayStart.getTime(),
+  );
+  const weekOrders = dashboardOrders.filter(
+    (o) => orderTimestamp(o.createdAt) >= weekStart.getTime(),
+  );
   const todaySales = todayOrders.reduce((sum, o) => sum + o.total, 0);
   const totalSales = dashboardOrders.reduce((sum, o) => sum + o.total, 0);
 
   const productSalesMap = {};
-  dashboardOrders.forEach(order => {
-    (order.items || []).forEach(item => {
+  dashboardOrders.forEach((order) => {
+    (order.items || []).forEach((item) => {
       const key = item.name || "منتج غير معروف";
-      if (!productSalesMap[key]) productSalesMap[key] = { name: key, qty: 0, value: 0, image: item.image || "" };
+      if (!productSalesMap[key])
+        productSalesMap[key] = {
+          name: key,
+          qty: 0,
+          value: 0,
+          image: item.image || "",
+        };
       productSalesMap[key].qty += Number(item.qty || 1);
-      productSalesMap[key].value += Number(item.price || 0) * Number(item.qty || 1);
-      if (!productSalesMap[key].image && item.image) productSalesMap[key].image = item.image;
+      productSalesMap[key].value +=
+        Number(item.price || 0) * Number(item.qty || 1);
+      if (!productSalesMap[key].image && item.image)
+        productSalesMap[key].image = item.image;
     });
   });
 
-  const topProduct = Object.values(productSalesMap).sort((a, b) => b.qty - a.qty)[0];
+  const topProduct = Object.values(productSalesMap).sort(
+    (a, b) => b.qty - a.qty,
+  )[0];
 
   const adminBestSellers = Object.values(productSalesMap)
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 5);
 
-  const pendingOrdersCount = dashboardOrders.filter(o => ["new", "processing"].includes(o.status || "new")).length;
-  const lowStockProducts = products.filter(p => Number(p.stock || 0) <= 3 && p.status !== "hidden");
-  const activeProductsCount = products.filter(p => p.status !== "hidden").length;
-  const averageOrderValue = dashboardOrders.length ? Math.round(totalSales / dashboardOrders.length) : 0;
+  const pendingOrdersCount = dashboardOrders.filter((o) =>
+    ["new", "processing"].includes(o.status || "new"),
+  ).length;
+  const lowStockProducts = products.filter(
+    (p) => Number(p.stock || 0) <= 3 && p.status !== "hidden",
+  );
+  const activeProductsCount = products.filter(
+    (p) => p.status !== "hidden",
+  ).length;
+  const averageOrderValue = dashboardOrders.length
+    ? Math.round(totalSales / dashboardOrders.length)
+    : 0;
 
   const reportStatusLabels = {
     new: "جديد",
@@ -3460,7 +4335,7 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     shipped: "تم الشحن",
     completed: "مكتمل",
     cancelled: "ملغي",
-    canceled: "ملغي"
+    canceled: "ملغي",
   };
 
   const reportStatusRows = Object.entries(
@@ -3468,21 +4343,26 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       const key = order.status || "new";
       acc[key] = (acc[key] || 0) + 1;
       return acc;
-    }, {})
+    }, {}),
   ).map(([status, count]) => ({
     status,
     label: reportStatusLabels[status] || status,
     count,
-    percent: dashboardOrders.length ? Math.round((count / dashboardOrders.length) * 100) : 0
+    percent: dashboardOrders.length
+      ? Math.round((count / dashboardOrders.length) * 100)
+      : 0,
   }));
 
   const reportCityRows = Object.entries(
     dashboardOrders.reduce((acc, order) => {
-      const city = order.city || order.shippingCity || order.address?.city || "غير محدد";
+      const city =
+        order.city || order.shippingCity || order.address?.city || "غير محدد";
       acc[city] = (acc[city] || 0) + 1;
       return acc;
-    }, {})
-  ).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   const reportSalesRows = Array.from({ length: 7 }, (_, index) => {
     const day = new Date();
@@ -3491,20 +4371,28 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     const nextDay = new Date(day);
     nextDay.setDate(nextDay.getDate() + 1);
     const value = dashboardOrders
-      .filter(order => {
+      .filter((order) => {
         const time = orderTimestamp(order.createdAt);
         return time >= day.getTime() && time < nextDay.getTime();
       })
       .reduce((sum, order) => sum + Number(order.total || 0), 0);
     return {
       label: day.toLocaleDateString("ar-SA", { weekday: "short" }),
-      value
+      value,
     };
   });
 
-  const maxReportSales = Math.max(...reportSalesRows.map(row => row.value), 1);
-  const newCustomersCount = customers.filter(customer => orderTimestamp(customer.createdAt) >= weekStart.getTime()).length;
-  const usedCouponsCount = coupons.reduce((sum, coupon) => sum + Object.keys(coupon.usedBy || {}).length, 0);
+  const maxReportSales = Math.max(
+    ...reportSalesRows.map((row) => row.value),
+    1,
+  );
+  const newCustomersCount = customers.filter(
+    (customer) => orderTimestamp(customer.createdAt) >= weekStart.getTime(),
+  ).length;
+  const usedCouponsCount = coupons.reduce(
+    (sum, coupon) => sum + Object.keys(coupon.usedBy || {}).length,
+    0,
+  );
 
   const exportReportsCsv = () => {
     const headers = ["metric", "value"];
@@ -3517,10 +4405,12 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
       ["pending_orders", pendingOrdersCount],
       ["low_stock_products", lowStockProducts.length],
       ["new_customers_week", newCustomersCount],
-      ["coupon_uses", usedCouponsCount]
+      ["coupon_uses", usedCouponsCount],
     ];
     const escapeCsv = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-    const csv = [headers, ...rows].map(row => row.map(escapeCsv).join(",")).join("\n");
+    const csv = [headers, ...rows]
+      .map((row) => row.map(escapeCsv).join(","))
+      .join("\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -3532,12 +4422,31 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setTimeout(() => setNotice(""), 2200);
   };
   const adminHealthCards = [
-    { label: "طلبات تحتاج متابعة", value: pendingOrdersCount, tone: pendingOrdersCount ? "warning" : "good", icon: <Bell size={18}/> },
-    { label: "منتجات منخفضة المخزون", value: lowStockProducts.length, tone: lowStockProducts.length ? "warning" : "good", icon: <AlertTriangle size={18}/> },
-    { label: "منتجات ظاهرة", value: activeProductsCount, tone: "neutral", icon: <CheckCircle2 size={18}/> },
-    { label: "متوسط الطلب", value: `${formatPrice(averageOrderValue)} ر.س`, tone: "neutral", icon: <TrendingUp size={18}/> }
+    {
+      label: "طلبات تحتاج متابعة",
+      value: pendingOrdersCount,
+      tone: pendingOrdersCount ? "warning" : "good",
+      icon: <Bell size={18} />,
+    },
+    {
+      label: "منتجات منخفضة المخزون",
+      value: lowStockProducts.length,
+      tone: lowStockProducts.length ? "warning" : "good",
+      icon: <AlertTriangle size={18} />,
+    },
+    {
+      label: "منتجات ظاهرة",
+      value: activeProductsCount,
+      tone: "neutral",
+      icon: <CheckCircle2 size={18} />,
+    },
+    {
+      label: "متوسط الطلب",
+      value: `${formatPrice(averageOrderValue)} ر.س`,
+      tone: "neutral",
+      icon: <TrendingUp size={18} />,
+    },
   ];
-
 
   const livePageStats = liveVisitorRows.reduce((acc, visitor) => {
     const key = visitor.path || "/";
@@ -3560,20 +4469,73 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     .slice(0, 5);
 
   const averageSessionDuration = liveVisitorRows.length
-    ? Math.round(liveVisitorRows.reduce((sum, visitor) => sum + Number(visitor.sessionDuration || 0), 0) / liveVisitorRows.length)
+    ? Math.round(
+        liveVisitorRows.reduce(
+          (sum, visitor) => sum + Number(visitor.sessionDuration || 0),
+          0,
+        ) / liveVisitorRows.length,
+      )
     : 0;
 
   const themeSections = [
-    { id: "header", label: "الهيدر", titleKey: "homeHeaderTitle", descKey: "homeHeaderSubtitle", imageKey: "homeHeaderImage", headerExtra: true },
-    { id: "hero", label: "الهيرو", titleKey: "homeHeroTitle", descKey: "homeHeroDesc", imageKey: "homeHeroImage", buttonKey: "homeHeroButton", heroExtra: true },
-    { id: "pages", label: "الصفحات", titleKey: "homePagesTitle", descKey: "", imageKey: "", pagesExtra: true },
-    { id: "plants", label: "أقسام النباتات", titleKey: "homePlantSectionsTitle", descKey: "homePlantSectionsDesc", imageKey: "homePlantSectionsImage" },
-    { id: "care", label: "شريط العناية", titleKey: "homeCareTitle", descKey: "homeCareDesc", imageKey: "homeCareImage" },
-    { id: "offer", label: "بنر العروض", titleKey: "homeOfferTitle", descKey: "homeOfferDesc", imageKey: "homeOfferImage" },
-    { id: "products", label: "المنتجات", titleKey: "homeProductsTitle", descKey: "homeProductsDesc", imageKey: "" }
+    {
+      id: "header",
+      label: "الهيدر",
+      titleKey: "homeHeaderTitle",
+      descKey: "homeHeaderSubtitle",
+      imageKey: "homeHeaderImage",
+      headerExtra: true,
+    },
+    {
+      id: "hero",
+      label: "الهيرو",
+      titleKey: "homeHeroTitle",
+      descKey: "homeHeroDesc",
+      imageKey: "homeHeroImage",
+      buttonKey: "homeHeroButton",
+      heroExtra: true,
+    },
+    {
+      id: "pages",
+      label: "الصفحات",
+      titleKey: "homePagesTitle",
+      descKey: "",
+      imageKey: "",
+      pagesExtra: true,
+    },
+    {
+      id: "plants",
+      label: "أقسام النباتات",
+      titleKey: "homePlantSectionsTitle",
+      descKey: "homePlantSectionsDesc",
+      imageKey: "homePlantSectionsImage",
+    },
+    {
+      id: "care",
+      label: "شريط العناية",
+      titleKey: "homeCareTitle",
+      descKey: "homeCareDesc",
+      imageKey: "homeCareImage",
+    },
+    {
+      id: "offer",
+      label: "بنر العروض",
+      titleKey: "homeOfferTitle",
+      descKey: "homeOfferDesc",
+      imageKey: "homeOfferImage",
+    },
+    {
+      id: "products",
+      label: "المنتجات",
+      titleKey: "homeProductsTitle",
+      descKey: "homeProductsDesc",
+      imageKey: "",
+    },
   ];
 
-  const selectedThemeSection = themeSections.find(section => section.id === openSection);
+  const selectedThemeSection = themeSections.find(
+    (section) => section.id === openSection,
+  );
   const goToThemeSection = (sectionId) => {
     setTab("homepage");
     setOpenSection(sectionId);
@@ -3583,7 +4545,11 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     setAdminLanguage(language);
     localStorage.setItem("adminLanguage", language);
     setLanguageMenuOpen(false);
-    setNotice(language === "ar" ? "تم اختيار اللغة العربية" : "English language selected");
+    setNotice(
+      language === "ar"
+        ? "تم اختيار اللغة العربية"
+        : "English language selected",
+    );
     setTimeout(() => setNotice(""), 1800);
   };
 
@@ -3596,18 +4562,26 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
   const currentStaffProfile = useMemo(() => {
     const email = String(currentAdminUser?.email || "").toLowerCase();
     const uidValue = currentAdminUser?.uid || "";
-    return staffUsers.find(user => user.id === uidValue || String(user.email || "").toLowerCase() === email) || null;
+    return (
+      staffUsers.find(
+        (user) =>
+          user.id === uidValue ||
+          String(user.email || "").toLowerCase() === email,
+      ) || null
+    );
   }, [staffUsers, currentAdminUser?.email, currentAdminUser?.uid]);
 
   const currentPermissions = useMemo(() => {
     if (!staffUsers.length) return Object.keys(ADMIN_PERMISSION_LABELS);
     if (!currentStaffProfile) return Object.keys(ADMIN_PERMISSION_LABELS);
-    if (currentStaffProfile.isOwner || currentStaffProfile.role === "owner") return Object.keys(ADMIN_PERMISSION_LABELS);
+    if (currentStaffProfile.isOwner || currentStaffProfile.role === "owner")
+      return Object.keys(ADMIN_PERMISSION_LABELS);
     if (isStaffDisabled(currentStaffProfile)) return [];
     return normalizeStaffPermissions(currentStaffProfile.permissions);
   }, [staffUsers, currentStaffProfile]);
 
-  const canAccessAdminSection = (permission) => currentPermissions.includes(permission);
+  const canAccessAdminSection = (permission) =>
+    currentPermissions.includes(permission);
   const tabPermission = {
     dashboard: "dashboard",
     reports: "reports",
@@ -3619,9 +4593,11 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     coupons: "coupons",
     settings: "settings",
     notifications: "notifications",
-    users: "users"
+    users: "users",
   };
-  const accessibleTabs = Object.keys(tabPermission).filter(key => canAccessAdminSection(tabPermission[key]));
+  const accessibleTabs = Object.keys(tabPermission).filter((key) =>
+    canAccessAdminSection(tabPermission[key]),
+  );
 
   useEffect(() => {
     if (!accessibleTabs.length) return;
@@ -3633,10 +4609,19 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
     }
   }, [tab, currentPermissions.join("|")]);
 
-  const renderAdminNavButton = (tabKey, permissionKey, icon, label, onClick) => {
+  const renderAdminNavButton = (
+    tabKey,
+    permissionKey,
+    icon,
+    label,
+    onClick,
+  ) => {
     if (!canAccessAdminSection(permissionKey)) return null;
     return (
-      <button className={tab===tabKey?"on":""} onClick={onClick || (()=>setTab(tabKey))}>
+      <button
+        className={tab === tabKey ? "on" : ""}
+        onClick={onClick || (() => setTab(tabKey))}
+      >
         {icon} {label}
       </button>
     );
@@ -3644,42 +4629,87 @@ function Admin({ settings, setSettings, products, customers, orders, coupons = [
 
   const noPermissionCard = (sectionLabel = "هذا القسم") => (
     <section className="admin-card admin-permission-denied">
-      <Lock size={28}/>
+      <Lock size={28} />
       <h2>لا تملك صلاحية الوصول</h2>
-      <p>حسابك لا يملك صلاحية الدخول إلى {sectionLabel}. تواصل مع مالك المتجر لتعديل صلاحياتك.</p>
+      <p>
+        حسابك لا يملك صلاحية الدخول إلى {sectionLabel}. تواصل مع مالك المتجر
+        لتعديل صلاحياتك.
+      </p>
     </section>
   );
 
-  const mustForceStaffPasswordChange = Boolean(currentStaffProfile?.mustChangePassword && !currentStaffProfile?.isOwner);
+  const mustForceStaffPasswordChange = Boolean(
+    currentStaffProfile?.mustChangePassword && !currentStaffProfile?.isOwner,
+  );
 
-return (
-    <div className={`admin admin-lang-${adminLanguage} ${mustForceStaffPasswordChange ? "admin-password-change-locked" : ""}`} dir={adminLanguage === "ar" ? "rtl" : "ltr"}>
-      {mustForceStaffPasswordChange && <StaffTemporaryPasswordGate staffProfile={currentStaffProfile} settings={settings} />}
+  return (
+    <div
+      className={`admin admin-lang-${adminLanguage} ${mustForceStaffPasswordChange ? "admin-password-change-locked" : ""}`}
+      dir={adminLanguage === "ar" ? "rtl" : "ltr"}
+    >
+      {mustForceStaffPasswordChange && (
+        <StaffTemporaryPasswordGate
+          staffProfile={currentStaffProfile}
+          settings={settings}
+        />
+      )}
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          {settings.logo ? <img className="admin-brand-logo" src={settings.logo} alt="logo" loading="eager" decoding="async" /> : <b>{settings.storeName}</b>}
+          {settings.logo ? (
+            <img
+              className="admin-brand-logo"
+              src={settings.logo}
+              alt="logo"
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <b>{settings.storeName}</b>
+          )}
           <span>{t("adminPanel")}</span>
         </div>
-        {renderAdminNavButton("dashboard", "dashboard", <LayoutDashboard/>, t("home"))}
-        {renderAdminNavButton("reports", "reports", <TrendingUp/>, t("reports"))}
-        {renderAdminNavButton("identity", "identity", <Palette/>, t("identity"))}
+        {renderAdminNavButton(
+          "dashboard",
+          "dashboard",
+          <LayoutDashboard />,
+          t("home"),
+        )}
+        {renderAdminNavButton(
+          "reports",
+          "reports",
+          <TrendingUp />,
+          t("reports"),
+        )}
+        {renderAdminNavButton(
+          "identity",
+          "identity",
+          <Palette />,
+          t("identity"),
+        )}
         {canAccessAdminSection("homepage") && (
           <div className="admin-menu-group">
             <button
-              className={tab==="homepage"?"on":""}
+              className={tab === "homepage" ? "on" : ""}
               onClick={() => {
                 setTab("homepage");
                 setThemeMenuOpen(!themeMenuOpen);
               }}
             >
-              <Home/> {t("storeTheme")} <span className="admin-menu-chevron">{themeMenuOpen ? "−" : "+"}</span>
+              <Home /> {t("storeTheme")}{" "}
+              <span className="admin-menu-chevron">
+                {themeMenuOpen ? "−" : "+"}
+              </span>
             </button>
             {themeMenuOpen && (
               <div className="admin-submenu">
-                {themeSections.map(section => (
+                {themeSections.map((section) => (
                   <button
                     key={section.id}
-                    className={tab==="homepage" && openSection===section.id ? "on" : ""}
+                    className={
+                      tab === "homepage" && openSection === section.id
+                        ? "on"
+                        : ""
+                    }
                     onClick={() => goToThemeSection(section.id)}
                   >
                     {section.label}
@@ -3689,13 +4719,38 @@ return (
             )}
           </div>
         )}
-        {renderAdminNavButton("orders", "orders", <ClipboardList/>, t("orders"))}
-        {renderAdminNavButton("customers", "customers", <Users/>, t("customers"))}
-        {renderAdminNavButton("products", "products", <PackagePlus/>, t("products"))}
-        {renderAdminNavButton("coupons", "coupons", <Palette/>, t("coupons"))}
-        {renderAdminNavButton("users", "users", <Users/>, t("users"))}
-        {renderAdminNavButton("settings", "settings", <Settings/>, t("settings"))}
-        {renderAdminNavButton("notifications", "notifications", <Bell/>, t("notifications"))}
+        {renderAdminNavButton(
+          "orders",
+          "orders",
+          <ClipboardList />,
+          t("orders"),
+        )}
+        {renderAdminNavButton(
+          "customers",
+          "customers",
+          <Users />,
+          t("customers"),
+        )}
+        {renderAdminNavButton(
+          "products",
+          "products",
+          <PackagePlus />,
+          t("products"),
+        )}
+        {renderAdminNavButton("coupons", "coupons", <Palette />, t("coupons"))}
+        {renderAdminNavButton("users", "users", <Users />, t("users"))}
+        {renderAdminNavButton(
+          "settings",
+          "settings",
+          <Settings />,
+          t("settings"),
+        )}
+        {renderAdminNavButton(
+          "notifications",
+          "notifications",
+          <Bell />,
+          t("notifications"),
+        )}
 
         <div className="admin-sidebar-card">
           <span>{t("pulse")}</span>
@@ -3703,70 +4758,81 @@ return (
           <small>{t("activeNow")}</small>
         </div>
 
-        <div className="side-bottom"><button onClick={()=>signOut(auth)}><LogOut/> {t("logout")}</button></div>
+        <div className="side-bottom">
+          <button onClick={() => signOut(auth)}>
+            <LogOut /> {t("logout")}
+          </button>
+        </div>
       </aside>
 
       <main className="admin-main">
         {tab === "dashboard" && canAccessAdminSection("dashboard") && (
-<header className="admin-top modern-admin-top">
-          <div className="modern-admin-title">
-            <span>{t("dashboard")}</span>
-            <h1>{titleFor(tab, adminLanguage)}</h1>
-          </div>
-          <div className="modern-admin-actions">
-            <div className="admin-language-switcher">
+          <header className="admin-top modern-admin-top">
+            <div className="modern-admin-title">
+              <span>{t("dashboard")}</span>
+              <h1>{titleFor(tab, adminLanguage)}</h1>
+            </div>
+            <div className="modern-admin-actions">
+              <div className="admin-language-switcher">
+                <button
+                  type="button"
+                  className="modern-admin-icon-btn admin-language-trigger"
+                  onClick={() => setLanguageMenuOpen((open) => !open)}
+                  title={t("language")}
+                >
+                  <Languages size={18} />
+                  <span>
+                    {adminLanguage === "ar" ? t("arabic") : t("english")}
+                  </span>
+                </button>
+                {languageMenuOpen && (
+                  <div className="admin-language-menu">
+                    <button
+                      type="button"
+                      className={adminLanguage === "ar" ? "active" : ""}
+                      onClick={() => changeAdminLanguage("ar")}
+                    >
+                      <span>ع</span>
+                      <div>
+                        <b>{t("arabic")}</b>
+                        <small>{t("currentAdminLanguage")}</small>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      className={adminLanguage === "en" ? "active" : ""}
+                      onClick={() => changeAdminLanguage("en")}
+                    >
+                      <span>EN</span>
+                      <div>
+                        <b>{t("english")}</b>
+                        <small>{t("adminPanelLanguage")}</small>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
-                className="modern-admin-icon-btn admin-language-trigger"
-                onClick={() => setLanguageMenuOpen((open) => !open)}
-                title={t("language")}
+                className="modern-admin-icon-btn"
+                onClick={() => go("/")}
+                title={t("previewStore")}
               >
-                <Languages size={18}/>
-                <span>{adminLanguage === "ar" ? t("arabic") : t("english")}</span>
+                <ExternalLink size={18} />
+                <span>{t("preview")}</span>
               </button>
-              {languageMenuOpen && (
-                <div className="admin-language-menu">
-                  <button
-                    type="button"
-                    className={adminLanguage === "ar" ? "active" : ""}
-                    onClick={() => changeAdminLanguage("ar")}
-                  >
-                    <span>ع</span>
-                    <div>
-                      <b>{t("arabic")}</b>
-                      <small>{t("currentAdminLanguage")}</small>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className={adminLanguage === "en" ? "active" : ""}
-                    onClick={() => changeAdminLanguage("en")}
-                  >
-                    <span>EN</span>
-                    <div>
-                      <b>{t("english")}</b>
-                      <small>{t("adminPanelLanguage")}</small>
-                    </div>
-                  </button>
-                </div>
-              )}
+              <div className="modern-admin-pill">
+                <Clock size={16} />
+                <span>{formatOrderDate(new Date())}</span>
+              </div>
+              <div className="modern-admin-live">
+                <span className="live-dot" />
+                <b>{liveVisitors}</b>
+                <small>{t("active")}</small>
+              </div>
             </div>
-            <button type="button" className="modern-admin-icon-btn" onClick={() => go("/")} title={t("previewStore")}>
-              <ExternalLink size={18}/>
-              <span>{t("preview")}</span>
-            </button>
-            <div className="modern-admin-pill">
-              <Clock size={16}/>
-              <span>{formatOrderDate(new Date())}</span>
-            </div>
-            <div className="modern-admin-live">
-              <span className="live-dot"/>
-              <b>{liveVisitors}</b>
-              <small>{t("active")}</small>
-            </div>
-          </div>
-        </header>
-)}
+          </header>
+        )}
         {notice && <div className="notice">{notice}</div>}
         {(tab === "identity" || tab === "homepage") && (
           <div className="admin-save-bar">
@@ -3775,8 +4841,12 @@ return (
               <span>{t("unsavedDesc")}</span>
             </div>
             <div className="save-bar-actions">
-              <button className="admin-secondary" onClick={resetDraftSettings}>{t("cancelChanges")}</button>
-              <button className="admin-primary" onClick={saveDraftSettings}>{t("saveChanges")}</button>
+              <button className="admin-secondary" onClick={resetDraftSettings}>
+                {t("cancelChanges")}
+              </button>
+              <button className="admin-primary" onClick={saveDraftSettings}>
+                {t("saveChanges")}
+              </button>
             </div>
           </div>
         )}
@@ -3784,8 +4854,11 @@ return (
         {tab === "dashboard" && canAccessAdminSection("dashboard") && (
           <section className="dashboard-pro-page">
             <div className="admin-health-grid">
-              {adminHealthCards.map(card => (
-                <div className={`admin-health-card ${card.tone}`} key={card.label}>
+              {adminHealthCards.map((card) => (
+                <div
+                  className={`admin-health-card ${card.tone}`}
+                  key={card.label}
+                >
                   <div>{card.icon}</div>
                   <span>{card.label}</span>
                   <b>{card.value}</b>
@@ -3794,10 +4867,16 @@ return (
             </div>
 
             <div className="dashboard-stats-grid">
-              <button type="button" className="dash-stat-card live-visitors-card live-visitors-clickable" onClick={() => setShowLiveVisitors(true)}>
+              <button
+                type="button"
+                className="dash-stat-card live-visitors-card live-visitors-clickable"
+                onClick={() => setShowLiveVisitors(true)}
+              >
                 <span>{t("visitorsNow")}</span>
                 <b>{liveVisitors}</b>
-                <small><i></i> مباشر الآن</small>
+                <small>
+                  <i></i> مباشر الآن
+                </small>
               </button>
 
               <div className="dash-stat-card">
@@ -3825,7 +4904,6 @@ return (
               </div>
             </div>
 
-            
             <div className="admin-card funnel-panel">
               <div className="panel-head">
                 <div>
@@ -3870,7 +4948,7 @@ return (
               </div>
             </div>
 
-<div className="admin-card live-analytics-panel">
+            <div className="admin-card live-analytics-panel">
               <div className="panel-head">
                 <div>
                   <span>Live Analytics</span>
@@ -3881,38 +4959,55 @@ return (
               <div className="live-analytics-grid">
                 <div className="live-analytics-box">
                   <h3>{t("topPages")}</h3>
-                  {topLivePages.length ? topLivePages.map(([page, count]) => (
-                    <div className="live-mini-row" key={page}>
-                      <span>{page}</span>
-                      <b>{count}</b>
-                    </div>
-                  )) : <p>{t("noData")}</p>}
+                  {topLivePages.length ? (
+                    topLivePages.map(([page, count]) => (
+                      <div className="live-mini-row" key={page}>
+                        <span>{page}</span>
+                        <b>{count}</b>
+                      </div>
+                    ))
+                  ) : (
+                    <p>{t("noData")}</p>
+                  )}
                 </div>
 
                 <div className="live-analytics-box">
                   <h3>{t("trafficSource")}</h3>
-                  {topSources.length ? topSources.map(([source, count]) => (
-                    <div className="live-mini-row" key={source}>
-                      <span>{source}</span>
-                      <b>{count}</b>
-                    </div>
-                  )) : <p>{t("noData")}</p>}
+                  {topSources.length ? (
+                    topSources.map(([source, count]) => (
+                      <div className="live-mini-row" key={source}>
+                        <span>{source}</span>
+                        <b>{count}</b>
+                      </div>
+                    ))
+                  ) : (
+                    <p>{t("noData")}</p>
+                  )}
                 </div>
 
                 <div className="live-analytics-box">
                   <h3>{t("sessionDuration")}</h3>
-                  <div className="live-duration-big">{formatDuration(averageSessionDuration)}</div>
+                  <div className="live-duration-big">
+                    {formatDuration(averageSessionDuration)}
+                  </div>
                   <p>{t("sessionDurationDesc")}</p>
                 </div>
 
                 <div className="live-analytics-box live-events-box">
                   <h3>{t("liveNotifications")}</h3>
-                  {liveEvents.length ? liveEvents.slice(0, 5).map(event => (
-                    <div className={`live-event-row ${event.type || ""}`} key={event.id}>
-                      <span>{event.title || "نشاط مباشر"}</span>
-                      <small>{event.path || "/"}</small>
-                    </div>
-                  )) : <p>{t("noLiveEvents")}</p>}
+                  {liveEvents.length ? (
+                    liveEvents.slice(0, 5).map((event) => (
+                      <div
+                        className={`live-event-row ${event.type || ""}`}
+                        key={event.id}
+                      >
+                        <span>{event.title || "نشاط مباشر"}</span>
+                        <small>{event.path || "/"}</small>
+                      </div>
+                    ))
+                  ) : (
+                    <p>{t("noLiveEvents")}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -3935,7 +5030,16 @@ return (
 
                 {topProduct ? (
                   <div className="top-product-card">
-                    {topProduct.image ? <img src={topProduct.image} alt={topProduct.name || "منتج"} loading="lazy" decoding="async" /> : <div className="top-product-placeholder">🌿</div>}
+                    {topProduct.image ? (
+                      <img
+                        src={topProduct.image}
+                        alt={topProduct.name || "منتج"}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <div className="top-product-placeholder">🌿</div>
+                    )}
                     <div>
                       <h3>{topProduct.name}</h3>
                       <p>تم بيع {topProduct.qty} قطعة</p>
@@ -3958,9 +5062,13 @@ return (
                 <div className="recent-orders-list">
                   {dashboardOrders
                     .slice()
-                    .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt))
+                    .sort(
+                      (a, b) =>
+                        orderTimestamp(b.createdAt) -
+                        orderTimestamp(a.createdAt),
+                    )
                     .slice(0, 5)
-                    .map(o => (
+                    .map((o) => (
                       <div className="recent-order-row" key={o.id}>
                         <div>
                           <b>{o.name || o.customerName || "طلب عميل"}</b>
@@ -3985,16 +5093,32 @@ return (
                 </div>
 
                 <div className="quick-numbers">
-                  <div><span>{t("products")}</span><b>{products.length}</b></div>
-                  <div><span>{t("customers")}</span><b>{customers.length}</b></div>
-                  <div><span>{t("orders")}</span><b>{orders.length}</b></div>
-                  <div><span>{t("inventory")}</span><b>{products.reduce((sum,p)=>sum + Number(p.stock || 0), 0)}</b></div>
+                  <div>
+                    <span>{t("products")}</span>
+                    <b>{products.length}</b>
+                  </div>
+                  <div>
+                    <span>{t("customers")}</span>
+                    <b>{customers.length}</b>
+                  </div>
+                  <div>
+                    <span>{t("orders")}</span>
+                    <b>{orders.length}</b>
+                  </div>
+                  <div>
+                    <span>{t("inventory")}</span>
+                    <b>
+                      {products.reduce(
+                        (sum, p) => sum + Number(p.stock || 0),
+                        0,
+                      )}
+                    </b>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
         )}
-
 
         {tab === "reports" && canAccessAdminSection("reports") && (
           <section className="reports-pro-page">
@@ -4005,7 +5129,13 @@ return (
                 <p>{t("reportsIntro")}</p>
               </div>
               <div className="reports-hero-actions">
-                <button className="admin-secondary" type="button" onClick={exportReportsCsv}>{t("exportCsv")}</button>
+                <button
+                  className="admin-secondary"
+                  type="button"
+                  onClick={exportReportsCsv}
+                >
+                  {t("exportCsv")}
+                </button>
                 <div className="reports-update-pill">
                   <b>{formatOrderDate(new Date())}</b>
                   <small>{t("lastUpdate")}</small>
@@ -4014,7 +5144,9 @@ return (
             </div>
 
             <div className="reports-filter-strip admin-card">
-              <button className="active" type="button">{t("last7Days")}</button>
+              <button className="active" type="button">
+                {t("last7Days")}
+              </button>
               <button type="button">{t("thisMonth")}</button>
               <button type="button">{t("allPeriod")}</button>
               <span>{t("advancedFiltersLater")}</span>
@@ -4062,9 +5194,15 @@ return (
                   </div>
                 </div>
                 <div className="reports-bars">
-                  {reportSalesRows.map(row => (
+                  {reportSalesRows.map((row) => (
                     <div className="reports-bar-item" key={row.label}>
-                      <div className="reports-bar-track"><i style={{ height: `${Math.max(8, Math.round((row.value / maxReportSales) * 100))}%` }} /></div>
+                      <div className="reports-bar-track">
+                        <i
+                          style={{
+                            height: `${Math.max(8, Math.round((row.value / maxReportSales) * 100))}%`,
+                          }}
+                        />
+                      </div>
                       <b>{formatPrice(row.value)}</b>
                       <span>{row.label}</span>
                     </div>
@@ -4080,13 +5218,22 @@ return (
                   </div>
                 </div>
                 <div className="reports-status-list">
-                  {reportStatusRows.length ? reportStatusRows.map(row => (
-                    <div className="reports-status-row" key={row.status}>
-                      <div><b>{row.label}</b><span>{row.count} طلب</span></div>
-                      <div className="reports-progress"><i style={{ width: `${row.percent}%` }} /></div>
-                      <em>{row.percent}%</em>
-                    </div>
-                  )) : <div className="dashboard-empty">لا توجد طلبات بعد</div>}
+                  {reportStatusRows.length ? (
+                    reportStatusRows.map((row) => (
+                      <div className="reports-status-row" key={row.status}>
+                        <div>
+                          <b>{row.label}</b>
+                          <span>{row.count} طلب</span>
+                        </div>
+                        <div className="reports-progress">
+                          <i style={{ width: `${row.percent}%` }} />
+                        </div>
+                        <em>{row.percent}%</em>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="dashboard-empty">لا توجد طلبات بعد</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -4100,13 +5247,20 @@ return (
                   </div>
                 </div>
                 <div className="reports-list">
-                  {adminBestSellers.length ? adminBestSellers.map((product, index) => (
-                    <div className="reports-list-row" key={product.name}>
-                      <strong>{index + 1}</strong>
-                      <div><b>{product.name}</b><span>{product.qty} قطعة مباعة</span></div>
-                      <em>{formatPrice(product.value)} ر.س</em>
-                    </div>
-                  )) : <div className="dashboard-empty">{t("noSalesYet")}</div>}
+                  {adminBestSellers.length ? (
+                    adminBestSellers.map((product, index) => (
+                      <div className="reports-list-row" key={product.name}>
+                        <strong>{index + 1}</strong>
+                        <div>
+                          <b>{product.name}</b>
+                          <span>{product.qty} قطعة مباعة</span>
+                        </div>
+                        <em>{formatPrice(product.value)} ر.س</em>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="dashboard-empty">{t("noSalesYet")}</div>
+                  )}
                 </div>
               </div>
 
@@ -4118,12 +5272,19 @@ return (
                   </div>
                 </div>
                 <div className="reports-list">
-                  {reportCityRows.length ? reportCityRows.map(([city, count]) => (
-                    <div className="reports-list-row" key={city}>
-                      <strong>•</strong>
-                      <div><b>{city}</b><span>{count} طلب</span></div>
-                    </div>
-                  )) : <div className="dashboard-empty">{t("noCityData")}</div>}
+                  {reportCityRows.length ? (
+                    reportCityRows.map(([city, count]) => (
+                      <div className="reports-list-row" key={city}>
+                        <strong>•</strong>
+                        <div>
+                          <b>{city}</b>
+                          <span>{count} طلب</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="dashboard-empty">{t("noCityData")}</div>
+                  )}
                 </div>
               </div>
 
@@ -4135,10 +5296,22 @@ return (
                   </div>
                 </div>
                 <div className="reports-alert-list">
-                  <div><b>{pendingOrdersCount}</b><span>{t("ordersNeedFollow")}</span></div>
-                  <div><b>{lowStockProducts.length}</b><span>{t("lowStockProducts")}</span></div>
-                  <div><b>{newCustomersCount}</b><span>{t("newCustomersWeek")}</span></div>
-                  <div><b>{usedCouponsCount}</b><span>{t("couponUses")}</span></div>
+                  <div>
+                    <b>{pendingOrdersCount}</b>
+                    <span>{t("ordersNeedFollow")}</span>
+                  </div>
+                  <div>
+                    <b>{lowStockProducts.length}</b>
+                    <span>{t("lowStockProducts")}</span>
+                  </div>
+                  <div>
+                    <b>{newCustomersCount}</b>
+                    <span>{t("newCustomersWeek")}</span>
+                  </div>
+                  <div>
+                    <b>{usedCouponsCount}</b>
+                    <span>{t("couponUses")}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4151,15 +5324,28 @@ return (
                 </div>
               </div>
               <div className="reports-table">
-                {dashboardOrders.slice().sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt)).slice(0, 6).map(order => (
-                  <div className="reports-table-row" key={order.id}>
-                    <b>{order.name || order.customerName || "طلب عميل"}</b>
-                    <span>{formatOrderDate(order.createdAt)}</span>
-                    <span>{reportStatusLabels[order.status || "new"] || order.status || "جديد"}</span>
-                    <em>{formatPrice(order.total)} ر.س</em>
-                  </div>
-                ))}
-                {dashboardOrders.length === 0 && <div className="dashboard-empty">{t("noOrdersYet")}</div>}
+                {dashboardOrders
+                  .slice()
+                  .sort(
+                    (a, b) =>
+                      orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt),
+                  )
+                  .slice(0, 6)
+                  .map((order) => (
+                    <div className="reports-table-row" key={order.id}>
+                      <b>{order.name || order.customerName || "طلب عميل"}</b>
+                      <span>{formatOrderDate(order.createdAt)}</span>
+                      <span>
+                        {reportStatusLabels[order.status || "new"] ||
+                          order.status ||
+                          "جديد"}
+                      </span>
+                      <em>{formatPrice(order.total)} ر.س</em>
+                    </div>
+                  ))}
+                {dashboardOrders.length === 0 && (
+                  <div className="dashboard-empty">{t("noOrdersYet")}</div>
+                )}
               </div>
             </div>
           </section>
@@ -4194,7 +5380,14 @@ return (
                   </Control>
 
                   <Control label="نسبة الخصم %">
-                    <input name="percent" type="number" min="1" max="100" placeholder="10" required />
+                    <input
+                      name="percent"
+                      type="number"
+                      min="1"
+                      max="100"
+                      placeholder="10"
+                      required
+                    />
                   </Control>
 
                   <Control label="تاريخ الانتهاء">
@@ -4202,11 +5395,19 @@ return (
                   </Control>
 
                   <Control label="عنوان SEO">
-                    <input name="seoTitle" defaultValue={editing?.seoTitle || ""} placeholder="عنوان يظهر في Google" />
+                    <input
+                      name="seoTitle"
+                      defaultValue={editing?.seoTitle || ""}
+                      placeholder="عنوان يظهر في Google"
+                    />
                   </Control>
 
                   <Control label="وصف SEO">
-                    <textarea name="seoDescription" defaultValue={editing?.seoDescription || ""} placeholder="وصف مختصر لمحركات البحث" />
+                    <textarea
+                      name="seoDescription"
+                      defaultValue={editing?.seoDescription || ""}
+                      placeholder="وصف مختصر لمحركات البحث"
+                    />
                   </Control>
 
                   <label className="feature-toggle">
@@ -4228,23 +5429,43 @@ return (
                 </div>
 
                 <div className="admin-coupons-list">
-                  {coupons.map(coupon => {
-                    const expired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+                  {coupons.map((coupon) => {
+                    const expired =
+                      coupon.expiresAt &&
+                      new Date(coupon.expiresAt) < new Date();
                     return (
-                      <div className={`admin-coupon-card ${coupon.active ? "active" : "disabled"} ${expired ? "expired" : ""}`} key={coupon.id}>
+                      <div
+                        className={`admin-coupon-card ${coupon.active ? "active" : "disabled"} ${expired ? "expired" : ""}`}
+                        key={coupon.id}
+                      >
                         <div>
                           <span>{t("discountCode")}</span>
                           <h3>{coupon.code}</h3>
-                          <p>خصم {coupon.percent}% • استخدام مرة واحدة لكل عميل</p>
-                          <small>تم استخدامه: {Object.keys(coupon.usedBy || {}).length} مرة</small>
-                          <small>ينتهي: {coupon.expiresAt || "بدون تاريخ"}</small>
+                          <p>
+                            خصم {coupon.percent}% • استخدام مرة واحدة لكل عميل
+                          </p>
+                          <small>
+                            تم استخدامه:{" "}
+                            {Object.keys(coupon.usedBy || {}).length} مرة
+                          </small>
+                          <small>
+                            ينتهي: {coupon.expiresAt || "بدون تاريخ"}
+                          </small>
                         </div>
 
                         <div className="coupon-actions">
-                          <button className="admin-secondary" onClick={() => toggleCoupon(coupon)}>
+                          <button
+                            className="admin-secondary"
+                            onClick={() => toggleCoupon(coupon)}
+                          >
                             {coupon.active ? "إيقاف" : "تفعيل"}
                           </button>
-                          <button className="danger-action" onClick={() => deleteDoc(doc(db, "coupons", coupon.id))}>
+                          <button
+                            className="danger-action"
+                            onClick={() =>
+                              deleteDoc(doc(db, "coupons", coupon.id))
+                            }
+                          >
                             حذف
                           </button>
                         </div>
@@ -4261,29 +5482,98 @@ return (
           </section>
         )}
 
-
         {tab === "identity" && canAccessAdminSection("identity") && (
           <section className="admin-grid">
             <div className="admin-card">
               <h2>{t("readyColors")}</h2>
               <div className="palette-grid">
-                {palettes.map(p => <button key={p.name} onClick={()=>setDraftSettings(s=>({...s,...p}))}><span>{p.name}</span><i style={{background:p.primaryColor}}/><i style={{background:p.accentColor}}/><i style={{background:p.backgroundColor}}/></button>)}
+                {palettes.map((p) => (
+                  <button
+                    key={p.name}
+                    onClick={() => setDraftSettings((s) => ({ ...s, ...p }))}
+                  >
+                    <span>{p.name}</span>
+                    <i style={{ background: p.primaryColor }} />
+                    <i style={{ background: p.accentColor }} />
+                    <i style={{ background: p.backgroundColor }} />
+                  </button>
+                ))}
               </div>
             </div>
             <div className="admin-card">
               <h2>{t("editIdentity")}</h2>
-              <Control label="اسم المتجر"><input value={draftSettings.storeName} onChange={e=>updateDraft("storeName",e.target.value)} /></Control>
-              <Control label="الوصف القصير"><input value={draftSettings.tagline} onChange={e=>updateDraft("tagline",e.target.value)} /></Control>
-              <Control label="الخط"><select value={draftSettings.fontFamily} onChange={e=>updateDraft("fontFamily",e.target.value)}><option>Cairo</option><option>Tajawal</option></select></Control>
-              <Control label="اللون الأساسي"><input type="color" value={draftSettings.primaryColor} onChange={e=>updateDraft("primaryColor",e.target.value)} /></Control>
-              <Control label="لون اللمسة"><input type="color" value={draftSettings.accentColor} onChange={e=>updateDraft("accentColor",e.target.value)} /></Control>
-              <Control label="لون الخلفية"><input type="color" value={draftSettings.backgroundColor} onChange={e=>updateDraft("backgroundColor",e.target.value)} /></Control>
+              <Control label="اسم المتجر">
+                <input
+                  value={draftSettings.storeName}
+                  onChange={(e) => updateDraft("storeName", e.target.value)}
+                />
+              </Control>
+              <Control label="الوصف القصير">
+                <input
+                  value={draftSettings.tagline}
+                  onChange={(e) => updateDraft("tagline", e.target.value)}
+                />
+              </Control>
+              <Control label="الخط">
+                <select
+                  value={draftSettings.fontFamily}
+                  onChange={(e) => updateDraft("fontFamily", e.target.value)}
+                >
+                  <option>Cairo</option>
+                  <option>Tajawal</option>
+                </select>
+              </Control>
+              <Control label="اللون الأساسي">
+                <input
+                  type="color"
+                  value={draftSettings.primaryColor}
+                  onChange={(e) => updateDraft("primaryColor", e.target.value)}
+                />
+              </Control>
+              <Control label="لون اللمسة">
+                <input
+                  type="color"
+                  value={draftSettings.accentColor}
+                  onChange={(e) => updateDraft("accentColor", e.target.value)}
+                />
+              </Control>
+              <Control label="لون الخلفية">
+                <input
+                  type="color"
+                  value={draftSettings.backgroundColor}
+                  onChange={(e) =>
+                    updateDraft("backgroundColor", e.target.value)
+                  }
+                />
+              </Control>
             </div>
             <div className="admin-card">
               <h2>{t("logo")}</h2>
-              <Control label="رابط الشعار"><input value={draftSettings.logo} onChange={e=>updateDraft("logo",e.target.value)} /></Control>
-              <Control label="أو ارفع الشعار"><input type="file" accept="image/*" onChange={e=>uploadSettingImage("logo", e.target.files[0])} /></Control><p className="admin-help-text">{t("logoHint")}</p>
-              {draftSettings.logo && <img className="admin-image-preview small" src={draftSettings.logo} alt="معاينة الشعار" loading="lazy" decoding="async" />}
+              <Control label="رابط الشعار">
+                <input
+                  value={draftSettings.logo}
+                  onChange={(e) => updateDraft("logo", e.target.value)}
+                />
+              </Control>
+              <Control label="أو ارفع الشعار">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    uploadSettingImage("logo", e.target.files[0])
+                  }
+                />
+              </Control>
+              <p className="admin-help-text">{t("logoHint")}</p>
+              {draftSettings.logo && (
+                <img
+                  className="admin-image-preview small"
+                  src={draftSettings.logo}
+                  alt="معاينة الشعار"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
             </div>
           </section>
         )}
@@ -4299,45 +5589,72 @@ return (
                 </div>
 
                 <div className="products-command-actions">
-            <div className="products-view-mode-toggle" aria-label="طريقة عرض المنتجات">
-              <button
-                type="button"
-                className={productsViewMode === "cards" ? "active" : ""}
-                onClick={() => changeProductsViewMode("cards")}
-                title="عرض الكروت"
-              >
-                <Grid3X3 size={16}/>
-                <span>كروت</span>
-              </button>
-              <button
-                type="button"
-                className={productsViewMode === "rows" ? "active" : ""}
-                onClick={() => changeProductsViewMode("rows")}
-                title="عرض الصفوف"
-              >
-                <Rows3 size={16}/>
-                <span>صفوف</span>
-              </button>
-            </div>
+                  <div
+                    className="products-view-mode-toggle"
+                    aria-label="طريقة عرض المنتجات"
+                  >
+                    <button
+                      type="button"
+                      className={productsViewMode === "cards" ? "active" : ""}
+                      onClick={() => changeProductsViewMode("cards")}
+                      title="عرض الكروت"
+                    >
+                      <Grid3X3 size={16} />
+                      <span>كروت</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={productsViewMode === "rows" ? "active" : ""}
+                      onClick={() => changeProductsViewMode("rows")}
+                      title="عرض الصفوف"
+                    >
+                      <Rows3 size={16} />
+                      <span>صفوف</span>
+                    </button>
+                  </div>
 
-                  <button className="admin-primary command-primary product-flat-top-btn" type="button" onClick={() => openProductEditor(null)}>
-                    <Plus size={18}/> منتج جديد
+                  <button
+                    className="admin-primary command-primary product-flat-top-btn"
+                    type="button"
+                    onClick={() => openProductEditor(null)}
+                  >
+                    <Plus size={18} /> منتج جديد
                   </button>
-                  <button className="admin-secondary command-secondary product-flat-top-btn" type="button" onClick={downloadProductsTemplate}>
-                    <Download size={16}/> قالب Excel
+                  <button
+                    className="admin-secondary command-secondary product-flat-top-btn"
+                    type="button"
+                    onClick={downloadProductsTemplate}
+                  >
+                    <Download size={16} /> قالب Excel
                   </button>
                   <label className="excel-upload-btn command-upload product-flat-top-btn">
-                    <Download size={16}/> رفع Excel
-                    <input type="file" accept=".xlsx,.xls" onChange={importProductsFromExcel} />
+                    <Download size={16} /> رفع Excel
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={importProductsFromExcel}
+                    />
                   </label>
                 </div>
               </div>
 
               <div className="products-command-stats">
-                <div><span>{t("allProducts")}</span><b>{products.length}</b></div>
-                <div><span>{t("visibleProducts")}</span><b>{activeProductsCount}</b></div>
-                <div><span>{t("lowStockOnly")}</span><b>{lowStockProducts.length}</b></div>
-                <div><span>{t("categories")}</span><b>{Math.max(adminProductCategories.length - 1, 0)}</b></div>
+                <div>
+                  <span>{t("allProducts")}</span>
+                  <b>{products.length}</b>
+                </div>
+                <div>
+                  <span>{t("visibleProducts")}</span>
+                  <b>{activeProductsCount}</b>
+                </div>
+                <div>
+                  <span>{t("lowStockOnly")}</span>
+                  <b>{lowStockProducts.length}</b>
+                </div>
+                <div>
+                  <span>{t("categories")}</span>
+                  <b>{Math.max(adminProductCategories.length - 1, 0)}</b>
+                </div>
               </div>
 
               {pendingImport.length > 0 && (
@@ -4348,269 +5665,772 @@ return (
                       <span>{pendingImport.length} منتج جاهز للحفظ</span>
                     </div>
                     <div className="pending-actions">
-                      <button className="admin-secondary" type="button" onClick={clearPendingImport}>{t("cancelImport")}</button>
-                      <button className="admin-primary" type="button" onClick={savePendingImport}>حفظ المنتجات المستوردة</button>
+                      <button
+                        className="admin-secondary"
+                        type="button"
+                        onClick={clearPendingImport}
+                      >
+                        {t("cancelImport")}
+                      </button>
+                      <button
+                        className="admin-primary"
+                        type="button"
+                        onClick={savePendingImport}
+                      >
+                        حفظ المنتجات المستوردة
+                      </button>
                     </div>
                   </div>
 
                   <div className="pending-table">
                     {pendingImport.slice(0, 8).map((p, i) => (
                       <div className="pending-row" key={i}>
-                        <img src={p.image || "https://via.placeholder.com/120"} alt={p.name || "منتج"} loading="lazy" decoding="async" />
+                        <img
+                          src={p.image || "https://via.placeholder.com/120"}
+                          alt={p.name || "منتج"}
+                          loading="lazy"
+                          decoding="async"
+                        />
                         <div>
                           <b>{p.name}</b>
-                          <span>{p.category} • {p.price} ر.س • المخزون {p.stock}</span>
+                          <span>
+                            {p.category} • {p.price} ر.س • المخزون {p.stock}
+                          </span>
                         </div>
                         <em>{p.status === "hidden" ? "مخفي" : "ظاهر"}</em>
                       </div>
                     ))}
                   </div>
 
-                  {pendingImport.length > 8 && <p className="pending-more">ويتم حفظ باقي المنتجات أيضًا: +{pendingImport.length - 8}</p>}
+                  {pendingImport.length > 8 && (
+                    <p className="pending-more">
+                      ويتم حفظ باقي المنتجات أيضًا: +{pendingImport.length - 8}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
 
             {productModalOpen && (
-              <div className="product-modal-backdrop" onClick={resetProductEditor}>
-                <div className="product-modal-shell" onClick={e => e.stopPropagation()}>
-            <div className="admin-card product-form-card pro-form-card full-product-form-card products-form-compact-final">
-              <div className="pro-card-head">
-                <div>
-                  <span>Product editor</span>
-                  <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
-                </div>
-                <button type="button" className="modal-close-btn" onClick={resetProductEditor}>×</button>
-              </div>
-
-              <div className="product-modal-tabs" role="tablist">
-                <button type="button" className={productFormTab === "info" ? "active" : ""} onClick={() => setProductFormTab("info")}>١ المعلومات</button>
-                <button type="button" className={productFormTab === "pricing" ? "active" : ""} onClick={() => setProductFormTab("pricing")}>٢ الأسعار والمخزون</button>
-                <button type="button" className={productFormTab === "images" ? "active" : ""} onClick={() => setProductFormTab("images")}>٣ الصور</button>
-                <button type="button" className={productFormTab === "options" ? "active" : ""} onClick={() => setProductFormTab("options")}>٤ الخيارات</button>
-                <button type="button" className={productFormTab === "seo" ? "active" : ""} onClick={() => setProductFormTab("seo")}>٥ SEO</button>
-              </div>
-
-              <form id="product-editor-form" onSubmit={saveProduct} className={`product-form products-six-card-form product-editor-tabs-form active-tab-${productFormTab}`}>
-                <div className="product-options-master-card">
-                  <div className="product-options-master-head">
-                    <div>
-                      <span>نظام خيارات المنتج</span>
-                      <h3>إدارة خيارات المقاسات والألوان والأسعار والمخزون</h3>
+              <div
+                className="product-modal-backdrop"
+                onClick={resetProductEditor}
+              >
+                <div
+                  className="product-modal-shell"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="admin-card product-form-card pro-form-card full-product-form-card products-form-compact-final">
+                    <div className="pro-card-head">
+                      <div>
+                        <span>Product editor</span>
+                        <h2>{editing ? "تعديل منتج" : "إضافة منتج جديد"}</h2>
+                      </div>
+                      <button
+                        type="button"
+                        className="modal-close-btn"
+                        onClick={resetProductEditor}
+                      >
+                        ×
+                      </button>
                     </div>
-                    <span className="product-section-icon"><Settings size={18}/></span>
-                  </div>
 
-                  <div className="options-master-grid">
-                    <div className="options-preview-panel">
-                      <div className="options-subhead">
-                        <b>معاينة الخيارات</b>
-                        <small>{productOptions.length} خيارات</small>
-                      </div>
-                      <div className="option-stats-row">
-                        <div><span>الخيارات الكلية</span><b>{productOptions.length}</b></div>
-                        <div><span>المقاسات</span><b>{new Set(productOptions.map(o => o.size).filter(Boolean)).size}</b></div>
-                        <div><span>الألوان</span><b>{new Set(productOptions.map(o => o.color).filter(Boolean)).size}</b></div>
-                        <div><span>إجمالي المخزون</span><b>{productOptions.reduce((sum, o) => sum + Number(o.stock || 0), 0)}</b></div>
-                      </div>
-                      <div className="option-preview-table">
-                        <div className="option-preview-head"><span>اللون</span><span>المقاس</span><span>السعر</span><span>بعد الخصم</span><span>{t("inventory")}</span><span>SKU</span></div>
-                        {productOptions.length ? productOptions.map((option, index) => (
-                          <div className="option-preview-row" key={`preview-${index}`}>
-                            <span>{option.color || "—"}</span>
-                            <span>{option.size || "—"}</span>
-                            <span>{option.price || editing?.price || "—"}</span>
-                            <span>{option.oldPrice || editing?.oldPrice || "—"}</span>
-                            <span>{option.stock || 0}</span>
-                            <span>{option.sku || "—"}</span>
+                    <div className="product-modal-tabs" role="tablist">
+                      <button
+                        type="button"
+                        className={productFormTab === "info" ? "active" : ""}
+                        onClick={() => setProductFormTab("info")}
+                      >
+                        ١ المعلومات
+                      </button>
+                      <button
+                        type="button"
+                        className={productFormTab === "pricing" ? "active" : ""}
+                        onClick={() => setProductFormTab("pricing")}
+                      >
+                        ٢ الأسعار والمخزون
+                      </button>
+                      <button
+                        type="button"
+                        className={productFormTab === "images" ? "active" : ""}
+                        onClick={() => setProductFormTab("images")}
+                      >
+                        ٣ الصور
+                      </button>
+                      <button
+                        type="button"
+                        className={productFormTab === "options" ? "active" : ""}
+                        onClick={() => setProductFormTab("options")}
+                      >
+                        ٤ الخيارات
+                      </button>
+                      <button
+                        type="button"
+                        className={productFormTab === "seo" ? "active" : ""}
+                        onClick={() => setProductFormTab("seo")}
+                      >
+                        ٥ SEO
+                      </button>
+                    </div>
+
+                    <form
+                      id="product-editor-form"
+                      onSubmit={saveProduct}
+                      className={`product-form products-six-card-form product-editor-tabs-form active-tab-${productFormTab}`}
+                    >
+                      <div className="product-options-master-card">
+                        <div className="product-options-master-head">
+                          <div>
+                            <span>نظام خيارات المنتج</span>
+                            <h3>
+                              إدارة خيارات المقاسات والألوان والأسعار والمخزون
+                            </h3>
                           </div>
-                        )) : <div className="option-preview-empty">أضف خيارًا ليظهر هنا</div>}
-                      </div>
-                      <div className="option-available-note"><CheckCircle2 size={15}/> سيظهر المنتج بهذا الشكل للعملاء حسب الخيارات المتاحة</div>
-                    </div>
+                          <span className="product-section-icon">
+                            <Settings size={18} />
+                          </span>
+                        </div>
 
-                    <div className="options-editor-panel">
-                      <div className="option-chip-section">
-                        <div className="option-chip-head"><b>إدارة الألوان</b></div>
-                        <div className="option-chip-row">
-                          {[...new Set(productOptions.map(o => o.color).filter(Boolean))].map(color => <span className="option-chip" key={color}>{color}<button type="button">×</button></span>)}
-                          <button type="button" className="option-add-chip" onClick={addProductOption}><Plus size={14}/> إضافة لون</button>
+                        <div className="options-master-grid">
+                          <div className="options-preview-panel">
+                            <div className="options-subhead">
+                              <b>معاينة الخيارات</b>
+                              <small>{productOptions.length} خيارات</small>
+                            </div>
+                            <div className="option-stats-row">
+                              <div>
+                                <span>الخيارات الكلية</span>
+                                <b>{productOptions.length}</b>
+                              </div>
+                              <div>
+                                <span>المقاسات</span>
+                                <b>
+                                  {
+                                    new Set(
+                                      productOptions
+                                        .map((o) => o.size)
+                                        .filter(Boolean),
+                                    ).size
+                                  }
+                                </b>
+                              </div>
+                              <div>
+                                <span>الألوان</span>
+                                <b>
+                                  {
+                                    new Set(
+                                      productOptions
+                                        .map((o) => o.color)
+                                        .filter(Boolean),
+                                    ).size
+                                  }
+                                </b>
+                              </div>
+                              <div>
+                                <span>إجمالي المخزون</span>
+                                <b>
+                                  {productOptions.reduce(
+                                    (sum, o) => sum + Number(o.stock || 0),
+                                    0,
+                                  )}
+                                </b>
+                              </div>
+                            </div>
+                            <div className="option-preview-table">
+                              <div className="option-preview-head">
+                                <span>اللون</span>
+                                <span>المقاس</span>
+                                <span>السعر</span>
+                                <span>بعد الخصم</span>
+                                <span>{t("inventory")}</span>
+                                <span>SKU</span>
+                              </div>
+                              {productOptions.length ? (
+                                productOptions.map((option, index) => (
+                                  <div
+                                    className="option-preview-row"
+                                    key={`preview-${index}`}
+                                  >
+                                    <span>{option.color || "—"}</span>
+                                    <span>{option.size || "—"}</span>
+                                    <span>
+                                      {option.price || editing?.price || "—"}
+                                    </span>
+                                    <span>
+                                      {option.oldPrice ||
+                                        editing?.oldPrice ||
+                                        "—"}
+                                    </span>
+                                    <span>{option.stock || 0}</span>
+                                    <span>{option.sku || "—"}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="option-preview-empty">
+                                  أضف خيارًا ليظهر هنا
+                                </div>
+                              )}
+                            </div>
+                            <div className="option-available-note">
+                              <CheckCircle2 size={15} /> سيظهر المنتج بهذا الشكل
+                              للعملاء حسب الخيارات المتاحة
+                            </div>
+                          </div>
+
+                          <div className="options-editor-panel">
+                            <div className="option-chip-section">
+                              <div className="option-chip-head">
+                                <b>إدارة الألوان</b>
+                              </div>
+                              <div className="option-chip-row">
+                                {[
+                                  ...new Set(
+                                    productOptions
+                                      .map((o) => o.color)
+                                      .filter(Boolean),
+                                  ),
+                                ].map((color) => (
+                                  <span className="option-chip" key={color}>
+                                    {color}
+                                    <button type="button">×</button>
+                                  </span>
+                                ))}
+                                <button
+                                  type="button"
+                                  className="option-add-chip"
+                                  onClick={addProductOption}
+                                >
+                                  <Plus size={14} /> إضافة لون
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="option-chip-section">
+                              <div className="option-chip-head">
+                                <b>إدارة المقاسات</b>
+                              </div>
+                              <div className="option-chip-row">
+                                {[
+                                  ...new Set(
+                                    productOptions
+                                      .map((o) => o.size)
+                                      .filter(Boolean),
+                                  ),
+                                ].map((size) => (
+                                  <span className="option-chip" key={size}>
+                                    {size}
+                                    <button type="button">×</button>
+                                  </span>
+                                ))}
+                                <button
+                                  type="button"
+                                  className="option-add-chip"
+                                  onClick={addProductOption}
+                                >
+                                  <Plus size={14} /> إضافة مقاس
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="option-combinations-title">
+                              الخيارات (المقاس × اللون)
+                            </div>
+                            <div className="product-options-builder refined-options-builder">
+                              {productOptions.map((option, index) => (
+                                <div
+                                  className="product-option-row refined-option-row"
+                                  key={index}
+                                >
+                                  <input
+                                    value={option.color}
+                                    onChange={(e) =>
+                                      updateProductOption(
+                                        index,
+                                        "color",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="اللون"
+                                  />
+                                  <input
+                                    value={option.size}
+                                    onChange={(e) =>
+                                      updateProductOption(
+                                        index,
+                                        "size",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="المقاس"
+                                  />
+                                  <input
+                                    value={option.sku}
+                                    onChange={(e) =>
+                                      updateProductOption(
+                                        index,
+                                        "sku",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="SKU اختياري"
+                                  />
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={option.price}
+                                    onChange={(e) =>
+                                      updateProductOption(
+                                        index,
+                                        "price",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="السعر"
+                                  />
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={option.oldPrice || ""}
+                                    onChange={(e) =>
+                                      updateProductOption(
+                                        index,
+                                        "oldPrice",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="السعر بعد الخصم"
+                                  />
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={option.stock}
+                                    onChange={(e) =>
+                                      updateProductOption(
+                                        index,
+                                        "stock",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="المخزون"
+                                  />
+                                  <button
+                                    type="button"
+                                    className="admin-danger-soft"
+                                    onClick={() => removeProductOption(index)}
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                className="option-add-row-btn"
+                                onClick={addProductOption}
+                              >
+                                <Plus size={15} /> إضافة خيار جديد
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="products-six-card-grid">
+                        <div className="pro-form-section product-six-card">
+                          <h3>
+                            <span className="product-section-icon">📝</span>{" "}
+                            معلومات المنتج
+                          </h3>
+                          <Control label="اسم المنتج">
+                            <input
+                              name="name"
+                              defaultValue={editing?.name || ""}
+                              placeholder="مثال: مونستيرا فاخرة"
+                            />
+                          </Control>
+                          <Control label="الوصف">
+                            <textarea
+                              name="description"
+                              defaultValue={editing?.description || ""}
+                              placeholder="اكتب وصف مختصر وجميل للمنتج"
+                            />
+                          </Control>
+                          <div className="two">
+                            <Control label="النوع/المورد">
+                              <input
+                                name="brand"
+                                defaultValue={editing?.brand || ""}
+                                placeholder="Monstera"
+                              />
+                            </Control>
+                            <Control label="القسم">
+                              <input
+                                name="category"
+                                defaultValue={
+                                  editing?.category || "نباتات داخلية"
+                                }
+                              />
+                            </Control>
+                          </div>
+                        </div>
+
+                        <div className="pro-form-section product-six-card">
+                          <h3>
+                            <span className="product-section-icon">🏷️</span>{" "}
+                            السعر والمخزون
+                          </h3>
+                          <div className="two">
+                            <Control label="السعر">
+                              <input
+                                name="price"
+                                type="number"
+                                min="0"
+                                step="1"
+                                defaultValue={editing?.price || ""}
+                              />
+                            </Control>
+                            <Control label="السعر قبل الخصم">
+                              <input
+                                name="oldPrice"
+                                type="number"
+                                min="0"
+                                step="1"
+                                defaultValue={editing?.oldPrice || ""}
+                              />
+                            </Control>
+                          </div>
+                          <div className="two">
+                            <Control label="المخزون">
+                              <input
+                                name="stock"
+                                type="number"
+                                min="0"
+                                step="1"
+                                defaultValue={editing?.stock || 0}
+                              />
+                            </Control>
+                            <Control label="SKU">
+                              <input
+                                name="sku"
+                                defaultValue={editing?.sku || ""}
+                                placeholder="GD-PLANT-001"
+                              />
+                            </Control>
+                          </div>
+                          <div className="two">
+                            <Control label="حالة المنتج">
+                              <select
+                                name="status"
+                                defaultValue={editing?.status || "active"}
+                              >
+                                <option value="active">ظاهر في المتجر</option>
+                                <option value="hidden">{t("hidden")}</option>
+                              </select>
+                            </Control>
+                            <Control label="التقييم">
+                              <input
+                                name="rating"
+                                type="number"
+                                step="0.1"
+                                max="5"
+                                min="0"
+                                defaultValue={editing?.rating || 4.8}
+                              />
+                            </Control>
+                          </div>
+                        </div>
+
+                        <div className="pro-form-section product-six-card">
+                          <h3>
+                            <span className="product-section-icon">🖼️</span>{" "}
+                            الخيارات والصورة
+                          </h3>
+                          <div className="three">
+                            <Control label="الشارة">
+                              <input
+                                name="tag"
+                                defaultValue={editing?.tag || "Rare"}
+                              />
+                            </Control>
+                            <Control label="الأحجام العامة">
+                              <input
+                                name="sizes"
+                                defaultValue={
+                                  Array.isArray(editing?.sizes)
+                                    ? editing.sizes.join(",")
+                                    : editing?.sizes || "صغير,متوسط,كبير"
+                                }
+                                placeholder="صغير, متوسط, كبير"
+                              />
+                            </Control>
+                            <Control label="الألوان العامة">
+                              <input
+                                name="colors"
+                                defaultValue={
+                                  Array.isArray(editing?.colors)
+                                    ? editing.colors.join(",")
+                                    : editing?.colors || ""
+                                }
+                                placeholder="أخضر, أبيض, أسود"
+                              />
+                            </Control>
+                          </div>
+
+                          <div className="product-options-mini-note">
+                            تم نقل إدارة خيارات المنتج إلى كرت مستقل ومرتب أعلى
+                            النموذج.
+                          </div>
+                          <Control label="رابط الصورة">
+                            <input
+                              name="imageUrl"
+                              defaultValue={editing?.image || ""}
+                              onChange={(e) => setImagePreview(e.target.value)}
+                              placeholder="ضع رابط صورة المنتج هنا"
+                            />
+                          </Control>
+                          <Control label="أو ارفع صورة">
+                            <input
+                              name="imageFile"
+                              type="file"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files[0];
+                                if (file)
+                                  setImagePreview(
+                                    await fileToDataUrl(file, {
+                                      maxWidth: 1100,
+                                      maxHeight: 900,
+                                      quality: 0.82,
+                                    }),
+                                  );
+                              }}
+                            />
+                          </Control>
+                          <Control label="رفع صور متعددة للمعرض">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) =>
+                                uploadGalleryImages(e.target.files)
+                              }
+                            />
+                          </Control>
+                          {imagePreview && (
+                            <div className="product-image-preview pro-preview compact-preview">
+                              <span>الصورة الأساسية</span>
+                              <img
+                                src={imagePreview}
+                                alt="معاينة المنتج"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="pro-form-section product-six-card">
+                          <h3>
+                            <span className="product-section-icon">⭐</span>{" "}
+                            منتجات مميزة
+                          </h3>
+                          <p className="product-card-help">
+                            فعّل ظهور المنتج ضمن المنتجات البارزة في واجهة
+                            المتجر.
+                          </p>
+                          <label className="feature-toggle compact-feature-toggle">
+                            <input
+                              name="featured"
+                              type="checkbox"
+                              defaultChecked={editing?.featured || false}
+                            />
+                            <span>منتج مميز في الواجهة</span>
+                          </label>
+                          <div className="product-card-note">
+                            يعتمد على نفس خيار المنتج المميز الحالي.
+                          </div>
+                        </div>
+
+                        <div className="pro-form-section product-six-card">
+                          <h3>
+                            <span className="product-section-icon">%</span>{" "}
+                            المنتجات بخصم
+                          </h3>
+                          <p className="product-card-help">
+                            أي منتج له سعر قبل الخصم سيظهر كمنتج عليه عرض.
+                          </p>
+                          <div className="two">
+                            <Control label="السعر الحالي">
+                              <input
+                                name="priceDisplayOnly"
+                                type="text"
+                                value={editing?.price || ""}
+                                readOnly
+                                placeholder="من حقل السعر"
+                              />
+                            </Control>
+                            <Control label="سعر قبل الخصم">
+                              <input
+                                name="oldPriceDisplayOnly"
+                                type="text"
+                                value={editing?.oldPrice || ""}
+                                readOnly
+                                placeholder="من حقل السعر قبل الخصم"
+                              />
+                            </Control>
+                          </div>
+                          <div className="product-card-note">
+                            عدّل الخصم من كرت السعر والمخزون.
+                          </div>
+                        </div>
+
+                        <div className="pro-form-section product-six-card">
+                          <h3>
+                            <span className="product-section-icon">🔎</span> SEO
+                          </h3>
+                          <p className="product-card-help">
+                            هذه البيانات تظهر في صفحة المنتج المستقلة ونتائج
+                            Google ومشاركة واتساب.
+                          </p>
+                          <Control label="رابط المنتج / Slug">
+                            <input
+                              name="seoSlug"
+                              defaultValue={
+                                editing?.seoSlug || productSlug(editing || {})
+                              }
+                              placeholder="مثال: monstera-premium"
+                            />
+                          </Control>
+                          <Control label="عنوان SEO">
+                            <input
+                              name="seoTitle"
+                              defaultValue={editing?.seoTitle || ""}
+                              placeholder="اتركه فارغًا لاستخدام اسم المنتج"
+                            />
+                          </Control>
+                          <Control label="وصف SEO">
+                            <textarea
+                              name="seoDescription"
+                              defaultValue={editing?.seoDescription || ""}
+                              placeholder="اتركه فارغًا لاستخدام وصف المنتج"
+                            />
+                          </Control>
+                          <div className="seo-preview-box">
+                            <b>
+                              {editing?.seoTitle ||
+                                editing?.name ||
+                                "اسم المنتج"}
+                            </b>
+                            <span>
+                              {editing?.seoDescription ||
+                                editing?.description ||
+                                "وصف المنتج يظهر هنا بعد الحفظ"}
+                            </span>
+                          </div>
+                          <div className="product-card-note">
+                            بعد الحفظ سيكون الرابط مثل: /product/
+                            {editing?.seoSlug ||
+                              productSlug(editing || { name: "product" })}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="option-chip-section">
-                        <div className="option-chip-head"><b>إدارة المقاسات</b></div>
-                        <div className="option-chip-row">
-                          {[...new Set(productOptions.map(o => o.size).filter(Boolean))].map(size => <span className="option-chip" key={size}>{size}<button type="button">×</button></span>)}
-                          <button type="button" className="option-add-chip" onClick={addProductOption}><Plus size={14}/> إضافة مقاس</button>
-                        </div>
-                      </div>
-
-                      <div className="option-combinations-title">الخيارات (المقاس × اللون)</div>
-                      <div className="product-options-builder refined-options-builder">
-                        {productOptions.map((option, index) => (
-                          <div className="product-option-row refined-option-row" key={index}>
-                            <input value={option.color} onChange={e => updateProductOption(index, "color", e.target.value)} placeholder="اللون" />
-                            <input value={option.size} onChange={e => updateProductOption(index, "size", e.target.value)} placeholder="المقاس" />
-                            <input value={option.sku} onChange={e => updateProductOption(index, "sku", e.target.value)} placeholder="SKU اختياري" />
-                            <input type="number" min="0" value={option.price} onChange={e => updateProductOption(index, "price", e.target.value)} placeholder="السعر" />
-                            <input type="number" min="0" value={option.oldPrice || ""} onChange={e => updateProductOption(index, "oldPrice", e.target.value)} placeholder="السعر بعد الخصم" />
-                            <input type="number" min="0" value={option.stock} onChange={e => updateProductOption(index, "stock", e.target.value)} placeholder="المخزون" />
-                            <button type="button" className="admin-danger-soft" onClick={() => removeProductOption(index)}><Trash2 size={14}/></button>
+                      {galleryImages.length > 0 && (
+                        <div className="gallery-manager compact-gallery-manager">
+                          <div className="gallery-manager-head">
+                            <b>معرض الصور</b>
+                            <small>{galleryImages.length} صورة</small>
                           </div>
-                        ))}
-                        <button type="button" className="option-add-row-btn" onClick={addProductOption}><Plus size={15}/> إضافة خيار جديد</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="products-six-card-grid">
-                  <div className="pro-form-section product-six-card">
-                    <h3><span className="product-section-icon">📝</span> معلومات المنتج</h3>
-                    <Control label="اسم المنتج"><input name="name" defaultValue={editing?.name || ""} placeholder="مثال: مونستيرا فاخرة" /></Control>
-                    <Control label="الوصف"><textarea name="description" defaultValue={editing?.description || ""} placeholder="اكتب وصف مختصر وجميل للمنتج" /></Control>
-                    <div className="two">
-                      <Control label="النوع/المورد"><input name="brand" defaultValue={editing?.brand || ""} placeholder="Monstera" /></Control>
-                      <Control label="القسم"><input name="category" defaultValue={editing?.category || "نباتات داخلية"} /></Control>
-                    </div>
-                  </div>
 
-                  <div className="pro-form-section product-six-card">
-                    <h3><span className="product-section-icon">🏷️</span> السعر والمخزون</h3>
-                    <div className="two">
-                      <Control label="السعر"><input name="price" type="number" min="0" step="1" defaultValue={editing?.price || ""} /></Control>
-                      <Control label="السعر قبل الخصم"><input name="oldPrice" type="number" min="0" step="1" defaultValue={editing?.oldPrice || ""} /></Control>
-                    </div>
-                    <div className="two">
-                      <Control label="المخزون"><input name="stock" type="number" min="0" step="1" defaultValue={editing?.stock || 0} /></Control>
-                      <Control label="SKU"><input name="sku" defaultValue={editing?.sku || ""} placeholder="GD-PLANT-001" /></Control>
-                    </div>
-                    <div className="two">
-                      <Control label="حالة المنتج">
-                        <select name="status" defaultValue={editing?.status || "active"}>
-                          <option value="active">ظاهر في المتجر</option>
-                          <option value="hidden">{t("hidden")}</option>
-                        </select>
-                      </Control>
-                      <Control label="التقييم"><input name="rating" type="number" step="0.1" max="5" min="0" defaultValue={editing?.rating || 4.8} /></Control>
-                    </div>
-                  </div>
-
-                  <div className="pro-form-section product-six-card">
-                    <h3><span className="product-section-icon">🖼️</span> الخيارات والصورة</h3>
-                    <div className="three">
-                      <Control label="الشارة"><input name="tag" defaultValue={editing?.tag || "Rare"} /></Control>
-                      <Control label="الأحجام العامة"><input name="sizes" defaultValue={Array.isArray(editing?.sizes) ? editing.sizes.join(",") : (editing?.sizes || "صغير,متوسط,كبير")} placeholder="صغير, متوسط, كبير" /></Control>
-                      <Control label="الألوان العامة"><input name="colors" defaultValue={Array.isArray(editing?.colors) ? editing.colors.join(",") : (editing?.colors || "")} placeholder="أخضر, أبيض, أسود" /></Control>
-                    </div>
-
-                    <div className="product-options-mini-note">تم نقل إدارة خيارات المنتج إلى كرت مستقل ومرتب أعلى النموذج.</div>
-                    <Control label="رابط الصورة"><input name="imageUrl" defaultValue={editing?.image || ""} onChange={e=>setImagePreview(e.target.value)} placeholder="ضع رابط صورة المنتج هنا" /></Control>
-                    <Control label="أو ارفع صورة"><input name="imageFile" type="file" accept="image/*" onChange={async e=>{ const file=e.target.files[0]; if(file) setImagePreview(await fileToDataUrl(file, { maxWidth: 1100, maxHeight: 900, quality: 0.82 })); }} /></Control>
-                    <Control label="رفع صور متعددة للمعرض">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={e => uploadGalleryImages(e.target.files)}
-                      />
-                    </Control>
-                    {imagePreview && <div className="product-image-preview pro-preview compact-preview"><span>الصورة الأساسية</span><img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" /></div>}
-                  </div>
-
-                  <div className="pro-form-section product-six-card">
-                    <h3><span className="product-section-icon">⭐</span> منتجات مميزة</h3>
-                    <p className="product-card-help">فعّل ظهور المنتج ضمن المنتجات البارزة في واجهة المتجر.</p>
-                    <label className="feature-toggle compact-feature-toggle">
-                      <input name="featured" type="checkbox" defaultChecked={editing?.featured || false} />
-                      <span>منتج مميز في الواجهة</span>
-                    </label>
-                    <div className="product-card-note">يعتمد على نفس خيار المنتج المميز الحالي.</div>
-                  </div>
-
-                  <div className="pro-form-section product-six-card">
-                    <h3><span className="product-section-icon">%</span> المنتجات بخصم</h3>
-                    <p className="product-card-help">أي منتج له سعر قبل الخصم سيظهر كمنتج عليه عرض.</p>
-                    <div className="two">
-                      <Control label="السعر الحالي"><input name="priceDisplayOnly" type="text" value={editing?.price || ""} readOnly placeholder="من حقل السعر" /></Control>
-                      <Control label="سعر قبل الخصم"><input name="oldPriceDisplayOnly" type="text" value={editing?.oldPrice || ""} readOnly placeholder="من حقل السعر قبل الخصم" /></Control>
-                    </div>
-                    <div className="product-card-note">عدّل الخصم من كرت السعر والمخزون.</div>
-                  </div>
-
-                  <div className="pro-form-section product-six-card">
-                    <h3><span className="product-section-icon">🔎</span> SEO</h3>
-                    <p className="product-card-help">هذه البيانات تظهر في صفحة المنتج المستقلة ونتائج Google ومشاركة واتساب.</p>
-                    <Control label="رابط المنتج / Slug">
-                      <input name="seoSlug" defaultValue={editing?.seoSlug || productSlug(editing || {})} placeholder="مثال: monstera-premium" />
-                    </Control>
-                    <Control label="عنوان SEO">
-                      <input name="seoTitle" defaultValue={editing?.seoTitle || ""} placeholder="اتركه فارغًا لاستخدام اسم المنتج" />
-                    </Control>
-                    <Control label="وصف SEO">
-                      <textarea name="seoDescription" defaultValue={editing?.seoDescription || ""} placeholder="اتركه فارغًا لاستخدام وصف المنتج" />
-                    </Control>
-                    <div className="seo-preview-box">
-                      <b>{editing?.seoTitle || editing?.name || "اسم المنتج"}</b>
-                      <span>{editing?.seoDescription || editing?.description || "وصف المنتج يظهر هنا بعد الحفظ"}</span>
-                    </div>
-                    <div className="product-card-note">بعد الحفظ سيكون الرابط مثل: /product/{editing?.seoSlug || productSlug(editing || { name: "product" })}</div>
-                  </div>
-                </div>
-
-                {galleryImages.length > 0 && (
-                  <div className="gallery-manager compact-gallery-manager">
-                    <div className="gallery-manager-head">
-                      <b>معرض الصور</b>
-                      <small>{galleryImages.length} صورة</small>
-                    </div>
-
-                    <div className="gallery-grid">
-                      {galleryImages.map((img, index) => (
-                        <div className={`gallery-item ${imagePreview === img ? "primary" : ""}`} key={`${img}-${index}`}>
-                          <img src={img} alt={`gallery-${index}`} loading="lazy" decoding="async" />
-                          <div className="gallery-actions">
-                            <button type="button" onClick={() => makeGalleryImagePrimary(img)}>أساسية</button>
-                            <button type="button" className="danger" onClick={() => removeGalleryImage(index)}>{t("delete")}</button>
+                          <div className="gallery-grid">
+                            {galleryImages.map((img, index) => (
+                              <div
+                                className={`gallery-item ${imagePreview === img ? "primary" : ""}`}
+                                key={`${img}-${index}`}
+                              >
+                                <img
+                                  src={img}
+                                  alt={`gallery-${index}`}
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                                <div className="gallery-actions">
+                                  <button
+                                    type="button"
+                                    onClick={() => makeGalleryImagePrimary(img)}
+                                  >
+                                    أساسية
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="danger"
+                                    onClick={() => removeGalleryImage(index)}
+                                  >
+                                    {t("delete")}
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      ))}
+                      )}
+                    </form>
+
+                    <div className="admin-card product-live-preview-panel">
+                      <div className="product-live-preview-head">
+                        <span>Live Preview</span>
+                        <h3>معاينة المنتج</h3>
+                      </div>
+                      <div className="live-product-preview">
+                        <div className="live-product-image">
+                          {imagePreview ? (
+                            <img
+                              src={imagePreview}
+                              alt="معاينة المنتج"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <span>صورة المنتج</span>
+                          )}
+                        </div>
+                        <div className="live-product-preview-body">
+                          <b>{editing?.name || "اسم المنتج"}</b>
+                          <small>{editing?.category || "القسم"}</small>
+                          <strong>
+                            {editing?.price
+                              ? `${formatPrice(editing.price)} ر.س`
+                              : "السعر"}
+                          </strong>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                )}
 
-              </form>
-
-              <div className="admin-card product-live-preview-panel">
-                <div className="product-live-preview-head">
-                  <span>Live Preview</span>
-                  <h3>معاينة المنتج</h3>
-                </div>
-                <div className="live-product-preview">
-                  <div className="live-product-image">
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="معاينة المنتج" loading="lazy" decoding="async" />
-                    ) : (
-                      <span>صورة المنتج</span>
-                    )}
+                  <div className="product-modal-footer">
+                    <button
+                      type="button"
+                      className="admin-secondary"
+                      onClick={resetProductEditor}
+                    >
+                      {t("cancel")}
+                    </button>
+                    <div className="product-modal-footer-actions">
+                      <button
+                        type="button"
+                        className="admin-secondary"
+                        onClick={() => setProductFormTab("info")}
+                      >
+                        مراجعة المعلومات
+                      </button>
+                      <button
+                        type="submit"
+                        form="product-editor-form"
+                        className="admin-primary"
+                      >
+                        <Save size={16} />{" "}
+                        {editing ? "حفظ التعديل" : "حفظ وإضافة المنتج"}
+                      </button>
+                    </div>
                   </div>
-                  <div className="live-product-preview-body">
-                    <b>{editing?.name || "اسم المنتج"}</b>
-                    <small>{editing?.category || "القسم"}</small>
-                    <strong>{editing?.price ? `${formatPrice(editing.price)} ر.س` : "السعر"}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-              <div className="product-modal-footer">
-                <button type="button" className="admin-secondary" onClick={resetProductEditor}>{t("cancel")}</button>
-                <div className="product-modal-footer-actions">
-                  <button type="button" className="admin-secondary" onClick={() => setProductFormTab("info")}>مراجعة المعلومات</button>
-                  <button type="submit" form="product-editor-form" className="admin-primary"><Save size={16}/> {editing ? "حفظ التعديل" : "حفظ وإضافة المنتج"}</button>
-                </div>
-              </div>
-
                 </div>
               </div>
             )}
@@ -4620,14 +6440,21 @@ return (
                 <div>
                   <span>Catalogue</span>
                   <h2>المنتجات المضافة</h2>
-                  <small>{filteredAdminProducts.length} ظاهر من أصل {products.length} منتج</small>
+                  <small>
+                    {filteredAdminProducts.length} ظاهر من أصل {products.length}{" "}
+                    منتج
+                  </small>
                 </div>
 
                 <div className="products-head-actions">
                   <b className="products-count">{products.length} منتج</b>
                   {products.length > 0 && (
-                    <button type="button" className="admin-danger-soft" onClick={deleteAllProducts}>
-                      <Trash2 size={16}/> حذف كل المنتجات
+                    <button
+                      type="button"
+                      className="admin-danger-soft"
+                      onClick={deleteAllProducts}
+                    >
+                      <Trash2 size={16} /> حذف كل المنتجات
                     </button>
                   )}
                 </div>
@@ -4640,16 +6467,29 @@ return (
                 </div>
 
                 <div className="best-seller-mini-list">
-                  {adminBestSellers.length ? adminBestSellers.map((item, index) => (
-                    <div className="best-seller-mini" key={item.name}>
-                      <b>#{index + 1}</b>
-                      {item.image ? <img src={item.image} alt={item.name} loading="lazy" decoding="async" /> : <span className="best-seller-placeholder">🌿</span>}
-                      <div>
-                        <strong>{item.name}</strong>
-                        <small>{item.qty} مبيع • {formatPrice(item.value)} ر.س</small>
+                  {adminBestSellers.length ? (
+                    adminBestSellers.map((item, index) => (
+                      <div className="best-seller-mini" key={item.name}>
+                        <b>#{index + 1}</b>
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        ) : (
+                          <span className="best-seller-placeholder">🌿</span>
+                        )}
+                        <div>
+                          <strong>{item.name}</strong>
+                          <small>
+                            {item.qty} مبيع • {formatPrice(item.value)} ر.س
+                          </small>
+                        </div>
                       </div>
-                    </div>
-                  )) : (
+                    ))
+                  ) : (
                     <p>{t("noSalesYet")}</p>
                   )}
                 </div>
@@ -4657,15 +6497,18 @@ return (
 
               <div className="products-toolbar">
                 <div className="products-search-box">
-                  <Search size={17}/>
+                  <Search size={17} />
                   <input
                     value={productSearch}
-                    onChange={e => setProductSearch(e.target.value)}
+                    onChange={(e) => setProductSearch(e.target.value)}
                     placeholder="ابحث باسم المنتج، القسم، المورد أو SKU"
                   />
                 </div>
 
-                <select value={productStatusFilter} onChange={e => setProductStatusFilter(e.target.value)}>
+                <select
+                  value={productStatusFilter}
+                  onChange={(e) => setProductStatusFilter(e.target.value)}
+                >
                   <option value="all">{t("allProducts")}</option>
                   <option value="active">{t("visibleProducts")}</option>
                   <option value="hidden">المخفية</option>
@@ -4673,13 +6516,21 @@ return (
                   <option value="out">نفد المخزون</option>
                 </select>
 
-                <select value={productCategoryFilter} onChange={e => setProductCategoryFilter(e.target.value)}>
-                  {adminProductCategories.map(category => (
-                    <option key={category} value={category}>{category === "all" ? "كل الأقسام" : category}</option>
+                <select
+                  value={productCategoryFilter}
+                  onChange={(e) => setProductCategoryFilter(e.target.value)}
+                >
+                  {adminProductCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {category === "all" ? "كل الأقسام" : category}
+                    </option>
                   ))}
                 </select>
 
-                <select value={productSort} onChange={e => setProductSort(e.target.value)}>
+                <select
+                  value={productSort}
+                  onChange={(e) => setProductSort(e.target.value)}
+                >
                   <option value="custom">الترتيب اليدوي</option>
                   <option value="newest">الأحدث</option>
                   <option value="price_high">السعر الأعلى</option>
@@ -4694,7 +6545,12 @@ return (
                   <label>
                     <input
                       type="checkbox"
-                      checked={filteredAdminProducts.length > 0 && filteredAdminProducts.every(product => selectedProducts.includes(product.id))}
+                      checked={
+                        filteredAdminProducts.length > 0 &&
+                        filteredAdminProducts.every((product) =>
+                          selectedProducts.includes(product.id),
+                        )
+                      }
                       onChange={toggleAllVisibleProducts}
                     />
                     تحديد الظاهر
@@ -4703,14 +6559,47 @@ return (
                   <span>{selectedProducts.length} محدد</span>
 
                   <div>
-                    <button type="button" className="admin-secondary" disabled={!selectedProducts.length} onClick={() => bulkUpdateProducts({ status: "active" }, "تم إظهار المنتجات المحددة")}>إظهار</button>
-                    <button type="button" className="admin-secondary" disabled={!selectedProducts.length} onClick={() => bulkUpdateProducts({ status: "hidden" }, "تم إخفاء المنتجات المحددة")}>إخفاء</button>
-                    <button type="button" className="admin-danger-soft" disabled={!selectedProducts.length} onClick={deleteSelectedProducts}><Trash2 size={15}/> حذف المحدد</button>
+                    <button
+                      type="button"
+                      className="admin-secondary"
+                      disabled={!selectedProducts.length}
+                      onClick={() =>
+                        bulkUpdateProducts(
+                          { status: "active" },
+                          "تم إظهار المنتجات المحددة",
+                        )
+                      }
+                    >
+                      إظهار
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-secondary"
+                      disabled={!selectedProducts.length}
+                      onClick={() =>
+                        bulkUpdateProducts(
+                          { status: "hidden" },
+                          "تم إخفاء المنتجات المحددة",
+                        )
+                      }
+                    >
+                      إخفاء
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-danger-soft"
+                      disabled={!selectedProducts.length}
+                      onClick={deleteSelectedProducts}
+                    >
+                      <Trash2 size={15} /> حذف المحدد
+                    </button>
                   </div>
                 </div>
               )}
 
-              <div className={`admin-product-cards ${productsViewMode === "rows" ? "products-view-rows" : "products-view-cards"}`}>
+              <div
+                className={`admin-product-cards ${productsViewMode === "rows" ? "products-view-rows" : "products-view-cards"}`}
+              >
                 {productsViewMode === "rows" && (
                   <div className="products-excel-header">
                     <span>تحديد</span>
@@ -4726,34 +6615,59 @@ return (
                     <span>إجراءات</span>
                   </div>
                 )}
-                {filteredAdminProducts.map(p => (
+                {filteredAdminProducts.map((p) => (
                   <div
                     className={`admin-product-card ${selectedProducts.includes(p.id) ? "selected" : ""} ${draggedProductId === p.id ? "dragging" : ""}`}
                     key={p.id}
                     draggable
                     onDragStart={() => setDraggedProductId(p.id)}
                     onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => { reorderProducts(draggedProductId, p.id); setDraggedProductId(null); }}
+                    onDrop={() => {
+                      reorderProducts(draggedProductId, p.id);
+                      setDraggedProductId(null);
+                    }}
                     onDragEnd={() => setDraggedProductId(null)}
                   >
-                    <label className="product-row-select-check" title="تحديد المنتج">
+                    <label
+                      className="product-row-select-check"
+                      title="تحديد المنتج"
+                    >
                       <input
                         type="checkbox"
                         checked={selectedProducts.includes(p.id)}
                         onChange={() => toggleProductSelection(p.id)}
                       />
                     </label>
-                    <button type="button" className="product-drag-handle" title="اسحب لترتيب المنتج">↕</button>
+                    <button
+                      type="button"
+                      className="product-drag-handle"
+                      title="اسحب لترتيب المنتج"
+                    >
+                      ↕
+                    </button>
                     <div className="admin-product-thumb">
                       <img
                         className="admin-product-image"
-                        src={p.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='18' fill='%23f3f6f2'/%3E%3Cpath d='M25 66h46L57 48 47 60l-8-9-14 15Z' fill='%23b9c8bf'/%3E%3Ccircle cx='35' cy='34' r='7' fill='%23b9c8bf'/%3E%3C/svg%3E"}
+                        src={
+                          p.image ||
+                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='18' fill='%23f3f6f2'/%3E%3Cpath d='M25 66h46L57 48 47 60l-8-9-14 15Z' fill='%23b9c8bf'/%3E%3Ccircle cx='35' cy='34' r='7' fill='%23b9c8bf'/%3E%3C/svg%3E"
+                        }
                         alt=""
                         loading="lazy"
                         decoding="async"
-                        onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='18' fill='%23f3f6f2'/%3E%3Cpath d='M25 66h46L57 48 47 60l-8-9-14 15Z' fill='%23b9c8bf'/%3E%3Ccircle cx='35' cy='34' r='7' fill='%23b9c8bf'/%3E%3C/svg%3E"; }}
+                        onError={(event) => {
+                          event.currentTarget.onerror = null;
+                          event.currentTarget.src =
+                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='18' fill='%23f3f6f2'/%3E%3Cpath d='M25 66h46L57 48 47 60l-8-9-14 15Z' fill='%23b9c8bf'/%3E%3Ccircle cx='35' cy='34' r='7' fill='%23b9c8bf'/%3E%3C/svg%3E";
+                        }}
                       />
-                      <span className={p.status === "hidden" ? "status hidden" : "status active"}>
+                      <span
+                        className={
+                          p.status === "hidden"
+                            ? "status hidden"
+                            : "status active"
+                        }
+                      >
                         {p.status === "hidden" ? "مخفي" : "ظاهر"}
                       </span>
                     </div>
@@ -4765,13 +6679,20 @@ return (
                         <div className="admin-product-badges">
                           <span>{p.category || "بدون قسم"}</span>
                           {p.featured && <span>مميز</span>}
-                          {Array.isArray(p.options) && p.options.length > 0 && <span>{p.options.length} خيارات</span>}
-                          {Array.isArray(p.gallery) && p.gallery.length > 1 && <span>{p.gallery.length} صور</span>}
+                          {Array.isArray(p.options) && p.options.length > 0 && (
+                            <span>{p.options.length} خيارات</span>
+                          )}
+                          {Array.isArray(p.gallery) && p.gallery.length > 1 && (
+                            <span>{p.gallery.length} صور</span>
+                          )}
                         </div>
                         <p>{p.description || p.brand}</p>
                       </div>
 
-                      <div className="products-row-description" title={p.description || p.brand || "بدون وصف"}>
+                      <div
+                        className="products-row-description"
+                        title={p.description || p.brand || "بدون وصف"}
+                      >
                         {p.description || p.brand || "—"}
                       </div>
 
@@ -4785,43 +6706,68 @@ return (
                         <span>{p.category || "بدون قسم"}</span>
                       </div>
 
-                      
-
                       {Array.isArray(p.options) && p.options.length > 0 && (
                         <div className="admin-product-options-list">
                           {p.options.slice(0, 4).map((option, index) => (
                             <span key={index}>
-                              {[option.size, option.color].filter(Boolean).join(" / ") || "خيار"}
-                              {option.stock !== "" && option.stock !== undefined ? ` • ${option.stock} مخزون` : ""}
+                              {[option.size, option.color]
+                                .filter(Boolean)
+                                .join(" / ") || "خيار"}
+                              {option.stock !== "" && option.stock !== undefined
+                                ? ` • ${option.stock} مخزون`
+                                : ""}
                             </span>
                           ))}
-                          {p.options.length > 4 && <span>+{p.options.length - 4}</span>}
+                          {p.options.length > 4 && (
+                            <span>+{p.options.length - 4}</span>
+                          )}
                         </div>
                       )}
 
                       <div className="products-row-status">
-                        <span className={p.status === "hidden" ? "row-status hidden" : "row-status active"}>
+                        <span
+                          className={
+                            p.status === "hidden"
+                              ? "row-status hidden"
+                              : "row-status active"
+                          }
+                        >
                           {p.status === "hidden" ? "مخفي" : "ظاهر"}
                         </span>
                       </div>
                       <div className="products-row-options">
-                        {Array.isArray(p.options) && p.options.length > 0 ? `${p.options.length} خيارات` : "—"}
+                        {Array.isArray(p.options) && p.options.length > 0
+                          ? `${p.options.length} خيارات`
+                          : "—"}
                       </div>
-                      <div className="products-row-sku">
-                        {p.sku || "—"}
-                      </div>
+                      <div className="products-row-sku">{p.sku || "—"}</div>
 
                       <div className="admin-product-actions">
-                        <label className="product-select-check" title="تحديد المنتج">
+                        <label
+                          className="product-select-check"
+                          title="تحديد المنتج"
+                        >
                           <input
                             type="checkbox"
                             checked={selectedProducts.includes(p.id)}
                             onChange={() => toggleProductSelection(p.id)}
                           />
                         </label>
-                        <button onClick={()=>openProductEditor(p)}><Pencil size={16}/> تعديل كامل</button>
-                        <button type="button" onClick={()=>duplicateProduct(p)}><Plus size={16}/> نسخ</button>
-                        <button className="danger" onClick={() => deleteProduct(p)}><Trash2 size={16}/> حذف</button>
+                        <button onClick={() => openProductEditor(p)}>
+                          <Pencil size={16} /> تعديل كامل
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => duplicateProduct(p)}
+                        >
+                          <Plus size={16} /> نسخ
+                        </button>
+                        <button
+                          className="danger"
+                          onClick={() => deleteProduct(p)}
+                        >
+                          <Trash2 size={16} /> حذف
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -4840,27 +6786,40 @@ return (
 
         {tab === "homepage" && canAccessAdminSection("homepage") && (
           <section className="homepage-admin-page">
-
             <div className="homepage-sections-list">
-              {(selectedThemeSection ? [selectedThemeSection] : themeSections).map((section) => (
+              {(selectedThemeSection
+                ? [selectedThemeSection]
+                : themeSections
+              ).map((section) => (
                 <div key={section.id} className="homepage-section-row">
                   <div
                     className="section-header"
-                    onClick={() => setOpenSection(openSection === section.id ? null : section.id)}
+                    onClick={() =>
+                      setOpenSection(
+                        openSection === section.id ? null : section.id,
+                      )
+                    }
                   >
                     <div>
                       <span>{section.label}</span>
-                      <small>{draftSettings[section.titleKey] || "اضغط للتعديل"}</small>
+                      <small>
+                        {draftSettings[section.titleKey] || "اضغط للتعديل"}
+                      </small>
                     </div>
                     <b>{openSection === section.id ? "−" : "+"}</b>
                   </div>
 
-                  {(openSection === section.id || selectedThemeSection?.id === section.id) && (
-                    <div className={`section-form section-form-pro ${section.headerExtra ? "header-admin-clean-form" : ""} ${section.heroExtra ? "hero-admin-compact-form" : ""}`}>
+                  {(openSection === section.id ||
+                    selectedThemeSection?.id === section.id) && (
+                    <div
+                      className={`section-form section-form-pro ${section.headerExtra ? "header-admin-clean-form" : ""} ${section.heroExtra ? "hero-admin-compact-form" : ""}`}
+                    >
                       <Control label="العنوان">
                         <input
                           value={draftSettings[section.titleKey] || ""}
-                          onChange={e => updateDraft(section.titleKey, e.target.value)}
+                          onChange={(e) =>
+                            updateDraft(section.titleKey, e.target.value)
+                          }
                           placeholder="عنوان القسم"
                         />
                       </Control>
@@ -4870,7 +6829,9 @@ return (
                           <Control label="اللغة">
                             <select
                               value={draftSettings.homeHeaderLang || "AR"}
-                              onChange={e => updateDraft("homeHeaderLang", e.target.value)}
+                              onChange={(e) =>
+                                updateDraft("homeHeaderLang", e.target.value)
+                              }
                             >
                               <option value="AR">AR</option>
                               <option value="EN">EN</option>
@@ -4878,12 +6839,24 @@ return (
                           </Control>
 
                           <div className="header-sticky-wrapper">
-                            <span className="header-sticky-label">تثبيت الهيدر</span>
-                            <label className="header-sticky-inline-control" aria-label="تثبيت الهيدر">
+                            <span className="header-sticky-label">
+                              تثبيت الهيدر
+                            </span>
+                            <label
+                              className="header-sticky-inline-control"
+                              aria-label="تثبيت الهيدر"
+                            >
                               <input
                                 type="checkbox"
-                                checked={draftSettings.homeHeaderSticky !== false}
-                                onChange={e => updateDraft("homeHeaderSticky", e.target.checked)}
+                                checked={
+                                  draftSettings.homeHeaderSticky !== false
+                                }
+                                onChange={(e) =>
+                                  updateDraft(
+                                    "homeHeaderSticky",
+                                    e.target.checked,
+                                  )
+                                }
                               />
                               <span>تثبيت الهيدر</span>
                             </label>
@@ -4891,12 +6864,13 @@ return (
                         </>
                       )}
 
-
                       {!section.pagesExtra && !section.headerExtra && (
                         <Control label="الوصف">
                           <textarea
                             value={draftSettings[section.descKey] || ""}
-                            onChange={e => updateDraft(section.descKey, e.target.value)}
+                            onChange={(e) =>
+                              updateDraft(section.descKey, e.target.value)
+                            }
                             placeholder="وصف القسم"
                           />
                         </Control>
@@ -4908,26 +6882,42 @@ return (
                             <Control label="شكل الهيرو">
                               <select
                                 value={draftSettings.homeHeroLayout || "split"}
-                                onChange={e => updateDraft("homeHeroLayout", e.target.value)}
+                                onChange={(e) =>
+                                  updateDraft("homeHeroLayout", e.target.value)
+                                }
                               >
                                 <option value="video">فيديو بعرض الصفحة</option>
-                                <option value="banner">بنر صورة بعرض الصفحة</option>
-                                <option value="split">مقسم: بنر + صورة + نص</option>
+                                <option value="banner">
+                                  بنر صورة بعرض الصفحة
+                                </option>
+                                <option value="split">
+                                  مقسم: بنر + صورة + نص
+                                </option>
                               </select>
                             </Control>
 
                             <Control label="نص الزر">
                               <input
                                 value={draftSettings.homeHeroButton || ""}
-                                onChange={e => updateDraft("homeHeroButton", e.target.value)}
+                                onChange={(e) =>
+                                  updateDraft("homeHeroButton", e.target.value)
+                                }
                                 placeholder="تسوق الآن"
                               />
                             </Control>
 
                             <Control label="رابط زر الهيرو">
                               <input
-                                value={draftSettings.homeHeroButtonLink || "#products"}
-                                onChange={e => updateDraft("homeHeroButtonLink", e.target.value)}
+                                value={
+                                  draftSettings.homeHeroButtonLink ||
+                                  "#products"
+                                }
+                                onChange={(e) =>
+                                  updateDraft(
+                                    "homeHeroButtonLink",
+                                    e.target.value,
+                                  )
+                                }
                                 placeholder="#products أو /page/offers"
                               />
                             </Control>
@@ -4935,8 +6925,16 @@ return (
                             {draftSettings.homeHeroLayout === "split" && (
                               <Control label="مكان الصورة الأمامية">
                                 <select
-                                  value={draftSettings.homeHeroImagePosition || "left"}
-                                  onChange={e => updateDraft("homeHeroImagePosition", e.target.value)}
+                                  value={
+                                    draftSettings.homeHeroImagePosition ||
+                                    "left"
+                                  }
+                                  onChange={(e) =>
+                                    updateDraft(
+                                      "homeHeroImagePosition",
+                                      e.target.value,
+                                    )
+                                  }
                                 >
                                   <option value="left">يسار</option>
                                   <option value="right">يمين</option>
@@ -4950,19 +6948,33 @@ return (
                               <Control label="رابط فيديو الهيرو">
                                 <input
                                   value={draftSettings.homeHeroVideo || ""}
-                                  onChange={e => updateDraft("homeHeroVideo", e.target.value)}
+                                  onChange={(e) =>
+                                    updateDraft("homeHeroVideo", e.target.value)
+                                  }
                                   placeholder="رابط MP4 أو رابط Google Drive"
                                 />
-                                <small className="hero-upload-note">يدعم Google Drive كرابط معاينة. للتشغيل الصامت التلقائي الأفضل استخدم رابط MP4 مباشر مثل Cloudinary.</small>
+                                <small className="hero-upload-note">
+                                  يدعم Google Drive كرابط معاينة. للتشغيل الصامت
+                                  التلقائي الأفضل استخدم رابط MP4 مباشر مثل
+                                  Cloudinary.
+                                </small>
                               </Control>
 
                               <Control label="أو ارفع فيديو">
                                 <input
                                   type="file"
                                   accept="video/mp4,video/webm,video/*"
-                                  onChange={e => uploadSettingImage("homeHeroVideo", e.target.files[0])}
+                                  onChange={(e) =>
+                                    uploadSettingImage(
+                                      "homeHeroVideo",
+                                      e.target.files[0],
+                                    )
+                                  }
                                 />
-                                <small className="hero-upload-note">الرفع المباشر محدود بـ 750KB فقط. للأفضل استخدم رابط فيديو خارجي.</small>
+                                <small className="hero-upload-note">
+                                  الرفع المباشر محدود بـ 750KB فقط. للأفضل
+                                  استخدم رابط فيديو خارجي.
+                                </small>
                               </Control>
                             </div>
                           )}
@@ -4972,7 +6984,12 @@ return (
                               <Control label="رابط بنر الخلفية">
                                 <input
                                   value={draftSettings.homeHeroBgImage || ""}
-                                  onChange={e => updateDraft("homeHeroBgImage", e.target.value)}
+                                  onChange={(e) =>
+                                    updateDraft(
+                                      "homeHeroBgImage",
+                                      e.target.value,
+                                    )
+                                  }
                                   placeholder="https://..."
                                 />
                               </Control>
@@ -4981,7 +6998,12 @@ return (
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  onChange={e => uploadSettingImage("homeHeroBgImage", e.target.files[0])}
+                                  onChange={(e) =>
+                                    uploadSettingImage(
+                                      "homeHeroBgImage",
+                                      e.target.files[0],
+                                    )
+                                  }
                                 />
                               </Control>
                             </div>
@@ -4993,33 +7015,46 @@ return (
                         <Control label="نص الزر">
                           <input
                             value={draftSettings[section.buttonKey] || ""}
-                            onChange={e => updateDraft(section.buttonKey, e.target.value)}
+                            onChange={(e) =>
+                              updateDraft(section.buttonKey, e.target.value)
+                            }
                             placeholder="تسوق الآن"
                           />
                         </Control>
                       )}
 
-                      {section.imageKey && !(section.heroExtra && draftSettings.homeHeroLayout === "video") && (
-                        <div className={`section-image-tools ${section.heroExtra ? "hero-admin-image-tools" : ""}`}>
-                          <Control label="رابط الصورة">
-                            <input
-                              value={draftSettings[section.imageKey] || ""}
-                              onChange={e => updateDraft(section.imageKey, e.target.value)}
-                              placeholder="https://..."
-                            />
-                          </Control>
+                      {section.imageKey &&
+                        !(
+                          section.heroExtra &&
+                          draftSettings.homeHeroLayout === "video"
+                        ) && (
+                          <div
+                            className={`section-image-tools ${section.heroExtra ? "hero-admin-image-tools" : ""}`}
+                          >
+                            <Control label="رابط الصورة">
+                              <input
+                                value={draftSettings[section.imageKey] || ""}
+                                onChange={(e) =>
+                                  updateDraft(section.imageKey, e.target.value)
+                                }
+                                placeholder="https://..."
+                              />
+                            </Control>
 
-                          <Control label="أو ارفع صورة">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={e => uploadSettingImage(section.imageKey, e.target.files[0])}
-                            />
-                          </Control>
-
-
-                        </div>
-                      )}
+                            <Control label="أو ارفع صورة">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                  uploadSettingImage(
+                                    section.imageKey,
+                                    e.target.files[0],
+                                  )
+                                }
+                              />
+                            </Control>
+                          </div>
+                        )}
 
                       {section.headerExtra && (
                         <div className="header-extra-tools">
@@ -5027,13 +7062,17 @@ return (
                             <input
                               type="color"
                               value={draftSettings.homeHeaderBg || "#F5F1E8"}
-                              onChange={e => updateDraft("homeHeaderBg", e.target.value)}
+                              onChange={(e) =>
+                                updateDraft("homeHeaderBg", e.target.value)
+                              }
                             />
                           </Control>
                           <Control label="الشريط العلوي">
                             <input
                               value={draftSettings.homeHeaderTopBar || ""}
-                              onChange={e => updateDraft("homeHeaderTopBar", e.target.value)}
+                              onChange={(e) =>
+                                updateDraft("homeHeaderTopBar", e.target.value)
+                              }
                               placeholder="شحن سريع داخل السعودية 🚚"
                             />
                           </Control>
@@ -5041,96 +7080,143 @@ return (
                             <input
                               type="color"
                               value={draftSettings.homeTopBarBg || "#0F3D2E"}
-                              onChange={e => updateDraft("homeTopBarBg", e.target.value)}
+                              onChange={(e) =>
+                                updateDraft("homeTopBarBg", e.target.value)
+                              }
                             />
                           </Control>
                           <Control label="لون نص الشريط">
                             <input
                               type="color"
                               value={draftSettings.homeTopBarText || "#FFFFFF"}
-                              onChange={e => updateDraft("homeTopBarText", e.target.value)}
+                              onChange={(e) =>
+                                updateDraft("homeTopBarText", e.target.value)
+                              }
                             />
                           </Control>
                           <div className="topbar-toggle-wrapper">
-                            <span className="topbar-toggle-label">إظهار الشريط</span>
-                            <label className="topbar-toggle-control" aria-label="إظهار الشريط العلوي">
+                            <span className="topbar-toggle-label">
+                              إظهار الشريط
+                            </span>
+                            <label
+                              className="topbar-toggle-control"
+                              aria-label="إظهار الشريط العلوي"
+                            >
                               <input
                                 type="checkbox"
-                                checked={draftSettings.homeTopBarEnabled !== false}
-                                onChange={e => updateDraft("homeTopBarEnabled", e.target.checked)}
+                                checked={
+                                  draftSettings.homeTopBarEnabled !== false
+                                }
+                                onChange={(e) =>
+                                  updateDraft(
+                                    "homeTopBarEnabled",
+                                    e.target.checked,
+                                  )
+                                }
                               />
                               <span>إظهار الشريط</span>
                             </label>
                           </div>
-</div>
+                        </div>
                       )}
 
                       {section.pagesExtra && (
                         <div className="pages-admin-tools">
-
                           <div className="pages-admin-list">
-                            {(draftSettings.homePages || []).map((page, pageIndex) => (
-                              <div className="page-row-editor" key={pageIndex}>
-                                <label className="page-visible-toggle">
+                            {(draftSettings.homePages || []).map(
+                              (page, pageIndex) => (
+                                <div
+                                  className="page-row-editor"
+                                  key={pageIndex}
+                                >
+                                  <label className="page-visible-toggle">
+                                    <input
+                                      type="checkbox"
+                                      checked={page.visible !== false}
+                                      onChange={(e) => {
+                                        const next = [
+                                          ...(draftSettings.homePages || []),
+                                        ];
+                                        next[pageIndex] = {
+                                          ...next[pageIndex],
+                                          visible: e.target.checked,
+                                        };
+                                        updateDraft("homePages", next);
+                                      }}
+                                    />
+                                    <span>
+                                      {page.visible === false ? "مخفي" : "ظاهر"}
+                                    </span>
+                                  </label>
+
                                   <input
-                                    type="checkbox"
-                                    checked={page.visible !== false}
-                                    onChange={e => {
-                                      const next = [...(draftSettings.homePages || [])];
-                                      next[pageIndex] = { ...next[pageIndex], visible: e.target.checked };
+                                    value={page.label || ""}
+                                    onChange={(e) => {
+                                      const next = [
+                                        ...(draftSettings.homePages || []),
+                                      ];
+                                      next[pageIndex] = {
+                                        ...next[pageIndex],
+                                        label: e.target.value,
+                                        visible:
+                                          next[pageIndex]?.visible !== false,
+                                      };
                                       updateDraft("homePages", next);
                                     }}
+                                    placeholder="اسم الصفحة"
                                   />
-                                  <span>{page.visible === false ? "مخفي" : "ظاهر"}</span>
-                                </label>
-
-                                <input
-                                  value={page.label || ""}
-                                  onChange={e => {
-                                    const next = [...(draftSettings.homePages || [])];
-                                    next[pageIndex] = { ...next[pageIndex], label: e.target.value, visible: next[pageIndex]?.visible !== false };
-                                    updateDraft("homePages", next);
-                                  }}
-                                  placeholder="اسم الصفحة"
-                                />
-                                <input
-                                  value={page.href || ""}
-                                  onChange={e => {
-                                    const next = [...(draftSettings.homePages || [])];
-                                    next[pageIndex] = { ...next[pageIndex], href: e.target.value, visible: next[pageIndex]?.visible !== false };
-                                    updateDraft("homePages", next);
-                                  }}
-                                  placeholder="/page/products"
-                                />
-                                <button
-                                  type="button"
-                                  className="admin-secondary"
-                                  onClick={() => {
-                                    const next = [...(draftSettings.homePages || [])];
-                                    next.splice(pageIndex, 1);
-                                    updateDraft("homePages", next);
-                                  }}
-                                >
-                                  حذف
-                                </button>
-                              </div>
-                            ))}
+                                  <input
+                                    value={page.href || ""}
+                                    onChange={(e) => {
+                                      const next = [
+                                        ...(draftSettings.homePages || []),
+                                      ];
+                                      next[pageIndex] = {
+                                        ...next[pageIndex],
+                                        href: e.target.value,
+                                        visible:
+                                          next[pageIndex]?.visible !== false,
+                                      };
+                                      updateDraft("homePages", next);
+                                    }}
+                                    placeholder="/page/products"
+                                  />
+                                  <button
+                                    type="button"
+                                    className="admin-secondary"
+                                    onClick={() => {
+                                      const next = [
+                                        ...(draftSettings.homePages || []),
+                                      ];
+                                      next.splice(pageIndex, 1);
+                                      updateDraft("homePages", next);
+                                    }}
+                                  >
+                                    حذف
+                                  </button>
+                                </div>
+                              ),
+                            )}
                           </div>
 
                           <button
                             type="button"
                             className="admin-primary add-page-btn"
-                            onClick={() => updateDraft("homePages", [
-                              ...(draftSettings.homePages || []),
-                              { label: "صفحة جديدة", href: "/page/new-page", visible: true }
-                            ])}
+                            onClick={() =>
+                              updateDraft("homePages", [
+                                ...(draftSettings.homePages || []),
+                                {
+                                  label: "صفحة جديدة",
+                                  href: "/page/new-page",
+                                  visible: true,
+                                },
+                              ])
+                            }
                           >
                             إضافة صفحة
                           </button>
                         </div>
                       )}
-
-
                     </div>
                   )}
                 </div>
@@ -5142,7 +7228,10 @@ return (
         {tab === "users" && canAccessAdminSection("users") && (
           <StaffUsersPanel
             staffUsers={staffUsers}
-            onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }}
+            onNotice={(msg, ms = 3000) => {
+              setNotice(msg);
+              setTimeout(() => setNotice(""), ms);
+            }}
           />
         )}
 
@@ -5170,14 +7259,26 @@ return (
           </section>
         )}
 
-        {tab === "customers" && canAccessAdminSection("customers") && <CustomersPanel customers={customers} orders={orders} />}
-        {tab === "orders" && canAccessAdminSection("orders") && <OrdersPanel orders={orders} t={t} onNotice={(msg, ms = 3000) => { setNotice(msg); setTimeout(() => setNotice(""), ms); }} />}
-        {tabPermission[tab] && !canAccessAdminSection(tabPermission[tab]) && noPermissionCard(titleFor(tab, adminLanguage))}
+        {tab === "customers" && canAccessAdminSection("customers") && (
+          <CustomersPanel customers={customers} orders={orders} />
+        )}
+        {tab === "orders" && canAccessAdminSection("orders") && (
+          <OrdersPanel
+            orders={orders}
+            t={t}
+            onNotice={(msg, ms = 3000) => {
+              setNotice(msg);
+              setTimeout(() => setNotice(""), ms);
+            }}
+          />
+        )}
+        {tabPermission[tab] &&
+          !canAccessAdminSection(tabPermission[tab]) &&
+          noPermissionCard(titleFor(tab, adminLanguage))}
       </main>
     </div>
   );
 }
-
 
 function LiveVisitorsModal({ visitors = [], onClose }) {
   const formatLiveTime = (value) => {
@@ -5189,31 +7290,51 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
     return `قبل ${Math.round(diff / 60)} دقيقة`;
   };
 
-  const activeCartVisitors = visitors.filter(v => Number(v.cartCount || 0) > 0);
-  const timezones = [...new Set(visitors.map(v => v.timezone).filter(Boolean))];
+  const activeCartVisitors = visitors.filter(
+    (v) => Number(v.cartCount || 0) > 0,
+  );
+  const timezones = [
+    ...new Set(visitors.map((v) => v.timezone).filter(Boolean)),
+  ];
 
   return (
     <div className="live-modal-backdrop" onClick={onClose}>
-      <div className="live-modal-card" onClick={e => e.stopPropagation()}>
+      <div className="live-modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="live-modal-head">
           <div>
             <span>Live Visitors</span>
             <h2>الزوار المباشرون</h2>
-            <p>متابعة الزوار النشطين خلال آخر دقيقة، بدون تخزين بيانات شخصية حساسة.</p>
+            <p>
+              متابعة الزوار النشطين خلال آخر دقيقة، بدون تخزين بيانات شخصية
+              حساسة.
+            </p>
           </div>
-          <button type="button" onClick={onClose}><X size={18} /></button>
+          <button type="button" onClick={onClose}>
+            <X size={18} />
+          </button>
         </div>
 
         <div className="live-modal-summary">
-          <div><b>{visitors.length}</b><span>زائر نشط</span></div>
-          <div><b>{activeCartVisitors.length}</b><span>لديهم منتجات بالسلة</span></div>
-          <div><b>{timezones.length || 1}</b><span>منطقة زمنية</span></div>
+          <div>
+            <b>{visitors.length}</b>
+            <span>زائر نشط</span>
+          </div>
+          <div>
+            <b>{activeCartVisitors.length}</b>
+            <span>لديهم منتجات بالسلة</span>
+          </div>
+          <div>
+            <b>{timezones.length || 1}</b>
+            <span>منطقة زمنية</span>
+          </div>
         </div>
 
         <div className="live-modal-map real-map-layout">
           <div className="live-real-map-card">
             {(() => {
-              const located = visitors.filter(v => Number(v.latitude || 0) && Number(v.longitude || 0));
+              const located = visitors.filter(
+                (v) => Number(v.latitude || 0) && Number(v.longitude || 0),
+              );
               const center = located[0];
               const lat = Number(center?.latitude || 24.7136);
               const lon = Number(center?.longitude || 46.6753);
@@ -5230,7 +7351,10 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
                   />
                   <div className="live-real-map-note">
                     <b>خريطة فعلية تقريبية</b>
-                    <span>تعتمد على IP الزائر، لذلك الموقع تقريبي وليس عنوانًا دقيقًا.</span>
+                    <span>
+                      تعتمد على IP الزائر، لذلك الموقع تقريبي وليس عنوانًا
+                      دقيقًا.
+                    </span>
                   </div>
                 </>
               );
@@ -5239,12 +7363,18 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
 
           <div className="live-zone-list">
             <h3>أماكن تواجد الزوار</h3>
-            {visitors.length ? visitors.map((visitor, index) => (
-              <div key={visitor.id}>
-                <span>{visitor.city || visitor.country ? `${visitor.city || "مدينة غير معروفة"}${visitor.country ? `، ${visitor.country}` : ""}` : visitor.timezone || "موقع غير معروف"}</span>
-                <b>#{index + 1}</b>
-              </div>
-            )) : (
+            {visitors.length ? (
+              visitors.map((visitor, index) => (
+                <div key={visitor.id}>
+                  <span>
+                    {visitor.city || visitor.country
+                      ? `${visitor.city || "مدينة غير معروفة"}${visitor.country ? `، ${visitor.country}` : ""}`
+                      : visitor.timezone || "موقع غير معروف"}
+                  </span>
+                  <b>#{index + 1}</b>
+                </div>
+              ))
+            ) : (
               <p>لا توجد بيانات موقع بعد</p>
             )}
           </div>
@@ -5259,15 +7389,27 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
             <span>آخر ظهور</span>
           </div>
 
-          {visitors.length ? visitors.map((visitor, index) => (
-            <div className="live-table-row" key={visitor.id}>
-              <span>زائر #{index + 1}</span>
-              <span>{visitor.path || "/"}</span>
-              <span>{visitor.city || visitor.country ? `${visitor.city || ""} ${visitor.country || ""}` : `${Number(visitor.cartCount || 0)} منتج`}</span>
-              <span>{visitor.lastAction || "يتصفح المتجر"} • {visitor.source || "مباشر"}</span>
-              <span>{formatLiveTime(visitor.lastSeen)} • {formatDuration(visitor.sessionDuration)}</span>
-            </div>
-          )) : (
+          {visitors.length ? (
+            visitors.map((visitor, index) => (
+              <div className="live-table-row" key={visitor.id}>
+                <span>زائر #{index + 1}</span>
+                <span>{visitor.path || "/"}</span>
+                <span>
+                  {visitor.city || visitor.country
+                    ? `${visitor.city || ""} ${visitor.country || ""}`
+                    : `${Number(visitor.cartCount || 0)} منتج`}
+                </span>
+                <span>
+                  {visitor.lastAction || "يتصفح المتجر"} •{" "}
+                  {visitor.source || "مباشر"}
+                </span>
+                <span>
+                  {formatLiveTime(visitor.lastSeen)} •{" "}
+                  {formatDuration(visitor.sessionDuration)}
+                </span>
+              </div>
+            ))
+          ) : (
             <div className="live-empty">لا يوجد زوار نشطون الآن</div>
           )}
         </div>
@@ -5275,8 +7417,6 @@ function LiveVisitorsModal({ visitors = [], onClose }) {
     </div>
   );
 }
-
-
 
 function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
   const emptyForm = {
@@ -5287,7 +7427,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     permissions: ["products"],
     status: "active",
     inviteAfterSave: true,
-    tempPassword: generateStaffTemporaryPassword()
+    tempPassword: generateStaffTemporaryPassword(),
   };
 
   const roleLabels = {
@@ -5296,7 +7436,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
     products: "موظف منتجات",
     orders: "موظف طلبات",
     content: "موظف محتوى",
-    support: "دعم عملاء"
+    support: "دعم عملاء",
   };
 
   const permissionLabels = ADMIN_PERMISSION_LABELS;
@@ -5311,27 +7451,51 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
   const [hiddenDeletedStaffKeys, setHiddenDeletedStaffKeys] = useState([]);
 
   const visibleStaffUsers = useMemo(() => {
-    const hidden = new Set(hiddenDeletedStaffKeys.filter(Boolean).map(item => String(item).toLowerCase()));
-    return staffUsers.filter(user => {
+    const hidden = new Set(
+      hiddenDeletedStaffKeys
+        .filter(Boolean)
+        .map((item) => String(item).toLowerCase()),
+    );
+    return staffUsers.filter((user) => {
       if (isStaffDeleted(user)) return false;
-      const keys = [user.id, user.authUid, user.email].filter(Boolean).map(item => String(item).toLowerCase());
-      return !keys.some(key => hidden.has(key));
+      const keys = [user.id, user.authUid, user.email]
+        .filter(Boolean)
+        .map((item) => String(item).toLowerCase());
+      return !keys.some((key) => hidden.has(key));
     });
   }, [staffUsers, hiddenDeletedStaffKeys]);
 
-  const stats = useMemo(() => ({
-    total: visibleStaffUsers.length,
-    active: visibleStaffUsers.filter(user => user.status !== "disabled").length,
-    disabled: visibleStaffUsers.filter(user => user.status === "disabled").length,
-    owners: visibleStaffUsers.filter(user => user.isOwner || user.role === "owner").length
-  }), [visibleStaffUsers]);
+  const stats = useMemo(
+    () => ({
+      total: visibleStaffUsers.length,
+      active: visibleStaffUsers.filter((user) => user.status !== "disabled")
+        .length,
+      disabled: visibleStaffUsers.filter((user) => user.status === "disabled")
+        .length,
+      owners: visibleStaffUsers.filter(
+        (user) => user.isOwner || user.role === "owner",
+      ).length,
+    }),
+    [visibleStaffUsers],
+  );
 
   const filteredStaff = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return visibleStaffUsers.filter(user => {
-      const haystack = [user.name, user.email, user.phone, roleLabels[user.role]].join(" ").toLowerCase();
+    return visibleStaffUsers.filter((user) => {
+      const haystack = [
+        user.name,
+        user.email,
+        user.phone,
+        roleLabels[user.role],
+      ]
+        .join(" ")
+        .toLowerCase();
       const matchesSearch = !q || haystack.includes(q);
-      const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? user.status !== "disabled" : user.status === "disabled");
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active"
+          ? user.status !== "disabled"
+          : user.status === "disabled");
       return matchesSearch && matchesStatus;
     });
   }, [visibleStaffUsers, search, statusFilter]);
@@ -5352,21 +7516,23 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
       permissions: normalizeStaffPermissions(user.permissions),
       status: user.status || "active",
       inviteAfterSave: false,
-      tempPassword: user.invitePassword || ""
+      tempPassword: user.invitePassword || "",
     });
     setModalOpen(true);
   };
 
   const setRole = (role) => {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       role,
-      permissions: normalizeStaffPermissions(roleDefaults[role] || prev.permissions)
+      permissions: normalizeStaffPermissions(
+        roleDefaults[role] || prev.permissions,
+      ),
     }));
   };
 
   const togglePermission = (permission) => {
-    setForm(prev => {
+    setForm((prev) => {
       const current = new Set(prev.permissions || []);
       if (current.has(permission)) current.delete(permission);
       else current.add(permission);
@@ -5376,7 +7542,7 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
 
   const addPermission = (permission) => {
     if (!permission || editingStaff?.isOwner) return;
-    setForm(prev => {
+    setForm((prev) => {
       const current = new Set(normalizeStaffPermissions(prev.permissions));
       current.add(permission);
       return { ...prev, permissions: [...current] };
@@ -5385,16 +7551,19 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
 
   const removePermission = (permission) => {
     if (editingStaff?.isOwner) return;
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      permissions: normalizeStaffPermissions(prev.permissions).filter(item => item !== permission)
+      permissions: normalizeStaffPermissions(prev.permissions).filter(
+        (item) => item !== permission,
+      ),
     }));
   };
 
   const selectedPermissions = normalizeStaffPermissions(form.permissions);
 
   const getAdminInviteUrl = (user = {}) => {
-    const origin = window.location?.origin || "https://ms21alsaadi-wq-github-io.vercel.app";
+    const origin =
+      window.location?.origin || "https://ms21alsaadi-wq-github-io.vercel.app";
     const params = new URLSearchParams();
     if (user.email) params.set("email", user.email);
     if (user.invitationToken) params.set("invite", user.invitationToken);
@@ -5403,7 +7572,10 @@ function StaffUsersPanel({ staffUsers = [], onNotice = () => {} }) {
   };
 
   const buildInviteMessage = (user = {}) => {
-    const permissions = normalizeStaffPermissions(user.permissions).map(permission => permissionLabels[permission] || permission).join("، ") || "حسب الصلاحيات المحددة";
+    const permissions =
+      normalizeStaffPermissions(user.permissions)
+        .map((permission) => permissionLabels[permission] || permission)
+        .join("، ") || "حسب الصلاحيات المحددة";
     const roleName = roleLabels[user.role] || "موظف";
     const inviteUrl = getAdminInviteUrl(user);
     return {
@@ -5428,7 +7600,7 @@ ${permissions}
 
 ملاحظة: هذه كلمة مرور مؤقتة خاصة بحساب لوحة التحكم.
 
-تحياتي`
+تحياتي`,
     };
   };
 
@@ -5467,29 +7639,60 @@ ${invite.body}`;
 
     const isOwner = Boolean(editingStaff?.isOwner || form.role === "owner");
     let staffId = editingStaff?.id || `staff-${Date.now()}`;
-    let authUid = editingStaff?.authUid || (editingStaff?.id && !String(editingStaff.id).startsWith("staff-") ? editingStaff.id : "") || "";
+    let authUid =
+      editingStaff?.authUid ||
+      (editingStaff?.id && !String(editingStaff.id).startsWith("staff-")
+        ? editingStaff.id
+        : "") ||
+      "";
     let accountAlreadyExists = false;
     let restoredDeletedStaff = null;
     let restoredDeletedAdmin = null;
-    let temporaryPassword = editingStaff ? (editingStaff.invitePassword || "") : String(form.tempPassword || "").trim();
-    const invitationToken = editingStaff?.invitationToken || `invite-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    let temporaryPassword = editingStaff
+      ? editingStaff.invitePassword || ""
+      : String(form.tempPassword || "").trim();
+    const invitationToken =
+      editingStaff?.invitationToken ||
+      `invite-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-    const sameEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
-    const sameAdminSnap = await getDocs(query(collection(db, "admins"), where("email", "==", email)));
-    const existingStaffDocs = sameEmailSnap.docs.map((staffDoc) => ({ id: staffDoc.id, ...(staffDoc.data() || {}) }));
-    const existingAdminDocs = sameAdminSnap.docs.map((adminDoc) => ({ id: adminDoc.id, ...(adminDoc.data() || {}) }));
+    const sameEmailSnap = await getDocs(
+      query(collection(db, "staffUsers"), where("email", "==", email)),
+    );
+    const sameAdminSnap = await getDocs(
+      query(collection(db, "admins"), where("email", "==", email)),
+    );
+    const existingStaffDocs = sameEmailSnap.docs.map((staffDoc) => ({
+      id: staffDoc.id,
+      ...(staffDoc.data() || {}),
+    }));
+    const existingAdminDocs = sameAdminSnap.docs.map((adminDoc) => ({
+      id: adminDoc.id,
+      ...(adminDoc.data() || {}),
+    }));
 
     if (!editingStaff) {
-      const activeStaff = existingStaffDocs.find((item) => !isStaffDisabled(item));
-      const activeAdmin = existingAdminDocs.find((item) => !isStaffDisabled(item));
+      const activeStaff = existingStaffDocs.find(
+        (item) => !isStaffDisabled(item),
+      );
+      const activeAdmin = existingAdminDocs.find(
+        (item) => !isStaffDisabled(item),
+      );
 
       if (activeStaff || activeAdmin) {
-        onNotice("هذا البريد موجود بالفعل ضمن الموظفين. افتح الموظف من الجدول وعدّل بياناته بدل إضافته من جديد.");
+        onNotice(
+          "هذا البريد موجود بالفعل ضمن الموظفين. افتح الموظف من الجدول وعدّل بياناته بدل إضافته من جديد.",
+        );
         return;
       }
 
-      restoredDeletedStaff = existingStaffDocs.find((item) => isStaffDisabled(item) || isStaffDeleted(item)) || null;
-      restoredDeletedAdmin = existingAdminDocs.find((item) => isStaffDisabled(item) || isStaffDeleted(item)) || null;
+      restoredDeletedStaff =
+        existingStaffDocs.find(
+          (item) => isStaffDisabled(item) || isStaffDeleted(item),
+        ) || null;
+      restoredDeletedAdmin =
+        existingAdminDocs.find(
+          (item) => isStaffDisabled(item) || isStaffDeleted(item),
+        ) || null;
 
       if (restoredDeletedAdmin?.id) {
         authUid = restoredDeletedAdmin.id;
@@ -5499,7 +7702,10 @@ ${invite.body}`;
         authUid = restoredDeletedStaff.authUid;
         staffId = restoredDeletedStaff.authUid;
         accountAlreadyExists = true;
-      } else if (restoredDeletedStaff?.id && !String(restoredDeletedStaff.id).startsWith("staff-")) {
+      } else if (
+        restoredDeletedStaff?.id &&
+        !String(restoredDeletedStaff.id).startsWith("staff-")
+      ) {
         authUid = restoredDeletedStaff.id;
         staffId = restoredDeletedStaff.id;
         accountAlreadyExists = true;
@@ -5514,9 +7720,16 @@ ${invite.body}`;
 
       if (!authUid && !accountAlreadyExists) {
         try {
-          const secondaryApp = initializeApp(firebaseConfig, `staffInviteApp-${Date.now()}`);
+          const secondaryApp = initializeApp(
+            firebaseConfig,
+            `staffInviteApp-${Date.now()}`,
+          );
           const secondaryAuth = getAuth(secondaryApp);
-          const cred = await createUserWithEmailAndPassword(secondaryAuth, email, temporaryPassword);
+          const cred = await createUserWithEmailAndPassword(
+            secondaryAuth,
+            email,
+            temporaryPassword,
+          );
           authUid = cred.user.uid;
           staffId = authUid;
           await updateProfile(cred.user, { displayName: form.name.trim() });
@@ -5528,7 +7741,9 @@ ${invite.body}`;
             // لا يمكن من المتصفح معرفة UID أو تغيير كلمة مرور حساب موجود مسبقًا.
             // ننشئ سجل موظف نشط بالبريد، وبعد تسجيل دخوله أو إعادة التعيين نربطه بالـ UID الحقيقي.
             staffId = restoredDeletedStaff?.id || `staff-${Date.now()}`;
-            try { await sendPasswordResetEmail(auth, email); } catch (resetError) {}
+            try {
+              await sendPasswordResetEmail(auth, email);
+            } catch (resetError) {}
           } else {
             onNotice(firebaseError(error));
             return;
@@ -5537,7 +7752,9 @@ ${invite.body}`;
       }
     }
 
-    const permissions = isOwner ? Object.keys(permissionLabels) : normalizeStaffPermissions(form.permissions);
+    const permissions = isOwner
+      ? Object.keys(permissionLabels)
+      : normalizeStaffPermissions(form.permissions);
     const payload = {
       name: form.name.trim(),
       email,
@@ -5549,61 +7766,108 @@ ${invite.body}`;
       authUid,
       invitationToken,
       invitePassword: accountAlreadyExists ? "" : temporaryPassword,
-      mustChangePassword: editingStaff ? Boolean(editingStaff.mustChangePassword) : !accountAlreadyExists,
-      invitationStatus: accountAlreadyExists ? "password-reset-required" : (editingStaff?.invitationStatus || (form.inviteAfterSave ? "pending" : "created")),
-      invitedAtMs: form.inviteAfterSave ? Date.now() : (editingStaff?.invitedAtMs || restoredDeletedStaff?.invitedAtMs || null),
-      createdAtMs: editingStaff?.createdAtMs || restoredDeletedStaff?.createdAtMs || Date.now(),
-      restoredAtMs: restoredDeletedStaff || restoredDeletedAdmin ? Date.now() : null,
+      mustChangePassword: editingStaff
+        ? Boolean(editingStaff.mustChangePassword)
+        : !accountAlreadyExists,
+      invitationStatus: accountAlreadyExists
+        ? "password-reset-required"
+        : editingStaff?.invitationStatus ||
+          (form.inviteAfterSave ? "pending" : "created"),
+      invitedAtMs: form.inviteAfterSave
+        ? Date.now()
+        : editingStaff?.invitedAtMs ||
+          restoredDeletedStaff?.invitedAtMs ||
+          null,
+      createdAtMs:
+        editingStaff?.createdAtMs ||
+        restoredDeletedStaff?.createdAtMs ||
+        Date.now(),
+      restoredAtMs:
+        restoredDeletedStaff || restoredDeletedAdmin ? Date.now() : null,
       isDeleted: false,
       deleted: false,
       disabled: false,
       deletedAtMs: null,
       deletedAt: null,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
 
     await setDoc(doc(db, "staffUsers", staffId), payload, { merge: true });
 
     // تنظيف أي سجلات قديمة لنفس البريد حتى لا يرجع التعارض بعد الحذف وإعادة الإضافة.
-    await Promise.all(existingStaffDocs
-      .filter((item) => item.id && item.id !== staffId)
-      .map(async (item) => {
-        try { await deleteDoc(doc(db, "staffUsers", item.id)); }
-        catch (cleanupError) {
-          await setDoc(doc(db, "staffUsers", item.id), {
-            status: "deleted", isDeleted: true, deleted: true, disabled: true,
-            permissions: [], deletedAtMs: Date.now(), updatedAt: serverTimestamp()
-          }, { merge: true });
-        }
-      }));
+    await Promise.all(
+      existingStaffDocs
+        .filter((item) => item.id && item.id !== staffId)
+        .map(async (item) => {
+          try {
+            await deleteDoc(doc(db, "staffUsers", item.id));
+          } catch (cleanupError) {
+            await setDoc(
+              doc(db, "staffUsers", item.id),
+              {
+                status: "deleted",
+                isDeleted: true,
+                deleted: true,
+                disabled: true,
+                permissions: [],
+                deletedAtMs: Date.now(),
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+          }
+        }),
+    );
 
-    const adminId = authUid || (staffId && !String(staffId).startsWith("staff-") ? staffId : "");
+    const adminId =
+      authUid ||
+      (staffId && !String(staffId).startsWith("staff-") ? staffId : "");
     if (adminId) {
-      await setDoc(doc(db, "admins", adminId), {
-        email,
-        role: payload.role,
-        permissions: payload.permissions,
-        staffUser: true,
-        status: payload.status,
-        disabled: false,
-        isDeleted: false,
-        deleted: false,
-        mustChangePassword: payload.mustChangePassword,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        doc(db, "admins", adminId),
+        {
+          email,
+          role: payload.role,
+          permissions: payload.permissions,
+          staffUser: true,
+          status: payload.status,
+          disabled: false,
+          isDeleted: false,
+          deleted: false,
+          mustChangePassword: payload.mustChangePassword,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
     }
 
     setModalOpen(false);
     setEditingStaff(null);
     setForm({ ...emptyForm, tempPassword: generateStaffTemporaryPassword() });
-    setHiddenDeletedStaffKeys(prev => prev.filter(key => ![staffId, authUid, email].filter(Boolean).map(item => String(item).toLowerCase()).includes(String(key).toLowerCase())));
+    setHiddenDeletedStaffKeys((prev) =>
+      prev.filter(
+        (key) =>
+          ![staffId, authUid, email]
+            .filter(Boolean)
+            .map((item) => String(item).toLowerCase())
+            .includes(String(key).toLowerCase()),
+      ),
+    );
 
     if (!editingStaff && form.inviteAfterSave && !accountAlreadyExists) {
       openInviteEmail({ id: staffId, ...payload });
     } else if (!editingStaff && accountAlreadyExists) {
-      onNotice("تمت إعادة تفعيل الموظف بنفس الإيميل. لأن حسابه موجود سابقًا، تم إرسال رابط إعادة تعيين كلمة المرور بدل إنشاء كلمة مؤقتة جديدة.");
+      onNotice(
+        "تمت إعادة تفعيل الموظف بنفس الإيميل. لأن حسابه موجود سابقًا، تم إرسال رابط إعادة تعيين كلمة المرور بدل إنشاء كلمة مؤقتة جديدة.",
+      );
     } else {
-      onNotice(editingStaff ? "تم تحديث بيانات الموظف" : (restoredDeletedStaff || restoredDeletedAdmin ? "تمت إعادة تفعيل الموظف" : "تمت إضافة الموظف"));
+      onNotice(
+        editingStaff
+          ? "تم تحديث بيانات الموظف"
+          : restoredDeletedStaff || restoredDeletedAdmin
+            ? "تمت إعادة تفعيل الموظف"
+            : "تمت إضافة الموظف",
+      );
     }
   };
 
@@ -5613,17 +7877,32 @@ ${invite.body}`;
       return;
     }
     const nextStatus = user.status === "disabled" ? "active" : "disabled";
-    await setDoc(doc(db, "staffUsers", user.id), { status: nextStatus, updatedAt: serverTimestamp() }, { merge: true });
+    await setDoc(
+      doc(db, "staffUsers", user.id),
+      { status: nextStatus, updatedAt: serverTimestamp() },
+      { merge: true },
+    );
     const adminDocId = user.authUid || user.id;
     if (adminDocId) {
-      await setDoc(doc(db, "admins", adminDocId), {
-        status: nextStatus,
-        disabled: nextStatus === "disabled",
-        permissions: nextStatus === "disabled" ? [] : normalizeStaffPermissions(user.permissions),
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        doc(db, "admins", adminDocId),
+        {
+          status: nextStatus,
+          disabled: nextStatus === "disabled",
+          permissions:
+            nextStatus === "disabled"
+              ? []
+              : normalizeStaffPermissions(user.permissions),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
     }
-    onNotice(nextStatus === "disabled" ? "تم تعطيل حساب الموظف" : "تم تفعيل حساب الموظف");
+    onNotice(
+      nextStatus === "disabled"
+        ? "تم تعطيل حساب الموظف"
+        : "تم تفعيل حساب الموظف",
+    );
   };
 
   const removeStaff = async (user) => {
@@ -5633,18 +7912,24 @@ ${invite.body}`;
     }
     if (!window.confirm(`حذف الموظف ${user.name || user.email}؟`)) return;
 
-    const email = String(user.email || "").trim().toLowerCase();
+    const email = String(user.email || "")
+      .trim()
+      .toLowerCase();
     const localHideKeys = [user.id, user.authUid, email].filter(Boolean);
 
     // إخفاء فوري من الجدول حتى لو تأخر onSnapshot في Firebase.
-    setHiddenDeletedStaffKeys(prev => [...new Set([...prev, ...localHideKeys])]);
+    setHiddenDeletedStaffKeys((prev) => [
+      ...new Set([...prev, ...localHideKeys]),
+    ]);
 
     try {
       const idsToDisable = new Set([user.id, user.authUid].filter(Boolean));
       const matchingStaffDocs = [];
 
       if (email) {
-        const sameEmailSnap = await getDocs(query(collection(db, "staffUsers"), where("email", "==", email)));
+        const sameEmailSnap = await getDocs(
+          query(collection(db, "staffUsers"), where("email", "==", email)),
+        );
         sameEmailSnap.docs.forEach((staffDoc) => {
           idsToDisable.add(staffDoc.id);
           const data = staffDoc.data() || {};
@@ -5653,50 +7938,70 @@ ${invite.body}`;
         });
       }
 
-      const staffDocIds = new Set([user.id, ...matchingStaffDocs.map((item) => item.id)].filter(Boolean));
+      const staffDocIds = new Set(
+        [user.id, ...matchingStaffDocs.map((item) => item.id)].filter(Boolean),
+      );
       if (!staffDocIds.size && user.id) staffDocIds.add(user.id);
 
       // نحذف مستند الموظف من staffUsers حتى يختفي فعليًا من الجدول.
       // وإذا رفضت قواعد Firebase الحذف، نرجع لـ soft delete كخطة بديلة.
-      await Promise.all([...staffDocIds].map(async (staffDocId) => {
-        try {
-          await deleteDoc(doc(db, "staffUsers", staffDocId));
-        } catch (deleteError) {
-          await setDoc(doc(db, "staffUsers", staffDocId), {
-            status: "deleted",
-            isDeleted: true,
-            deleted: true,
-            disabled: true,
-            permissions: [],
-            deletedAtMs: Date.now(),
-            deletedAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          }, { merge: true });
-        }
-      }));
+      await Promise.all(
+        [...staffDocIds].map(async (staffDocId) => {
+          try {
+            await deleteDoc(doc(db, "staffUsers", staffDocId));
+          } catch (deleteError) {
+            await setDoc(
+              doc(db, "staffUsers", staffDocId),
+              {
+                status: "deleted",
+                isDeleted: true,
+                deleted: true,
+                disabled: true,
+                permissions: [],
+                deletedAtMs: Date.now(),
+                deletedAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+          }
+        }),
+      );
 
-      await Promise.all([...idsToDisable].map((adminDocId) => setDoc(doc(db, "admins", adminDocId), {
-        email,
-        staffUser: true,
-        status: "deleted",
-        disabled: true,
-        isDeleted: true,
-        deleted: true,
-        permissions: [],
-        deletedAtMs: Date.now(),
-        updatedAt: serverTimestamp()
-      }, { merge: true })));
+      await Promise.all(
+        [...idsToDisable].map((adminDocId) =>
+          setDoc(
+            doc(db, "admins", adminDocId),
+            {
+              email,
+              staffUser: true,
+              status: "deleted",
+              disabled: true,
+              isDeleted: true,
+              deleted: true,
+              permissions: [],
+              deletedAtMs: Date.now(),
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true },
+          ),
+        ),
+      );
 
       onNotice("تم حذف الموظف من الجدول وتعطيل دخوله للوحة التحكم");
     } catch (error) {
       // لو فشلت العملية نرجع إظهاره بدل ما يختفي محليًا فقط.
-      setHiddenDeletedStaffKeys(prev => prev.filter(key => !localHideKeys.includes(key)));
+      setHiddenDeletedStaffKeys((prev) =>
+        prev.filter((key) => !localHideKeys.includes(key)),
+      );
       onNotice(firebaseError(error));
     }
   };
 
   const issuePasswordReset = async (user) => {
-    const email = String(user?.email || "").trim().toLowerCase();
+    const email = String(user?.email || "")
+      .trim()
+      .toLowerCase();
     if (!email) {
       onNotice("لا يوجد بريد إلكتروني لهذا الموظف");
       return;
@@ -5705,23 +8010,35 @@ ${invite.body}`;
       const code = generateStaffTemporaryPassword();
       const staffDocId = user.id;
       if (staffDocId) {
-        await setDoc(doc(db, "staffUsers", staffDocId), {
-          recoveryCode: code,
-          recoveryCodeIssuedAtMs: Date.now(),
-          recoveryCodeStatus: "issued",
-          mustChangePassword: true,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+        await setDoc(
+          doc(db, "staffUsers", staffDocId),
+          {
+            recoveryCode: code,
+            recoveryCodeIssuedAtMs: Date.now(),
+            recoveryCodeStatus: "issued",
+            mustChangePassword: true,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
       }
-      const adminDocId = user.authUid || (user.id && !String(user.id).startsWith("staff-") ? user.id : "");
+      const adminDocId =
+        user.authUid ||
+        (user.id && !String(user.id).startsWith("staff-") ? user.id : "");
       if (adminDocId) {
-        await setDoc(doc(db, "admins", adminDocId), {
-          email,
-          mustChangePassword: true,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+        await setDoc(
+          doc(db, "admins", adminDocId),
+          {
+            email,
+            mustChangePassword: true,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
       }
-      try { await sendPasswordResetEmail(auth, email); } catch (resetError) {}
+      try {
+        await sendPasswordResetEmail(auth, email);
+      } catch (resetError) {}
       const recoveryText = `مرحبًا ${user.name || ""}،
 
 تم إصدار طلب استعادة دخول لوحة التحكم.
@@ -5747,7 +8064,6 @@ ${code}
     }
   };
 
-
   return (
     <section className="admin-card staff-admin-page">
       <div className="pro-card-head staff-head">
@@ -5756,28 +8072,48 @@ ${code}
           <h2>المستخدمين والموظفين</h2>
           <p>إدارة الموظفين الذين يدخلون لوحة التحكم وتحديد صلاحيات كل موظف.</p>
         </div>
-        <button type="button" className="admin-primary" onClick={openCreate}><Plus size={18}/> إضافة موظف</button>
+        <button type="button" className="admin-primary" onClick={openCreate}>
+          <Plus size={18} /> إضافة موظف
+        </button>
       </div>
 
       <div className="staff-stats-grid">
-        <div><b>{stats.total}</b><span>إجمالي الموظفين</span></div>
-        <div><b>{stats.active}</b><span>نشط</span></div>
-        <div><b>{stats.disabled}</b><span>معطل</span></div>
-        <div><b>{stats.owners}</b><span>مالك المتجر</span></div>
+        <div>
+          <b>{stats.total}</b>
+          <span>إجمالي الموظفين</span>
+        </div>
+        <div>
+          <b>{stats.active}</b>
+          <span>نشط</span>
+        </div>
+        <div>
+          <b>{stats.disabled}</b>
+          <span>معطل</span>
+        </div>
+        <div>
+          <b>{stats.owners}</b>
+          <span>مالك المتجر</span>
+        </div>
       </div>
 
       <div className="staff-toolbar">
         <label className="admin-search-field">
-          <Search size={17}/>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="بحث بالاسم أو البريد أو الجوال" />
+          <Search size={17} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="بحث بالاسم أو البريد أو الجوال"
+          />
         </label>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
           <option value="all">كل الحالات</option>
           <option value="active">نشط</option>
           <option value="disabled">معطل</option>
         </select>
       </div>
-
 
       <div className="staff-table-wrap">
         <table className="staff-table">
@@ -5793,37 +8129,112 @@ ${code}
             </tr>
           </thead>
           <tbody>
-            {filteredStaff.length ? filteredStaff.map(user => (
-              <tr key={user.id}>
-                <td>
-                  <div className="staff-person">
-                    <span>{(user.name || user.email || "م").slice(0, 1)}</span>
-                    <div><b>{user.name || "بدون اسم"}</b>{user.isOwner && <em>مالك المتجر</em>}</div>
-                  </div>
-                </td>
-                <td>{user.email || "-"}</td>
-                <td>{user.phone || "-"}</td>
-                <td><span className="staff-role-chip">{roleLabels[user.role] || user.role || "موظف"}</span></td>
-                <td>
-                  <div className="staff-permissions-preview">
-                    {normalizeStaffPermissions(user.permissions).slice(0, 3).map(permission => <span key={permission}>{permissionLabels[permission] || permission}</span>)}
-                    {normalizeStaffPermissions(user.permissions).length > 3 && <span>+{normalizeStaffPermissions(user.permissions).length - 3}</span>}
-                  </div>
-                </td>
-                <td><span className={user.status === "disabled" ? "staff-status off" : "staff-status on"}>{user.status === "disabled" ? "معطل" : "نشط"}</span></td>
-                <td>
-                  <div className="staff-actions">
-                    <button type="button" onClick={() => openInviteEmail(user)} title="إرسال دعوة"><Mail size={16}/></button>
-                    <button type="button" onClick={() => copyInviteLink(user)} title="نسخ نص الدعوة"><ExternalLink size={16}/></button>
-                    <button type="button" onClick={() => issuePasswordReset(user)} title="استعادة كلمة المرور"><Lock size={16}/></button>
-                    <button type="button" onClick={() => openEdit(user)} title="تعديل"><Pencil size={16}/></button>
-                    <button type="button" onClick={() => toggleStatus(user)} title="تفعيل/تعطيل"><Lock size={16}/></button>
-                    <button type="button" className="danger" onClick={() => removeStaff(user)} title="حذف"><Trash2 size={16}/></button>
-                  </div>
+            {filteredStaff.length ? (
+              filteredStaff.map((user) => (
+                <tr key={user.id}>
+                  <td>
+                    <div className="staff-person">
+                      <span>
+                        {(user.name || user.email || "م").slice(0, 1)}
+                      </span>
+                      <div>
+                        <b>{user.name || "بدون اسم"}</b>
+                        {user.isOwner && <em>مالك المتجر</em>}
+                      </div>
+                    </div>
+                  </td>
+                  <td>{user.email || "-"}</td>
+                  <td>{user.phone || "-"}</td>
+                  <td>
+                    <span className="staff-role-chip">
+                      {roleLabels[user.role] || user.role || "موظف"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="staff-permissions-preview">
+                      {normalizeStaffPermissions(user.permissions)
+                        .slice(0, 3)
+                        .map((permission) => (
+                          <span key={permission}>
+                            {permissionLabels[permission] || permission}
+                          </span>
+                        ))}
+                      {normalizeStaffPermissions(user.permissions).length >
+                        3 && (
+                        <span>
+                          +
+                          {normalizeStaffPermissions(user.permissions).length -
+                            3}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      className={
+                        user.status === "disabled"
+                          ? "staff-status off"
+                          : "staff-status on"
+                      }
+                    >
+                      {user.status === "disabled" ? "معطل" : "نشط"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="staff-actions">
+                      <button
+                        type="button"
+                        onClick={() => openInviteEmail(user)}
+                        title="إرسال دعوة"
+                      >
+                        <Mail size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyInviteLink(user)}
+                        title="نسخ نص الدعوة"
+                      >
+                        <ExternalLink size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => issuePasswordReset(user)}
+                        title="استعادة كلمة المرور"
+                      >
+                        <Lock size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openEdit(user)}
+                        title="تعديل"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleStatus(user)}
+                        title="تفعيل/تعطيل"
+                      >
+                        <Lock size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="danger"
+                        onClick={() => removeStaff(user)}
+                        title="حذف"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" className="staff-empty">
+                  لا يوجد موظفون مطابقون للبحث
                 </td>
               </tr>
-            )) : (
-              <tr><td colSpan="7" className="staff-empty">لا يوجد موظفون مطابقون للبحث</td></tr>
             )}
           </tbody>
         </table>
@@ -5834,15 +8245,28 @@ ${code}
           <div>
             <span>Permissions Map</span>
             <h3>جدول الصلاحيات حسب القسم</h3>
-            <p>مرجع سريع يوضح معنى كل صلاحية في لوحة التحكم. هذا الجدول للشرح فقط، أما تحديد صلاحيات الموظف فيتم من نافذة الإضافة أو التعديل.</p>
+            <p>
+              مرجع سريع يوضح معنى كل صلاحية في لوحة التحكم. هذا الجدول للشرح
+              فقط، أما تحديد صلاحيات الموظف فيتم من نافذة الإضافة أو التعديل.
+            </p>
           </div>
         </div>
         <div className="staff-permission-table-wrap compact">
           <table className="staff-permission-table">
-            <thead><tr><th>القسم</th><th>ما الذي تسمح به هذه الصلاحية؟</th></tr></thead>
+            <thead>
+              <tr>
+                <th>القسم</th>
+                <th>ما الذي تسمح به هذه الصلاحية؟</th>
+              </tr>
+            </thead>
             <tbody>
               {Object.entries(permissionLabels).map(([key, label]) => (
-                <tr key={key}><td><b>{label}</b></td><td>{permissionDescriptions[key]}</td></tr>
+                <tr key={key}>
+                  <td>
+                    <b>{label}</b>
+                  </td>
+                  <td>{permissionDescriptions[key]}</td>
+                </tr>
               ))}
             </tbody>
           </table>
@@ -5850,15 +8274,24 @@ ${code}
       </div>
 
       {modalOpen && (
-        <div className="product-modal-backdrop" onClick={() => setModalOpen(false)}>
-          <form className="product-modal-shell staff-modal-card" onSubmit={saveStaff} onClick={e => e.stopPropagation()}>
+        <div
+          className="product-modal-backdrop"
+          onClick={() => setModalOpen(false)}
+        >
+          <form
+            className="product-modal-shell staff-modal-card"
+            onSubmit={saveStaff}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="product-modal-head">
               <div>
                 <span>Staff User</span>
                 <h2>{editingStaff ? "تعديل موظف" : "إضافة موظف"}</h2>
                 <p>أضف بيانات الموظف وحدد الدور والصلاحيات المناسبة له.</p>
               </div>
-              <button type="button" onClick={() => setModalOpen(false)}><X size={18}/></button>
+              <button type="button" onClick={() => setModalOpen(false)}>
+                <X size={18} />
+              </button>
             </div>
 
             <div className="staff-modal-body">
@@ -5868,19 +8301,70 @@ ${code}
                   <h3>بيانات الموظف</h3>
                 </div>
                 <div className="staff-form-grid">
-                  <Control label="اسم الموظف"><input value={form.name} onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))} placeholder="مثال: محمد أحمد" /></Control>
-                  <Control label="البريد الإلكتروني"><input type="email" value={form.email} onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))} placeholder="name@example.com" disabled={Boolean(editingStaff?.isOwner)} /></Control>
+                  <Control label="اسم الموظف">
+                    <input
+                      value={form.name}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, name: e.target.value }))
+                      }
+                      placeholder="مثال: محمد أحمد"
+                    />
+                  </Control>
+                  <Control label="البريد الإلكتروني">
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, email: e.target.value }))
+                      }
+                      placeholder="name@example.com"
+                      disabled={Boolean(editingStaff?.isOwner)}
+                    />
+                  </Control>
                   {!editingStaff && (
                     <Control label="كلمة مرور مؤقتة">
                       <div className="staff-password-row">
-                        <input value={form.tempPassword} onChange={e => setForm(prev => ({ ...prev, tempPassword: e.target.value }))} placeholder="كلمة مرور للموظف" minLength="6" />
-                        <button type="button" className="admin-secondary" onClick={() => setForm(prev => ({ ...prev, tempPassword: generateStaffTemporaryPassword() }))}>توليد</button>
+                        <input
+                          value={form.tempPassword}
+                          onChange={(e) =>
+                            setForm((prev) => ({
+                              ...prev,
+                              tempPassword: e.target.value,
+                            }))
+                          }
+                          placeholder="كلمة مرور للموظف"
+                          minLength="6"
+                        />
+                        <button
+                          type="button"
+                          className="admin-secondary"
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              tempPassword: generateStaffTemporaryPassword(),
+                            }))
+                          }
+                        >
+                          توليد
+                        </button>
                       </div>
                     </Control>
                   )}
-                  <Control label="رقم الجوال"><input value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="05xxxxxxxx" /></Control>
+                  <Control label="رقم الجوال">
+                    <input
+                      value={form.phone}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, phone: e.target.value }))
+                      }
+                      placeholder="05xxxxxxxx"
+                    />
+                  </Control>
                   <Control label="الدور">
-                    <select value={form.role} onChange={e => setRole(e.target.value)} disabled={Boolean(editingStaff?.isOwner)}>
+                    <select
+                      value={form.role}
+                      onChange={(e) => setRole(e.target.value)}
+                      disabled={Boolean(editingStaff?.isOwner)}
+                    >
                       <option value="manager">مدير</option>
                       <option value="products">موظف منتجات</option>
                       <option value="orders">موظف طلبات</option>
@@ -5889,7 +8373,13 @@ ${code}
                     </select>
                   </Control>
                   <Control label="الحالة">
-                    <select value={form.status} onChange={e => setForm(prev => ({ ...prev, status: e.target.value }))} disabled={Boolean(editingStaff?.isOwner)}>
+                    <select
+                      value={form.status}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, status: e.target.value }))
+                      }
+                      disabled={Boolean(editingStaff?.isOwner)}
+                    >
                       <option value="active">نشط</option>
                       <option value="disabled">معطل</option>
                     </select>
@@ -5900,22 +8390,41 @@ ${code}
                     <input
                       type="checkbox"
                       checked={Boolean(form.inviteAfterSave)}
-                      onChange={e => setForm(prev => ({ ...prev, inviteAfterSave: e.target.checked }))}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          inviteAfterSave: e.target.checked,
+                        }))
+                      }
                     />
                     <span>فتح رسالة دعوة جاهزة بالبريد بعد حفظ الموظف</span>
                   </label>
                 )}
                 <div className="staff-invite-note">
-                  <Mail size={16}/>
-                  <p>للموظف الجديد يتم إنشاء كلمة مرور مؤقتة. إذا كان البريد مستخدمًا سابقًا، سيتم تفعيل الموظف وإرسال رابط إعادة تعيين كلمة المرور بدل كلمة مؤقتة جديدة.</p>
+                  <Mail size={16} />
+                  <p>
+                    للموظف الجديد يتم إنشاء كلمة مرور مؤقتة. إذا كان البريد
+                    مستخدمًا سابقًا، سيتم تفعيل الموظف وإرسال رابط إعادة تعيين
+                    كلمة المرور بدل كلمة مؤقتة جديدة.
+                  </p>
                 </div>
                 {editingStaff && !editingStaff.isOwner && (
                   <div className="staff-recovery-card">
                     <div>
                       <b>استعادة دخول الموظف</b>
-                      <p>لو الموظف نسي كلمة المرور، أرسل له رابط إعادة تعيين آمن ونسخ نص الاستعادة. الحسابات الموجودة سابقًا لا يمكن تغيير كلمة مرورها من المتصفح مباشرة بدون Backend.</p>
+                      <p>
+                        لو الموظف نسي كلمة المرور، أرسل له رابط إعادة تعيين آمن
+                        ونسخ نص الاستعادة. الحسابات الموجودة سابقًا لا يمكن
+                        تغيير كلمة مرورها من المتصفح مباشرة بدون Backend.
+                      </p>
                     </div>
-                    <button type="button" className="admin-secondary" onClick={() => issuePasswordReset(editingStaff)}>استعادة كلمة المرور</button>
+                    <button
+                      type="button"
+                      className="admin-secondary"
+                      onClick={() => issuePasswordReset(editingStaff)}
+                    >
+                      استعادة كلمة المرور
+                    </button>
                   </div>
                 )}
               </div>
@@ -5924,42 +8433,77 @@ ${code}
                 <div className="staff-modal-section-title">
                   <span>Access</span>
                   <h3>صلاحيات الموظف</h3>
-                  <p>أضف صلاحيات الموظف كشرائح صغيرة بدل جدول طويل داخل النافذة.</p>
+                  <p>
+                    أضف صلاحيات الموظف كشرائح صغيرة بدل جدول طويل داخل النافذة.
+                  </p>
                 </div>
 
                 <Control label="إضافة صلاحية">
                   <select
                     value=""
-                    onChange={e => addPermission(e.target.value)}
+                    onChange={(e) => addPermission(e.target.value)}
                     disabled={Boolean(editingStaff?.isOwner)}
                   >
                     <option value="">اختر صلاحية لإضافتها</option>
                     {Object.entries(permissionLabels)
                       .filter(([key]) => !selectedPermissions.includes(key))
-                      .map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                      .map(([key, label]) => (
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
+                      ))}
                   </select>
                 </Control>
 
                 <div className="staff-permission-badges">
-                  {(editingStaff?.isOwner ? Object.keys(permissionLabels) : selectedPermissions).length ? (
-                    (editingStaff?.isOwner ? Object.keys(permissionLabels) : selectedPermissions).map(permission => (
-                      <span key={permission} className="staff-permission-badge" title={permissionDescriptions[permission] || "الوصول إلى هذا القسم"}>
+                  {(editingStaff?.isOwner
+                    ? Object.keys(permissionLabels)
+                    : selectedPermissions
+                  ).length ? (
+                    (editingStaff?.isOwner
+                      ? Object.keys(permissionLabels)
+                      : selectedPermissions
+                    ).map((permission) => (
+                      <span
+                        key={permission}
+                        className="staff-permission-badge"
+                        title={
+                          permissionDescriptions[permission] ||
+                          "الوصول إلى هذا القسم"
+                        }
+                      >
                         {permissionLabels[permission] || permission}
                         {!editingStaff?.isOwner && (
-                          <button type="button" onClick={() => removePermission(permission)} aria-label={`حذف صلاحية ${permissionLabels[permission] || permission}`}>×</button>
+                          <button
+                            type="button"
+                            onClick={() => removePermission(permission)}
+                            aria-label={`حذف صلاحية ${permissionLabels[permission] || permission}`}
+                          >
+                            ×
+                          </button>
                         )}
                       </span>
                     ))
                   ) : (
-                    <em className="staff-permission-empty">لم تتم إضافة أي صلاحية بعد</em>
+                    <em className="staff-permission-empty">
+                      لم تتم إضافة أي صلاحية بعد
+                    </em>
                   )}
                 </div>
               </div>
             </div>
 
             <div className="product-modal-actions">
-              <button type="button" className="admin-secondary" onClick={() => setModalOpen(false)}>إلغاء</button>
-              <button type="submit" className="admin-primary"><Save size={17}/> حفظ الموظف</button>
+              <button
+                type="button"
+                className="admin-secondary"
+                onClick={() => setModalOpen(false)}
+              >
+                إلغاء
+              </button>
+              <button type="submit" className="admin-primary">
+                <Save size={17} /> حفظ الموظف
+              </button>
             </div>
           </form>
         </div>
@@ -5972,12 +8516,18 @@ function CustomersPanel({ customers, orders }) {
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
 
-  const filteredCustomers = customers.filter(c => {
-    const text = `${c.name || ""} ${c.email || ""} ${c.phone || ""} ${c.city || ""} ${c.address || ""}`.toLowerCase();
+  const filteredCustomers = customers.filter((c) => {
+    const text =
+      `${c.name || ""} ${c.email || ""} ${c.phone || ""} ${c.city || ""} ${c.address || ""}`.toLowerCase();
     return text.includes(search.toLowerCase());
   });
 
-  const selectedOrders = selected ? orders.filter(o => o.customerId === selected.id || o.customerEmail === selected.email) : [];
+  const selectedOrders = selected
+    ? orders.filter(
+        (o) =>
+          o.customerId === selected.id || o.customerEmail === selected.email,
+      )
+    : [];
 
   return (
     <section className="customers-pro-page">
@@ -5985,22 +8535,35 @@ function CustomersPanel({ customers, orders }) {
         <div>
           <span>Customers CRM</span>
           <h2>إدارة العملاء</h2>
-          <p>استعرض بيانات العملاء المسجلين وابحث بسرعة بالاسم أو الإيميل أو الجوال أو المدينة.</p>
+          <p>
+            استعرض بيانات العملاء المسجلين وابحث بسرعة بالاسم أو الإيميل أو
+            الجوال أو المدينة.
+          </p>
         </div>
 
         <div className="customers-pro-stats">
-          <div><b>{customers.length}</b><small>إجمالي العملاء</small></div>
-          <div><b>{filteredCustomers.length}</b><small>نتائج البحث</small></div>
+          <div>
+            <b>{customers.length}</b>
+            <small>إجمالي العملاء</small>
+          </div>
+          <div>
+            <b>{filteredCustomers.length}</b>
+            <small>نتائج البحث</small>
+          </div>
         </div>
       </div>
 
       <div className="admin-card customers-pro-search">
         <input
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="ابحث عن عميل..."
         />
-        {search && <button className="admin-secondary" onClick={() => setSearch("")}>مسح البحث</button>}
+        {search && (
+          <button className="admin-secondary" onClick={() => setSearch("")}>
+            مسح البحث
+          </button>
+        )}
       </div>
 
       <div className="customers-pro-layout">
@@ -6014,13 +8577,15 @@ function CustomersPanel({ customers, orders }) {
           </div>
 
           <div className="customers-pro-grid">
-            {filteredCustomers.map(c => (
+            {filteredCustomers.map((c) => (
               <button
                 className={`customer-pro-card ${selected?.id === c.id ? "selected" : ""}`}
                 key={c.id}
                 onClick={() => setSelected(c)}
               >
-                <div className="customer-pro-avatar">{(c.name || c.email || "?")[0]}</div>
+                <div className="customer-pro-avatar">
+                  {(c.name || c.email || "?")[0]}
+                </div>
                 <div className="customer-pro-info">
                   <b>{c.name || "عميل بدون اسم"}</b>
                   <span>{c.email || "لا يوجد إيميل"}</span>
@@ -6046,7 +8611,9 @@ function CustomersPanel({ customers, orders }) {
           ) : (
             <>
               <div className="customer-details-head">
-                <div className="customer-pro-avatar large">{(selected.name || selected.email || "?")[0]}</div>
+                <div className="customer-pro-avatar large">
+                  {(selected.name || selected.email || "?")[0]}
+                </div>
                 <div>
                   <span>Customer Details</span>
                   <h2>{selected.name || "عميل بدون اسم"}</h2>
@@ -6055,22 +8622,48 @@ function CustomersPanel({ customers, orders }) {
               </div>
 
               <div className="customer-detail-grid-pro">
-                <div><span>الجوال</span><b>{selected.phone || "غير متوفر"}</b></div>
-                <div><span>المدينة</span><b>{selected.city || "غير محدد"}</b></div>
-                <div className="wide"><span>العنوان</span><b>{selected.address || "غير متوفر"}</b></div>
-                <div><span>عدد الطلبات</span><b>{selectedOrders.length}</b></div>
-                <div><span>الحالة</span><b>مسجل</b></div>
+                <div>
+                  <span>الجوال</span>
+                  <b>{selected.phone || "غير متوفر"}</b>
+                </div>
+                <div>
+                  <span>المدينة</span>
+                  <b>{selected.city || "غير محدد"}</b>
+                </div>
+                <div className="wide">
+                  <span>العنوان</span>
+                  <b>{selected.address || "غير متوفر"}</b>
+                </div>
+                <div>
+                  <span>عدد الطلبات</span>
+                  <b>{selectedOrders.length}</b>
+                </div>
+                <div>
+                  <span>الحالة</span>
+                  <b>مسجل</b>
+                </div>
               </div>
 
               <div className="customer-orders-preview">
                 <h3>طلبات العميل</h3>
-                {selectedOrders.length ? selectedOrders.map(o => (
-                  <div className="mini-order" key={o.id}>{formatPrice(o.total)} ر.س • {o.status}</div>
-                )) : <p className="muted">لا توجد طلبات بعد.</p>}
+                {selectedOrders.length ? (
+                  selectedOrders.map((o) => (
+                    <div className="mini-order" key={o.id}>
+                      {formatPrice(o.total)} ر.س • {o.status}
+                    </div>
+                  ))
+                ) : (
+                  <p className="muted">لا توجد طلبات بعد.</p>
+                )}
               </div>
 
               <div className="customer-detail-actions-pro">
-                <button className="admin-secondary" onClick={() => setSelected(null)}>إغلاق التفاصيل</button>
+                <button
+                  className="admin-secondary"
+                  onClick={() => setSelected(null)}
+                >
+                  إغلاق التفاصيل
+                </button>
                 <button
                   className="danger-action"
                   onClick={async () => {
@@ -6102,7 +8695,7 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
     processing: "قيد التجهيز",
     shipped: "تم الشحن",
     completed: "مكتمل",
-    cancelled: "ملغي"
+    cancelled: "ملغي",
   };
 
   const statusOptions = [
@@ -6111,15 +8704,17 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
     { value: "processing", label: "قيد التجهيز" },
     { value: "shipped", label: "تم الشحن" },
     { value: "completed", label: "مكتمل" },
-    { value: "cancelled", label: "ملغي" }
+    { value: "cancelled", label: "ملغي" },
   ];
 
-  const normalizedOrders = orders.map(o => ({
-    ...o,
-    status: o.status || "new",
-    total: Number(o.total || 0),
-    items: o.items || []
-  })).sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
+  const normalizedOrders = orders
+    .map((o) => ({
+      ...o,
+      status: o.status || "new",
+      total: Number(o.total || 0),
+      items: o.items || [],
+    }))
+    .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt));
 
   const isWithinDate = (order) => {
     if (dateFilter === "all") return true;
@@ -6141,40 +8736,62 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
     }
 
     if (dateFilter === "month") {
-      return orderDate.getMonth() === now.getMonth() &&
-        orderDate.getFullYear() === now.getFullYear();
+      return (
+        orderDate.getMonth() === now.getMonth() &&
+        orderDate.getFullYear() === now.getFullYear()
+      );
     }
 
     return true;
   };
 
-  const filteredOrders = normalizedOrders.filter(o => {
+  const filteredOrders = normalizedOrders.filter((o) => {
     const statusOk = statusFilter === "all" || o.status === statusFilter;
-    const text = `${o.name || ""} ${o.customerName || ""} ${o.email || ""} ${o.customerEmail || ""} ${o.phone || ""} ${o.city || ""} ${o.id || ""}`.toLowerCase();
+    const text =
+      `${o.name || ""} ${o.customerName || ""} ${o.email || ""} ${o.customerEmail || ""} ${o.phone || ""} ${o.city || ""} ${o.id || ""}`.toLowerCase();
     return statusOk && isWithinDate(o) && text.includes(search.toLowerCase());
   });
 
-  const totals = normalizedOrders.reduce((acc, o) => {
-    acc.count += 1;
-    acc.value += o.total;
-    acc[o.status] = (acc[o.status] || 0) + 1;
-    return acc;
-  }, { count: 0, value: 0 });
+  const totals = normalizedOrders.reduce(
+    (acc, o) => {
+      acc.count += 1;
+      acc.value += o.total;
+      acc[o.status] = (acc[o.status] || 0) + 1;
+      return acc;
+    },
+    { count: 0, value: 0 },
+  );
 
   const updateShippingInfo = async (orderId, patch) => {
-    await setDoc(doc(db, "orders", orderId), {
-      ...patch,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(
+      doc(db, "orders", orderId),
+      {
+        ...patch,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
   };
 
   const updateOrderStatus = async (orderId, status) => {
-    await setDoc(doc(db, "orders", orderId), { status, updatedAt: serverTimestamp() }, { merge: true });
+    await setDoc(
+      doc(db, "orders", orderId),
+      { status, updatedAt: serverTimestamp() },
+      { merge: true },
+    );
 
-    const order = orders.find(o => o.id === orderId);
+    const order = orders.find((o) => o.id === orderId);
     if (order) {
-      const sent = await sendOrderStatusEmail({ ...order, id: orderId }, status);
-      onNotice?.(sent ? "تم تحديث حالة الطلب وإرسال إيميل للعميل" : "تم تحديث حالة الطلب، لكن لم يتم إرسال الإيميل", 3500);
+      const sent = await sendOrderStatusEmail(
+        { ...order, id: orderId },
+        status,
+      );
+      onNotice?.(
+        sent
+          ? "تم تحديث حالة الطلب وإرسال إيميل للعميل"
+          : "تم تحديث حالة الطلب، لكن لم يتم إرسال الإيميل",
+        3500,
+      );
     }
   };
 
@@ -6185,9 +8802,21 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
   };
 
   const exportOrdersCsv = () => {
-    const headers = ["order_id", "customer", "email", "phone", "city", "status", "total", "coupon", "created_at", "shipping_company", "tracking_number"];
+    const headers = [
+      "order_id",
+      "customer",
+      "email",
+      "phone",
+      "city",
+      "status",
+      "total",
+      "coupon",
+      "created_at",
+      "shipping_company",
+      "tracking_number",
+    ];
     const escapeCsv = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-    const rows = filteredOrders.map(order => [
+    const rows = filteredOrders.map((order) => [
       order.id,
       order.name || order.customerName || "",
       order.email || order.customerEmail || "",
@@ -6197,11 +8826,15 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
       order.total,
       order.couponCode || "",
       formatOrderDate(order.createdAt),
-      order.shippingCompany === "other" ? order.customShipping : order.shippingCompany,
-      order.trackingNumber || ""
+      order.shippingCompany === "other"
+        ? order.customShipping
+        : order.shippingCompany,
+      order.trackingNumber || "",
     ]);
 
-    const csv = [headers, ...rows].map(row => row.map(escapeCsv).join(",")).join("\n");
+    const csv = [headers, ...rows]
+      .map((row) => row.map(escapeCsv).join(","))
+      .join("\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -6222,32 +8855,65 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
         </div>
 
         <div className="orders-pro-stats">
-          <div><b>{totals.count}</b><small>طلب</small></div>
-          <div><b>{formatPrice(totals.value)}</b><small>{t("totalSales")}</small></div>
-          <div><b>{totals.new || 0}</b><small>طلبات جديدة</small></div>
+          <div>
+            <b>{totals.count}</b>
+            <small>طلب</small>
+          </div>
+          <div>
+            <b>{formatPrice(totals.value)}</b>
+            <small>{t("totalSales")}</small>
+          </div>
+          <div>
+            <b>{totals.new || 0}</b>
+            <small>طلبات جديدة</small>
+          </div>
         </div>
       </div>
 
       <div className="admin-card orders-toolbar">
         <input
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="ابحث باسم العميل، الإيميل، الجوال، المدينة..."
         />
 
-        <button type="button" className="admin-secondary export-orders-btn" onClick={exportOrdersCsv}>
-          <Download size={16}/> تصدير النتائج
+        <button
+          type="button"
+          className="admin-secondary export-orders-btn"
+          onClick={exportOrdersCsv}
+        >
+          <Download size={16} /> تصدير النتائج
         </button>
 
         <div className="orders-date-filters">
-          <button className={dateFilter === "all" ? "active" : ""} onClick={() => setDateFilter("all")}>الكل</button>
-          <button className={dateFilter === "today" ? "active" : ""} onClick={() => setDateFilter("today")}>اليوم</button>
-          <button className={dateFilter === "week" ? "active" : ""} onClick={() => setDateFilter("week")}>الأسبوع</button>
-          <button className={dateFilter === "month" ? "active" : ""} onClick={() => setDateFilter("month")}>الشهر</button>
+          <button
+            className={dateFilter === "all" ? "active" : ""}
+            onClick={() => setDateFilter("all")}
+          >
+            الكل
+          </button>
+          <button
+            className={dateFilter === "today" ? "active" : ""}
+            onClick={() => setDateFilter("today")}
+          >
+            اليوم
+          </button>
+          <button
+            className={dateFilter === "week" ? "active" : ""}
+            onClick={() => setDateFilter("week")}
+          >
+            الأسبوع
+          </button>
+          <button
+            className={dateFilter === "month" ? "active" : ""}
+            onClick={() => setDateFilter("month")}
+          >
+            الشهر
+          </button>
         </div>
 
         <div className="orders-filter-tabs">
-          {statusOptions.map(s => (
+          {statusOptions.map((s) => (
             <button
               key={s.value}
               className={statusFilter === s.value ? "active" : ""}
@@ -6260,7 +8926,7 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
       </div>
 
       <div className="orders-pro-grid">
-        {filteredOrders.map(order => (
+        {filteredOrders.map((order) => (
           <div className="order-pro-card" key={order.id}>
             <div className="order-pro-head">
               <div>
@@ -6275,12 +8941,34 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
             </div>
 
             <div className="order-pro-info">
-              <div><span>الجوال</span><b>{order.phone || "غير متوفر"}</b></div>
-              <div><span>المدينة</span><b>{order.city || "غير محدد"}</b></div>
-              <div><span>الإجمالي</span><b>{formatPrice(order.total)} ر.س</b></div>
-              <div><span>الكوبون</span><b>{order.couponCode ? `${order.couponCode} (${order.couponPercent || 0}%)` : "لا يوجد"}</b></div>
-              <div><span>عدد المنتجات</span><b>{order.items.length}</b></div>
-              <div className="wide"><span>تاريخ الطلب</span><b>{formatOrderDate(order.createdAt)}</b></div>
+              <div>
+                <span>الجوال</span>
+                <b>{order.phone || "غير متوفر"}</b>
+              </div>
+              <div>
+                <span>المدينة</span>
+                <b>{order.city || "غير محدد"}</b>
+              </div>
+              <div>
+                <span>الإجمالي</span>
+                <b>{formatPrice(order.total)} ر.س</b>
+              </div>
+              <div>
+                <span>الكوبون</span>
+                <b>
+                  {order.couponCode
+                    ? `${order.couponCode} (${order.couponPercent || 0}%)`
+                    : "لا يوجد"}
+                </b>
+              </div>
+              <div>
+                <span>عدد المنتجات</span>
+                <b>{order.items.length}</b>
+              </div>
+              <div className="wide">
+                <span>تاريخ الطلب</span>
+                <b>{formatOrderDate(order.createdAt)}</b>
+              </div>
             </div>
 
             {order.address && (
@@ -6293,24 +8981,41 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
             <div className="order-items-pro">
               {order.items.slice(0, 4).map((item, index) => (
                 <div key={index}>
-                  {item.image && <img src={item.image} alt={item.name || "منتج"} loading="lazy" decoding="async" />}
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.name || "منتج"}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
                   <span>{item.name}</span>
                   <b>{item.qty || 1}x</b>
                 </div>
               ))}
-              {order.items.length > 4 && <small>+{order.items.length - 4} منتجات أخرى</small>}
+              {order.items.length > 4 && (
+                <small>+{order.items.length - 4} منتجات أخرى</small>
+              )}
             </div>
 
             <div className="order-shipping-box">
               <div className="shipping-head">
                 <span>بيانات الشحن</span>
-                <b>{order.shippingCompany === "other" ? (order.customShipping || "أخرى") : (order.shippingCompany || "لم يتم التحديد")}</b>
+                <b>
+                  {order.shippingCompany === "other"
+                    ? order.customShipping || "أخرى"
+                    : order.shippingCompany || "لم يتم التحديد"}
+                </b>
               </div>
 
               <div className="shipping-fields-grid">
                 <select
                   value={order.shippingCompany || ""}
-                  onChange={e => updateShippingInfo(order.id, { shippingCompany: e.target.value })}
+                  onChange={(e) =>
+                    updateShippingInfo(order.id, {
+                      shippingCompany: e.target.value,
+                    })
+                  }
                 >
                   <option value="">اختر شركة الشحن</option>
                   <option value="Aramex">Aramex</option>
@@ -6323,7 +9028,11 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
                 <input
                   placeholder="رقم التتبع"
                   value={order.trackingNumber || ""}
-                  onChange={e => updateShippingInfo(order.id, { trackingNumber: e.target.value })}
+                  onChange={(e) =>
+                    updateShippingInfo(order.id, {
+                      trackingNumber: e.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -6332,7 +9041,11 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
                   className="custom-shipping-input"
                   placeholder="اكتب اسم شركة الشحن"
                   value={order.customShipping || ""}
-                  onChange={e => updateShippingInfo(order.id, { customShipping: e.target.value })}
+                  onChange={(e) =>
+                    updateShippingInfo(order.id, {
+                      customShipping: e.target.value,
+                    })
+                  }
                 />
               )}
             </div>
@@ -6340,7 +9053,11 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
             {order.trackingNumber && (
               <a
                 className="tracking-link-admin"
-                href={getTrackingUrl(order.shippingCompany, order.trackingNumber, order.customShipping)}
+                href={getTrackingUrl(
+                  order.shippingCompany,
+                  order.trackingNumber,
+                  order.customShipping,
+                )}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -6349,10 +9066,16 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
             )}
 
             <div className="order-actions-pro">
-              <button type="button" className="admin-secondary order-details-btn" onClick={() => setSelectedOrder(order)}>تفاصيل</button>
+              <button
+                type="button"
+                className="admin-secondary order-details-btn"
+                onClick={() => setSelectedOrder(order)}
+              >
+                تفاصيل
+              </button>
               <select
                 value={order.status}
-                onChange={e => updateOrderStatus(order.id, e.target.value)}
+                onChange={(e) => updateOrderStatus(order.id, e.target.value)}
               >
                 <option value="new">جديد</option>
                 <option value="processing">قيد التجهيز</option>
@@ -6361,7 +9084,10 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
                 <option value="cancelled">ملغي</option>
               </select>
 
-              <button className="danger-action" onClick={() => deleteOrder(order.id)}>
+              <button
+                className="danger-action"
+                onClick={() => deleteOrder(order.id)}
+              >
                 حذف
               </button>
             </div>
@@ -6376,27 +9102,77 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
       </div>
 
       {selectedOrder && (
-        <div className="order-modal-backdrop" onClick={() => setSelectedOrder(null)}>
-          <div className="order-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="order-modal-backdrop"
+          onClick={() => setSelectedOrder(null)}
+        >
+          <div
+            className="order-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="order-modal-head">
               <div>
                 <span>Order Details</span>
                 <h2>تفاصيل الطلب</h2>
               </div>
-              <button type="button" onClick={() => setSelectedOrder(null)}>×</button>
+              <button type="button" onClick={() => setSelectedOrder(null)}>
+                ×
+              </button>
             </div>
 
             <div className="order-modal-info">
-              <div><span>رقم الطلب</span><b>#{String(selectedOrder.id || "").slice(0, 10)}</b></div>
-              <div><span>الحالة</span><b>{selectedOrder.status || "new"}</b></div>
-              <div><span>العميل</span><b>{selectedOrder.name || selectedOrder.customerName || "غير محدد"}</b></div>
-              <div><span>الجوال</span><b>{selectedOrder.phone || "غير متوفر"}</b></div>
-              <div><span>الإيميل</span><b>{selectedOrder.email || selectedOrder.customerEmail || "غير متوفر"}</b></div>
-              <div><span>الكوبون</span><b>{selectedOrder.couponCode ? `${selectedOrder.couponCode} (${selectedOrder.couponPercent || 0}%)` : "لا يوجد"}</b></div>
-              <div><span>الخصم</span><b>{formatPrice(Number(selectedOrder.discount || 0))} ر.س</b></div>
-              <div><span>الإجمالي</span><b>{formatPrice(Number(selectedOrder.total || 0))} ر.س</b></div>
-              <div><span>تاريخ الطلب</span><b>{formatOrderDate(selectedOrder.createdAt)}</b></div>
-              <div className="wide"><span>العنوان</span><b>{selectedOrder.address || "غير متوفر"}</b></div>
+              <div>
+                <span>رقم الطلب</span>
+                <b>#{String(selectedOrder.id || "").slice(0, 10)}</b>
+              </div>
+              <div>
+                <span>الحالة</span>
+                <b>{selectedOrder.status || "new"}</b>
+              </div>
+              <div>
+                <span>العميل</span>
+                <b>
+                  {selectedOrder.name ||
+                    selectedOrder.customerName ||
+                    "غير محدد"}
+                </b>
+              </div>
+              <div>
+                <span>الجوال</span>
+                <b>{selectedOrder.phone || "غير متوفر"}</b>
+              </div>
+              <div>
+                <span>الإيميل</span>
+                <b>
+                  {selectedOrder.email ||
+                    selectedOrder.customerEmail ||
+                    "غير متوفر"}
+                </b>
+              </div>
+              <div>
+                <span>الكوبون</span>
+                <b>
+                  {selectedOrder.couponCode
+                    ? `${selectedOrder.couponCode} (${selectedOrder.couponPercent || 0}%)`
+                    : "لا يوجد"}
+                </b>
+              </div>
+              <div>
+                <span>الخصم</span>
+                <b>{formatPrice(Number(selectedOrder.discount || 0))} ر.س</b>
+              </div>
+              <div>
+                <span>الإجمالي</span>
+                <b>{formatPrice(Number(selectedOrder.total || 0))} ر.س</b>
+              </div>
+              <div>
+                <span>تاريخ الطلب</span>
+                <b>{formatOrderDate(selectedOrder.createdAt)}</b>
+              </div>
+              <div className="wide">
+                <span>العنوان</span>
+                <b>{selectedOrder.address || "غير متوفر"}</b>
+              </div>
             </div>
 
             <div className="order-modal-products">
@@ -6404,65 +9180,90 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
               {(selectedOrder.items || []).length ? (
                 (selectedOrder.items || []).map((item, i) => (
                   <div className="order-modal-item" key={i}>
-                    {item.image ? <img src={item.image} alt={item.name || "product"} loading="lazy" decoding="async" /> : <div className="order-modal-no-img">🌿</div>}
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name || "product"}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <div className="order-modal-no-img">🌿</div>
+                    )}
                     <div>
                       <b>{item.name || "منتج"}</b>
-                      <span>{item.selectedSize || item.size || item.category || ""}</span>
+                      <span>
+                        {item.selectedSize || item.size || item.category || ""}
+                      </span>
                     </div>
                     <em>{item.qty || 1}x</em>
                   </div>
                 ))
               ) : (
-                <p className="order-modal-empty">لا توجد منتجات داخل هذا الطلب.</p>
+                <p className="order-modal-empty">
+                  لا توجد منتجات داخل هذا الطلب.
+                </p>
               )}
             </div>
 
-            <button type="button" className="admin-primary modal-close-main" onClick={() => setSelectedOrder(null)}>
+            <button
+              type="button"
+              className="admin-primary modal-close-main"
+              onClick={() => setSelectedOrder(null)}
+            >
               إغلاق
             </button>
           </div>
         </div>
       )}
-
-</section>
+    </section>
   );
 }
 
-
-function Control({label, children}) {
-  return <label className="control"><span>{label}</span>{children}</label>;
+function Control({ label, children }) {
+  return (
+    <label className="control">
+      <span>{label}</span>
+      {children}
+    </label>
+  );
 }
-function Stat({label, value}) {
-  return <div className="stat"><span>{label}</span><b>{value}</b></div>;
+function Stat({ label, value }) {
+  return (
+    <div className="stat">
+      <span>{label}</span>
+      <b>{value}</b>
+    </div>
+  );
 }
 function titleFor(tab, lang = "ar") {
   const titles = {
     ar: {
-      dashboard:"الرئيسية",
-      reports:"التقارير",
-      identity:"هوية المتجر",
-      products:"إدارة المنتجات",
-      customers:"العملاء",
-      orders:"الطلبات",
-      coupons:"الكوبونات",
-      users:"المستخدمين",
-      settings:"الإعدادات",
-      notifications:"الإشعارات",
-      homepage:"ثيم المتجر"
+      dashboard: "الرئيسية",
+      reports: "التقارير",
+      identity: "هوية المتجر",
+      products: "إدارة المنتجات",
+      customers: "العملاء",
+      orders: "الطلبات",
+      coupons: "الكوبونات",
+      users: "المستخدمين",
+      settings: "الإعدادات",
+      notifications: "الإشعارات",
+      homepage: "ثيم المتجر",
     },
     en: {
-      dashboard:"Home",
-      reports:"Reports",
-      identity:"Store identity",
-      products:"Product management",
-      customers:"Customers",
-      orders:"Orders",
-      coupons:"Coupons",
-      users:"Users",
-      settings:"Settings",
-      notifications:"Notifications",
-      homepage:"Store theme"
-    }
+      dashboard: "Home",
+      reports: "Reports",
+      identity: "Store identity",
+      products: "Product management",
+      customers: "Customers",
+      orders: "Orders",
+      coupons: "Coupons",
+      users: "Users",
+      settings: "Settings",
+      notifications: "Notifications",
+      homepage: "Store theme",
+    },
   };
   return (titles[lang] || titles.ar)[tab] || tab;
 }
