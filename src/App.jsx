@@ -20,6 +20,9 @@ import {
   Save,
   Users,
   Lock,
+  KeyRound,
+  UserCheck,
+  UserX,
   Mail,
   User,
   MapPin,
@@ -8199,24 +8202,41 @@ ${code}
                       <button
                         type="button"
                         onClick={() => issuePasswordReset(user)}
-                        title="استعادة كلمة المرور"
+                        title="إرسال رابط استعادة كلمة المرور"
+                        aria-label="إرسال رابط استعادة كلمة المرور"
                       >
-                        <Lock size={16} />
+                        <KeyRound size={16} />
                       </button>
                       <button
                         type="button"
                         onClick={() => openEdit(user)}
                         title="تعديل"
+                        aria-label="تعديل الموظف"
                       >
                         <Pencil size={16} />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleStatus(user)}
-                        title="تفعيل/تعطيل"
-                      >
-                        <Lock size={16} />
-                      </button>
+                      {!user.isOwner && (
+                        <button
+                          type="button"
+                          onClick={() => toggleStatus(user)}
+                          title={
+                            user.status === "disabled"
+                              ? "تنشيط الموظف"
+                              : "تعطيل الموظف"
+                          }
+                          aria-label={
+                            user.status === "disabled"
+                              ? "تنشيط الموظف"
+                              : "تعطيل الموظف"
+                          }
+                        >
+                          {user.status === "disabled" ? (
+                            <UserCheck size={16} />
+                          ) : (
+                            <UserX size={16} />
+                          )}
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="danger"
