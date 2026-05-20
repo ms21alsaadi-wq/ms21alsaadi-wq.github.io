@@ -44,3 +44,36 @@ cp .env.example .env
 - `src/services/orderNotifications.js`: إرسال تحديثات الطلب عبر EmailJS.
 - `src/utils/helpers.js`: دوال مساعدة عامة.
 - `src/utils/media.js`: معالجة وضغط الصور قبل الحفظ.
+
+## ملاحظة مهمة للموظفين المحذوفين ثم المعاد إضافتهم
+
+عند حذف موظف من لوحة التحكم يبقى حسابه أحيانًا موجودًا داخل Firebase Authentication، لأن حذف حساب Auth أو تغيير كلمة مروره لا يتم بشكل آمن من واجهة المتجر مباشرة. لذلك تمت إضافة دالة Vercel آمنة في:
+
+- `api/staff-auth.js`
+- `src/services/staffAuthApi.js`
+
+هذه الدالة تجعل إعادة إضافة نفس الموظف تعمل بكلمة المرور المؤقتة الجديدة، بشرط إضافة متغيرات Firebase Admin في Vercel:
+
+```env
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your_project_id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
+```
+
+أو استخدم متغيرًا واحدًا بدلها:
+
+```env
+FIREBASE_SERVICE_ACCOUNT_JSON={"project_id":"your_project_id","client_email":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"}
+```
+
+إذا لم تضف هذه المتغيرات، سيستمر المتجر بالعمل، لكن عند إعادة إضافة بريد موظف موجود سابقًا في Firebase سيحتاج الموظف إلى رابط إعادة تعيين كلمة المرور بدل كلمة مرور مؤقتة جديدة.
+
+## إصلاحات هذه النسخة الأخيرة
+
+- تم جعل مسار `/api/staff-auth` يعمل على Vercel بدون أن يتم تحويله إلى صفحة المتجر، وذلك بتعديل `vercel.json` حتى يستثني مسارات `api` من إعادة التوجيه.
+- تم تقوية زر العين في صفحة دخول لوحة التحكم بإعدادات CSS واضحة حتى يظهر داخل حقل كلمة المرور في الجوال والكمبيوتر.
+- عند إعادة إضافة موظف كان محذوفًا سابقًا، يحاول النظام الآن تحديث كلمة المرور المؤقتة في Firebase Auth عبر API آمن.
+- إذا كانت كلمة المرور المؤقتة محفوظة في بيانات الموظف لكن تسجيل الدخول فشل، صفحة الدخول تحاول تفعيل الرمز المؤقت من `/api/staff-auth` ثم تعيد تسجيل الدخول تلقائيًا.
+- زر استعادة كلمة المرور للموظف صار يحاول إصدار كلمة مرور مؤقتة جديدة مباشرة، وإذا لم تكن خدمة Firebase Admin مفعلة يرسل رابط إعادة تعيين كلمة المرور كخطة بديلة.
+
+بعد رفع النسخة على Vercel، افتح صفحة الإعدادات في Vercel وأضف متغيرات Firebase Admin ثم نفذ Redeploy. بدون هذه المتغيرات لا يستطيع أي كود من الواجهة تغيير كلمة مرور حساب موجود سابقًا داخل Firebase Authentication.

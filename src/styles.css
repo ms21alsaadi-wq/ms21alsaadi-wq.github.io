@@ -15357,3 +15357,92 @@ button.product-flat-top-btn:hover svg {
     flex-direction: column;
   }
 }
+
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.login-form .password-input-wrap input {
+  width: 100%;
+  padding-inline-end: 48px;
+}
+
+.password-visibility-button {
+  position: absolute;
+  inset-inline-end: 10px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #0f4a35;
+  cursor: pointer;
+}
+
+.password-visibility-button:hover,
+.password-visibility-button:focus-visible {
+  background: rgba(15, 74, 53, 0.08);
+  outline: none;
+}
+
+/* Final admin login password-eye fix: keep the icon visible on RTL/mobile. */
+.login-form .admin-login-password-wrap,
+.login-form .password-input-wrap {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+.login-form .admin-login-password-wrap input,
+.login-form .password-input-wrap input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding-left: 58px !important;
+  padding-right: 14px !important;
+}
+
+.login-form .password-visibility-button {
+  position: absolute !important;
+  left: 12px !important;
+  right: auto !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10 !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(15, 74, 53, 0.18) !important;
+  background: #fffaf0 !important;
+  color: #0f4a35 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 18px rgba(15, 74, 53, 0.08) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.login-form .password-visibility-button svg {
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.login-form .password-visibility-button:hover,
+.login-form .password-visibility-button:focus-visible {
+  background: #eef4ed !important;
+  outline: 2px solid rgba(15, 74, 53, 0.22) !important;
+  outline-offset: 2px !important;
+}

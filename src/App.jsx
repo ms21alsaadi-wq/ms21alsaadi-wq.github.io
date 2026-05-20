@@ -21,6 +21,8 @@ import {
   Users,
   Lock,
   KeyRound,
+  Eye,
+  EyeOff,
   UserCheck,
   UserX,
   Mail,
@@ -103,6 +105,12 @@ import {
 } from "./data/adminPermissions.js";
 import { getVisitorGeo, trackFunnelStep } from "./services/analytics.js";
 import { sendOrderStatusEmail } from "./services/orderNotifications.js";
+import {
+  activateStaffTemporaryPassword,
+  disableStaffAuthUser,
+  setStaffAuthPassword,
+  upsertStaffAuthUser,
+} from "./services/staffAuthApi.js";
 import { fileToDataUrl } from "./utils/media.js";
 
 export default function App() {
@@ -346,97 +354,132 @@ export default function App() {
 
 function AdminLogin({ go, settings }) {
   const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function finishLogin(cred, email) {
+    const normalizedEmail = String(email || cred.user.email || "")
+      .trim()
+      .toLowerCase();
+    const adminSnap = await getDoc(doc(db, "admins", cred.user.uid));
+    const adminData = adminSnap.exists() ? adminSnap.data() || {} : null;
+    const adminBlocked = Boolean(
+      adminData?.disabled ||
+        adminData?.isDeleted ||
+        adminData?.deleted ||
+        adminData?.status === "deleted" ||
+        adminData?.status === "disabled",
+    );
+
+    const staffByUidSnap = await getDoc(doc(db, "staffUsers", cred.user.uid));
+    let staffRecord = staffByUidSnap.exists()
+      ? { id: cred.user.uid, ...staffByUidSnap.data() }
+      : null;
+
+    const staffByEmailSnap = await getDocs(
+      query(collection(db, "staffUsers"), where("email", "==", normalizedEmail)),
+    );
+    const emailStaffRecords = staffByEmailSnap.docs.map((staffDoc) => ({
+      id: staffDoc.id,
+      ...(staffDoc.data() || {}),
+    }));
+    const activeEmailStaff = emailStaffRecords.find(
+      (item) => !isStaffDisabled(item),
+    );
+    if (!staffRecord || isStaffDisabled(staffRecord)) {
+      staffRecord = activeEmailStaff || staffRecord;
+    }
+
+    const canEnterAsStaff = Boolean(
+      staffRecord && !isStaffDisabled(staffRecord),
+    );
+    const isStaffAdminAccount = Boolean(adminData?.staffUser || staffRecord);
+
+    if (
+      (adminBlocked && !canEnterAsStaff) ||
+      (!adminSnap.exists() && !canEnterAsStaff) ||
+      (isStaffAdminAccount && !canEnterAsStaff)
+    ) {
+      await signOut(auth);
+      setMessage("هذا الحساب غير مصرح له بدخول لوحة التحكم أو تم حذفه/تعطيله.");
+      return false;
+    }
+
+    if (canEnterAsStaff) {
+      const permissions = normalizeStaffPermissions(staffRecord.permissions);
+      await setDoc(
+        doc(db, "staffUsers", cred.user.uid),
+        {
+          ...staffRecord,
+          email: normalizedEmail,
+          authUid: cred.user.uid,
+          status: "active",
+          disabled: false,
+          isDeleted: false,
+          deleted: false,
+          invitationStatus: "accepted",
+          lastLoginAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+      await setDoc(
+        doc(db, "admins", cred.user.uid),
+        {
+          email: normalizedEmail,
+          role: staffRecord.role || "staff",
+          permissions,
+          staffUser: true,
+          status: "active",
+          disabled: false,
+          isDeleted: false,
+          deleted: false,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+
+    setMessage("");
+    return true;
+  }
 
   async function submit(e) {
     e.preventDefault();
+    if (busy) return;
     setMessage("");
+    setBusy(true);
 
-    const email = e.target.email.value.trim();
+    const email = e.target.email.value.trim().toLowerCase();
     const password = e.target.password.value;
 
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      const adminSnap = await getDoc(doc(db, "admins", cred.user.uid));
-      const adminData = adminSnap.exists() ? adminSnap.data() || {} : null;
-      const adminBlocked = Boolean(
-        adminData?.disabled ||
-          adminData?.isDeleted ||
-          adminData?.deleted ||
-          adminData?.status === "deleted" ||
-          adminData?.status === "disabled",
-      );
-
-      const staffByUidSnap = await getDoc(doc(db, "staffUsers", cred.user.uid));
-      let staffRecord = staffByUidSnap.exists()
-        ? { id: cred.user.uid, ...staffByUidSnap.data() }
-        : null;
-
-      const staffByEmailSnap = await getDocs(
-        query(collection(db, "staffUsers"), where("email", "==", email)),
-      );
-      const emailStaffRecords = staffByEmailSnap.docs.map((staffDoc) => ({
-        id: staffDoc.id,
-        ...(staffDoc.data() || {}),
-      }));
-      const activeEmailStaff = emailStaffRecords.find(
-        (item) => !isStaffDisabled(item),
-      );
-      if (!staffRecord || isStaffDisabled(staffRecord)) {
-        staffRecord = activeEmailStaff || staffRecord;
-      }
-
-      const canEnterAsStaff = Boolean(
-        staffRecord && !isStaffDisabled(staffRecord),
-      );
-      const isStaffAdminAccount = Boolean(adminData?.staffUser || staffRecord);
-
-      if (
-        (adminBlocked && !canEnterAsStaff) ||
-        (!adminSnap.exists() && !canEnterAsStaff) ||
-        (isStaffAdminAccount && !canEnterAsStaff)
-      ) {
-        await signOut(auth);
-        setMessage(
-          "هذا الحساب غير مصرح له بدخول لوحة التحكم أو تم حذفه/تعطيله.",
-        );
-        return;
-      }
-
-      if (canEnterAsStaff) {
-        await setDoc(
-          doc(db, "staffUsers", cred.user.uid),
-          {
-            ...staffRecord,
-            email,
-            authUid: cred.user.uid,
-            status: staffRecord.status === "disabled" ? "disabled" : "active",
-            disabled: false,
-            isDeleted: false,
-            deleted: false,
-            invitationStatus: "accepted",
-            lastLoginAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true },
-        );
-        await setDoc(
-          doc(db, "admins", cred.user.uid),
-          {
-            email,
-            role: staffRecord.role || "staff",
-            permissions: normalizeStaffPermissions(staffRecord.permissions),
-            staffUser: true,
-            status: staffRecord.status === "disabled" ? "disabled" : "active",
-            disabled: staffRecord.status === "disabled",
-            isDeleted: false,
-            deleted: false,
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true },
-        );
-      }
+      await finishLogin(cred, email);
     } catch (err) {
+      const code = String(err?.code || "").toLowerCase();
+      const canTryTemporaryCode =
+        code.includes("invalid-credential") ||
+        code.includes("wrong-password") ||
+        code.includes("user-disabled") ||
+        code.includes("user-not-found");
+
+      if (canTryTemporaryCode) {
+        try {
+          setMessage("جاري تفعيل الرمز المؤقت...");
+          await activateStaffTemporaryPassword({ email, password });
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          await finishLogin(cred, email);
+          return;
+        } catch (temporaryError) {
+          setMessage(temporaryError?.message || firebaseError(err));
+          return;
+        }
+      }
+
       setMessage(firebaseError(err));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -455,6 +498,7 @@ function AdminLogin({ go, settings }) {
             name="email"
             type="email"
             required
+            autoComplete="username"
             defaultValue={
               new URLSearchParams(window.location.search).get("email") || ""
             }
@@ -464,14 +508,34 @@ function AdminLogin({ go, settings }) {
           <span>
             <Lock size={16} /> كلمة المرور
           </span>
-          <input name="password" type="password" required minLength="6" />
+          <div className="password-input-wrap admin-login-password-wrap">
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength="6"
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="password-visibility-button"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+              title={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+            >
+              {showPassword ? <EyeOff size={20} strokeWidth={2.4} /> : <Eye size={20} strokeWidth={2.4} />}
+            </button>
+          </div>
         </label>
         {message && <div className="error">{message}</div>}
-        <button className="admin-primary">دخول</button>
+        <button className="admin-primary" disabled={busy}>
+          {busy ? "جاري الدخول..." : "دخول"}
+        </button>
         <button
           type="button"
           className="admin-secondary"
           onClick={() => go("/")}
+          disabled={busy}
         >
           رجوع للمتجر
         </button>
@@ -7716,12 +7780,35 @@ ${invite.body}`;
         staffId = restoredDeletedStaff.id;
       }
 
-      if (temporaryPassword.length < 6 && !accountAlreadyExists) {
+      if (temporaryPassword.length < 6) {
         onNotice("كلمة المرور المؤقتة يجب أن تكون 6 أحرف أو أكثر");
         return;
       }
 
-      if (!authUid && !accountAlreadyExists) {
+      // الحل الأفضل للحسابات التي حُذفت ثم أُعيدت: نستخدم دالة Vercel الآمنة
+      // لتحديث كلمة مرور حساب Firebase Auth الموجود وإعادة تفعيله بنفس الرمز المؤقت.
+      try {
+        const authResult = await upsertStaffAuthUser({
+          email,
+          password: temporaryPassword,
+          name: form.name.trim(),
+        });
+        if (!authResult?.uid) {
+          throw Object.assign(new Error("staff-auth-invalid-response"), {
+            code: "staff-auth-invalid-response",
+          });
+        }
+        authUid = authResult.uid;
+        staffId = authUid;
+        accountAlreadyExists = false;
+      } catch (apiError) {
+        if (["active-staff-exists", "permission-denied", "missing-id-token"].includes(apiError?.code)) {
+          onNotice(apiError.message || "تعذر إنشاء حساب الموظف");
+          return;
+        }
+
+        // عند عدم ضبط مفاتيح Firebase Admin في Vercel نرجع للطريقة القديمة:
+        // إنشاء حساب جديد من المتصفح، أو إرسال رابط إعادة تعيين إذا كان الحساب موجودًا.
         try {
           const secondaryApp = initializeApp(
             firebaseConfig,
@@ -7735,15 +7822,22 @@ ${invite.body}`;
           );
           authUid = cred.user.uid;
           staffId = authUid;
+          accountAlreadyExists = false;
           await updateProfile(cred.user, { displayName: form.name.trim() });
           await signOut(secondaryAuth);
           await deleteApp(secondaryApp);
         } catch (error) {
           if (error?.code === "auth/email-already-in-use") {
             accountAlreadyExists = true;
-            // لا يمكن من المتصفح معرفة UID أو تغيير كلمة مرور حساب موجود مسبقًا.
-            // ننشئ سجل موظف نشط بالبريد، وبعد تسجيل دخوله أو إعادة التعيين نربطه بالـ UID الحقيقي.
-            staffId = restoredDeletedStaff?.id || `staff-${Date.now()}`;
+            // لا يمكن من المتصفح تغيير كلمة مرور حساب Firebase Auth موجود مسبقًا.
+            // إذا لم تكن دالة Vercel مفعلة، نفعّل الموظف ونرسل له رابط إعادة تعيين كلمة المرور.
+            staffId =
+              restoredDeletedAdmin?.id ||
+              restoredDeletedStaff?.authUid ||
+              restoredDeletedStaff?.id ||
+              `staff-${Date.now()}`;
+            authUid =
+              restoredDeletedAdmin?.id || restoredDeletedStaff?.authUid || "";
             try {
               await sendPasswordResetEmail(auth, email);
             } catch (resetError) {}
@@ -7768,12 +7862,14 @@ ${invite.body}`;
       isOwner,
       authUid,
       invitationToken,
-      invitePassword: accountAlreadyExists ? "" : temporaryPassword,
+      invitePassword: editingStaff
+        ? editingStaff.invitePassword || ""
+        : temporaryPassword,
       mustChangePassword: editingStaff
         ? Boolean(editingStaff.mustChangePassword)
-        : !accountAlreadyExists,
+        : true,
       invitationStatus: accountAlreadyExists
-        ? "password-reset-required"
+        ? "pending-temporary-activation"
         : editingStaff?.invitationStatus ||
           (form.inviteAfterSave ? "pending" : "created"),
       invitedAtMs: form.inviteAfterSave
@@ -7831,10 +7927,11 @@ ${invite.body}`;
         {
           email,
           role: payload.role,
-          permissions: payload.permissions,
+          permissions:
+            payload.status === "disabled" ? [] : payload.permissions,
           staffUser: true,
           status: payload.status,
-          disabled: false,
+          disabled: payload.status === "disabled",
           isDeleted: false,
           deleted: false,
           mustChangePassword: payload.mustChangePassword,
@@ -7861,7 +7958,7 @@ ${invite.body}`;
       openInviteEmail({ id: staffId, ...payload });
     } else if (!editingStaff && accountAlreadyExists) {
       onNotice(
-        "تمت إعادة تفعيل الموظف بنفس الإيميل. لأن حسابه موجود سابقًا، تم إرسال رابط إعادة تعيين كلمة المرور بدل إنشاء كلمة مؤقتة جديدة.",
+        "تمت إعادة تفعيل الموظف وحفظ الرمز المؤقت. إذا ظهرت له رسالة بيانات الدخول غير صحيحة، تأكد من إعداد Firebase Admin في Vercel ثم اعمل Redeploy، أو أرسل له استعادة كلمة المرور.",
       );
     } else {
       onNotice(
@@ -7991,6 +8088,14 @@ ${invite.body}`;
         ),
       );
 
+      try {
+        const uidToDisable = user.authUid ||
+          (user.id && !String(user.id).startsWith("staff-") ? user.id : "");
+        await disableStaffAuthUser({ uid: uidToDisable, email });
+      } catch (authDisableError) {
+        // تعطيل الدخول الأساسي تم عبر مستندات admins/staffUsers، وهذه خطوة إضافية إذا كانت دالة Vercel مفعلة.
+      }
+
       onNotice("تم حذف الموظف من الجدول وتعطيل دخوله للوحة التحكم");
     } catch (error) {
       // لو فشلت العملية نرجع إظهاره بدل ما يختفي محليًا فقط.
@@ -8009,56 +8114,138 @@ ${invite.body}`;
       onNotice("لا يوجد بريد إلكتروني لهذا الموظف");
       return;
     }
+
+    const code = generateStaffTemporaryPassword();
+    const currentStaffDocId = user.id;
+    const currentAuthUid =
+      user.authUid ||
+      (user.id && !String(user.id).startsWith("staff-") ? user.id : "");
+
+    let authPasswordUpdated = false;
+    let resolvedAuthUid = currentAuthUid;
+    let serverMessage = "";
+
     try {
-      const code = generateStaffTemporaryPassword();
-      const staffDocId = user.id;
-      if (staffDocId) {
+      const result = await setStaffAuthPassword({
+        uid: currentAuthUid,
+        email,
+        password: code,
+        name: user.name || "",
+      });
+      if (result?.uid) resolvedAuthUid = result.uid;
+      authPasswordUpdated = true;
+    } catch (serverError) {
+      serverMessage = serverError?.message || "";
+      try {
+        await sendPasswordResetEmail(auth, email);
+      } catch (resetError) {}
+    }
+
+    try {
+      const { id, ...userData } = user || {};
+      const targetStaffDocId = resolvedAuthUid || currentStaffDocId;
+      const staffPayload = {
+        ...userData,
+        email,
+        authUid: resolvedAuthUid || currentAuthUid || "",
+        invitePassword: code,
+        recoveryCode: code,
+        recoveryCodeIssuedAtMs: Date.now(),
+        recoveryCodeStatus: authPasswordUpdated ? "temporary-password-issued" : "issued",
+        mustChangePassword: true,
+        invitationStatus: authPasswordUpdated
+          ? "temporary-password-issued"
+          : "password-reset-required",
+        status: "active",
+        disabled: false,
+        isDeleted: false,
+        deleted: false,
+        updatedAt: serverTimestamp(),
+      };
+
+      if (targetStaffDocId) {
+        await setDoc(doc(db, "staffUsers", targetStaffDocId), staffPayload, {
+          merge: true,
+        });
+      }
+
+      if (
+        currentStaffDocId &&
+        resolvedAuthUid &&
+        currentStaffDocId !== resolvedAuthUid
+      ) {
         await setDoc(
-          doc(db, "staffUsers", staffDocId),
+          doc(db, "staffUsers", currentStaffDocId),
           {
-            recoveryCode: code,
-            recoveryCodeIssuedAtMs: Date.now(),
-            recoveryCodeStatus: "issued",
-            mustChangePassword: true,
+            status: "deleted",
+            disabled: true,
+            isDeleted: true,
+            deleted: true,
+            mergedTo: resolvedAuthUid,
             updatedAt: serverTimestamp(),
           },
           { merge: true },
         );
       }
-      const adminDocId =
-        user.authUid ||
-        (user.id && !String(user.id).startsWith("staff-") ? user.id : "");
+
+      const adminDocId = resolvedAuthUid || currentAuthUid;
       if (adminDocId) {
         await setDoc(
           doc(db, "admins", adminDocId),
           {
             email,
+            role: user.role || "staff",
+            permissions: normalizeStaffPermissions(user.permissions),
+            staffUser: true,
+            status: "active",
+            disabled: false,
+            isDeleted: false,
+            deleted: false,
             mustChangePassword: true,
             updatedAt: serverTimestamp(),
           },
           { merge: true },
         );
       }
-      try {
-        await sendPasswordResetEmail(auth, email);
-      } catch (resetError) {}
-      const recoveryText = `مرحبًا ${user.name || ""}،
 
-تم إصدار طلب استعادة دخول لوحة التحكم.
+      const recoveryText = authPasswordUpdated
+        ? `مرحبًا ${user.name || ""}،
+
+تم إصدار كلمة مرور مؤقتة جديدة لدخول لوحة التحكم.
 
 رابط الدخول:
-${getAdminInviteUrl(user)}
+${getAdminInviteUrl({ ...user, email })}
 
 البريد:
 ${email}
 
-رمز متابعة داخلي للمالك:
+كلمة المرور المؤقتة:
 ${code}
 
-مهم: استخدم رابط إعادة تعيين كلمة المرور الذي وصلك على البريد لإنشاء كلمة مرور جديدة، ثم سجّل الدخول. بعد الدخول سيطلب منك النظام تأكيد كلمة مرورك الجديدة.`;
+بعد الدخول سيطلب منك النظام تغيير كلمة المرور.`
+        : `مرحبًا ${user.name || ""}،
+
+تم إصدار طلب استعادة دخول لوحة التحكم.
+
+رابط الدخول:
+${getAdminInviteUrl({ ...user, email })}
+
+البريد:
+${email}
+
+رمز مؤقت محفوظ في النظام:
+${code}
+
+مهم: إذا لم يعمل الرمز المؤقت، استخدم رابط إعادة تعيين كلمة المرور الذي وصلك على البريد.
+${serverMessage ? `\nملاحظة للمالك: ${serverMessage}` : ""}`;
+
       try {
         await navigator.clipboard.writeText(recoveryText);
-        onNotice("تم إرسال رابط إعادة تعيين كلمة المرور ونسخ نص الاستعادة.");
+        onNotice(
+          authPasswordUpdated
+            ? "تم تعيين كلمة مرور مؤقتة جديدة ونسخ نصها للموظف."
+            : "تم إرسال رابط إعادة تعيين كلمة المرور ونسخ نص الاستعادة.",
+        );
       } catch (copyError) {
         window.prompt("انسخ نص استعادة الدخول", recoveryText);
       }
