@@ -15914,3 +15914,61 @@ button.product-flat-top-btn:hover svg {
     position: static;
   }
 }
+
+/* Visible entry points for new settings and notifications pages */
+.dashboard-quick-access-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.dashboard-quick-access-card {
+  display: grid;
+  gap: 7px;
+  text-align: right;
+  border: 1px solid rgba(23, 77, 57, 0.12);
+  border-radius: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffffff, #f7fbf7);
+  color: var(--admin-green, #174d39);
+  box-shadow: 0 16px 34px rgba(16, 24, 20, 0.06);
+  cursor: pointer;
+}
+.dashboard-quick-access-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 42px rgba(16, 24, 20, 0.09);
+}
+.dashboard-quick-access-card svg {
+  width: 46px;
+  height: 46px;
+  padding: 11px;
+  border-radius: 18px;
+  background: rgba(23, 77, 57, 0.08);
+  border: 1px solid rgba(23, 77, 57, 0.12);
+}
+.dashboard-quick-access-card span {
+  font-size: 13px;
+  font-weight: 950;
+  color: #6b806f;
+}
+.dashboard-quick-access-card b {
+  font-size: 22px;
+  font-weight: 950;
+  color: var(--admin-green, #174d39);
+}
+.dashboard-quick-access-card small {
+  color: #647064;
+  line-height: 1.7;
+  font-weight: 800;
+}
+.dashboard-quick-access-card.notifications {
+  background: linear-gradient(135deg, #ffffff, #fffaf0);
+}
+.dashboard-quick-access-card.notifications svg {
+  background: rgba(194, 169, 104, 0.15);
+  border-color: rgba(194, 169, 104, 0.25);
+}
+@media (max-width: 760px) {
+  .dashboard-quick-access-grid {
+    grid-template-columns: 1fr;
+  }
+}

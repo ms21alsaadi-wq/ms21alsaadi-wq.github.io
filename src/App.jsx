@@ -113,6 +113,27 @@ import {
 } from "./services/staffAuthApi.js";
 import { fileToDataUrl } from "./utils/media.js";
 
+const ADMIN_ROUTE_TABS = [
+  "dashboard",
+  "reports",
+  "identity",
+  "homepage",
+  "products",
+  "orders",
+  "customers",
+  "coupons",
+  "users",
+  "settings",
+  "notifications",
+];
+
+function adminTabFromPath(pathname = "") {
+  const segment = String(pathname || "")
+    .replace(/^\/admin\/?/, "")
+    .split("/")[0];
+  return ADMIN_ROUTE_TABS.includes(segment) ? segment : "dashboard";
+}
+
 export default function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [authUser, setAuthUser] = useState(null);
@@ -329,6 +350,7 @@ export default function App() {
           orders={orders}
           coupons={coupons}
           go={go}
+          path={path}
         />
       </>
     );
@@ -3300,8 +3322,9 @@ function Admin({
   orders,
   coupons = [],
   go,
+  path = "/admin",
 }) {
-  const [tab, setTab] = useState("dashboard");
+  const [tab, setTab] = useState(() => adminTabFromPath(path));
   const [openSection, setOpenSection] = useState(null);
   const [themeMenuOpen, setThemeMenuOpen] = useState(true);
   const [adminLanguage, setAdminLanguage] = useState(
@@ -3311,6 +3334,11 @@ function Admin({
   const [productsViewMode, setProductsViewMode] = useState(
     () => localStorage.getItem("productsViewMode") || "cards",
   );
+
+  useEffect(() => {
+    const nextTab = adminTabFromPath(path);
+    setTab((current) => (current === nextTab ? current : nextTab));
+  }, [path]);
 
   const adminI18n = {
     ar: {
@@ -5006,14 +5034,88 @@ function Admin({
     );
   }, [staffUsers, currentAdminUser?.email, currentAdminUser?.uid]);
 
+  const expandPermissionsForNewTabs = (profile = {}) => {
+    const allPermissions = Object.keys(ADMIN_PERMISSION_LABELS);
+    const roleText = String(profile?.role || "").toLowerCase();
+    if (
+      profile?.isOwner ||
+      roleText === "owner" ||
+      String(profile?.role || "").includes("مالك")
+    ) {
+      return allPermissions;
+    }
+
+    const normalized = normalizeStaffPermissions(profile?.permissions);
+    const legacyFullAccess = [
+      "dashboard",
+      "reports",
+      "identity",
+      "homepage",
+      "products",
+      "orders",
+      "customers",
+      "coupons",
+      "users",
+    ];
+
+    if (legacyFullAccess.every((permission) => normalized.includes(permission))) {
+      return allPermissions;
+    }
+
+    const expanded = [...normalized];
+    if (
+      (normalized.includes("identity") || normalized.includes("homepage") || normalized.includes("users")) &&
+      !expanded.includes("settings")
+    ) {
+      expanded.push("settings");
+    }
+    if (
+      (normalized.includes("orders") || normalized.includes("reports") || normalized.includes("customers")) &&
+      !expanded.includes("notifications")
+    ) {
+      expanded.push("notifications");
+    }
+
+    return [...new Set(expanded)].filter((permission) => ADMIN_PERMISSION_LABELS[permission]);
+  };
+
   const currentPermissions = useMemo(() => {
     if (!staffUsers.length) return Object.keys(ADMIN_PERMISSION_LABELS);
     if (!currentStaffProfile) return Object.keys(ADMIN_PERMISSION_LABELS);
-    if (currentStaffProfile.isOwner || currentStaffProfile.role === "owner")
-      return Object.keys(ADMIN_PERMISSION_LABELS);
     if (isStaffDisabled(currentStaffProfile)) return [];
-    return normalizeStaffPermissions(currentStaffProfile.permissions);
+    return expandPermissionsForNewTabs(currentStaffProfile);
   }, [staffUsers, currentStaffProfile]);
+
+  useEffect(() => {
+    if (!currentStaffProfile?.id || !currentPermissions.length) return;
+
+    const storedPermissions = normalizeStaffPermissions(currentStaffProfile.permissions);
+    const shouldUpdatePermissions =
+      currentPermissions.length !== storedPermissions.length ||
+      currentPermissions.some((permission) => !storedPermissions.includes(permission));
+
+    if (!shouldUpdatePermissions) return;
+
+    setDoc(
+      doc(db, "staffUsers", currentStaffProfile.id),
+      {
+        permissions: currentPermissions,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    ).catch(() => {});
+
+    if (currentAdminUser?.uid) {
+      setDoc(
+        doc(db, "admins", currentAdminUser.uid),
+        {
+          permissions: currentPermissions,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      ).catch(() => {});
+    }
+  }, [currentStaffProfile?.id, currentPermissions.join("|"), currentAdminUser?.uid]);
 
   const canAccessAdminSection = (permission) =>
     currentPermissions.includes(permission);
@@ -5300,6 +5402,36 @@ function Admin({
                 </div>
               ))}
             </div>
+
+            {(canAccessAdminSection("settings") ||
+              canAccessAdminSection("notifications")) && (
+              <div className="dashboard-quick-access-grid">
+                {canAccessAdminSection("settings") && (
+                  <button
+                    type="button"
+                    className="dashboard-quick-access-card settings"
+                    onClick={() => setTab("settings")}
+                  >
+                    <Settings size={24} />
+                    <span>الإعدادات جاهزة</span>
+                    <b>تشغيل المتجر والشحن والتواصل</b>
+                    <small>اضغط هنا لتعديل الإعدادات العامة.</small>
+                  </button>
+                )}
+                {canAccessAdminSection("notifications") && (
+                  <button
+                    type="button"
+                    className="dashboard-quick-access-card notifications"
+                    onClick={() => setTab("notifications")}
+                  >
+                    <Bell size={24} />
+                    <span>مركز الإشعارات جاهز</span>
+                    <b>{unreadNotificationsCount} إشعار غير مقروء</b>
+                    <small>طلبات، مخزون، عملاء، وأحداث مباشرة.</small>
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="dashboard-stats-grid">
               <button
