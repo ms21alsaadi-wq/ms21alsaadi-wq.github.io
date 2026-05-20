@@ -87,6 +87,33 @@ export const defaultSettings = {
 
   homeProductsTitle: "نباتات نادرة ومنتجات فاخرة مختارة بعناية",
   homeProductsDesc: "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا.",
+
+  storeStatus: "open",
+  checkoutEnabled: true,
+  maintenanceTitle: "المتجر تحت الصيانة",
+  maintenanceMessage:
+    "نرتب لك تجربة أفضل. الطلبات متوقفة مؤقتًا وسنعود قريبًا.",
+  shippingFee: 35,
+  freeShippingThreshold: 0,
+  minimumOrderTotal: 0,
+  orderPrefix: "GD",
+  deliveryInfo: "توصيل سريع داخل السعودية مع تغليف يحافظ على النبات.",
+  supportEmail: "",
+  notificationEmail: "",
+  notificationWhatsapp: "966508983003",
+  returnPolicyDays: 7,
+  returnPolicyText:
+    "يمكن طلب الاسترجاع أو الاستبدال خلال 7 أيام من استلام الطلب بشرط أن يكون المنتج بحالته الأصلية.",
+  privacyNote:
+    "نستخدم بياناتك فقط لتجهيز الطلب والتواصل بخصوص الشحن والدعم.",
+  notifyNewOrders: true,
+  notifyHighValueOrders: true,
+  notifyLowStock: true,
+  notifyCustomers: true,
+  notifyLiveEvents: true,
+  notificationsBrowser: false,
+  lowStockThreshold: 3,
+  highValueOrderThreshold: 500,
 };
 
 export const defaultProducts = [

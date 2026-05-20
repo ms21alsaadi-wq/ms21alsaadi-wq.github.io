@@ -948,7 +948,16 @@ function Store({
     (n, i) => n + Number(i.qty || 0) * Number(i.price || 0),
     0,
   );
-  const shippingFee = subtotal ? 35 : 0;
+  const configuredShippingFee = Math.max(0, Number(settings.shippingFee ?? 35));
+  const freeShippingThreshold = Math.max(
+    0,
+    Number(settings.freeShippingThreshold || 0),
+  );
+  const minimumOrderTotal = Math.max(0, Number(settings.minimumOrderTotal || 0));
+  const shippingFee =
+    subtotal && (!freeShippingThreshold || subtotal < freeShippingThreshold)
+      ? configuredShippingFee
+      : 0;
   const discount = appliedCoupon
     ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100))
     : 0;
@@ -1121,6 +1130,21 @@ function Store({
     }
     if (!cart.length) return;
 
+    if (settings.checkoutEnabled === false || settings.storeStatus !== "open") {
+      setCouponMessage(
+        settings.maintenanceMessage ||
+          "الطلبات متوقفة مؤقتًا. تواصل معنا عبر الواتساب للمساعدة.",
+      );
+      return;
+    }
+
+    if (minimumOrderTotal > 0 && subtotal < minimumOrderTotal) {
+      setCouponMessage(
+        `الحد الأدنى للطلب هو ${formatPrice(minimumOrderTotal)} ر.س`,
+      );
+      return;
+    }
+
     try {
       const visitorId = localStorage.getItem("gdVisitorId");
       if (visitorId) {
@@ -1164,9 +1188,27 @@ function Store({
       couponPercent: appliedCoupon?.percent || 0,
       total,
       status: "new",
+      orderPrefix: settings.orderPrefix || "GD",
+      createdAtMs: Date.now(),
       createdAt: serverTimestamp(),
     };
     const orderRef = await addDoc(collection(db, "orders"), order);
+
+    try {
+      await setDoc(
+        doc(db, "liveEvents", `order-${orderRef.id}`),
+        {
+          type: "order",
+          title: `طلب جديد من ${customer.name || "عميل"}`,
+          path: "/admin/orders",
+          orderId: orderRef.id,
+          total,
+          createdAtMs: Date.now(),
+          createdAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch {}
 
     if (appliedCoupon?.code) {
       await setDoc(
@@ -1205,7 +1247,7 @@ function Store({
       .join("\n\n");
     const message = `🛒 طلب جديد من المتجر:\n\n👤 العميل: ${customer.name}\n📱 الجوال: ${customer.phone}\n📧 الإيميل: ${customer.email || authUser.email}\n📍 المدينة: ${customer.city}\n🏠 العنوان: ${customer.address}\n\n${items}\n\n💰 الإجمالي: ${formatPrice(total)} ر.س\n\n📦 الرجاء تأكيد الطلب`;
     window.open(
-      `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`,
+      `https://wa.me/${settings.homeHeaderWhatsapp || STORE_WHATSAPP}?text=${encodeURIComponent(message)}`,
       "_blank",
     );
     setCart([]);
@@ -1235,6 +1277,16 @@ function Store({
       dir={siteLang === "EN" ? "ltr" : "rtl"}
     >
       <HeroStyle />
+      {(settings.storeStatus && settings.storeStatus !== "open") ||
+      settings.checkoutEnabled === false ? (
+        <div className="store-operation-banner">
+          <b>{settings.maintenanceTitle || "تنبيه المتجر"}</b>
+          <span>
+            {settings.maintenanceMessage ||
+              "الطلبات متوقفة مؤقتًا. يمكنك تصفح المنتجات وسيعود استقبال الطلبات قريبًا."}
+          </span>
+        </div>
+      ) : null}
       <header
         className={`store-header ${settings.homeHeaderSticky === false ? "" : "header-sticky-pro"}`}
         style={{
@@ -1658,7 +1710,7 @@ function Store({
             </div>
           </section>
 
-          <StoreReturnPolicy />
+          <StoreReturnPolicy settings={settings} />
         </>
       )}
 
@@ -3132,11 +3184,14 @@ function Account({
   );
 }
 
-function StoreReturnPolicy() {
+function StoreReturnPolicy({ settings = {} }) {
+  const returnDays = Number(settings.returnPolicyDays || 7);
   const items = [
     {
       title: "مدة الاسترجاع",
-      text: "يمكن طلب الاسترجاع أو الاستبدال خلال 7 أيام من استلام الطلب.",
+      text:
+        settings.returnPolicyText ||
+        `يمكن طلب الاسترجاع أو الاستبدال خلال ${returnDays} أيام من استلام الطلب.`,
     },
     {
       title: "حالة المنتج",
@@ -3158,8 +3213,8 @@ function StoreReturnPolicy() {
         <span>Return Policy</span>
         <h2>سياسة الاسترجاع والاستبدال</h2>
         <p>
-          حرصًا على تجربة شراء واضحة، هذه السياسة توضح أهم شروط الاسترجاع
-          والاستبدال قبل إتمام الطلب.
+          {settings.privacyNote ||
+            "حرصًا على تجربة شراء واضحة، هذه السياسة توضح أهم شروط الاسترجاع والاستبدال قبل إتمام الطلب."}
         </p>
       </div>
       <div className="store-return-policy-grid">
@@ -3538,6 +3593,14 @@ function Admin({
     purchase: 0,
   });
   const [staffUsers, setStaffUsers] = useState([]);
+  const [notificationFilter, setNotificationFilter] = useState("all");
+  const [notificationState, setNotificationState] = useState({ readKeys: {} });
+  const [browserPermission, setBrowserPermission] = useState(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return "unsupported";
+    }
+    return window.Notification.permission;
+  });
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -3621,6 +3684,63 @@ function Admin({
     });
 
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, "store", "notificationState"), (snap) => {
+      setNotificationState(
+        snap.exists() ? { readKeys: {}, ...(snap.data() || {}) } : { readKeys: {} },
+      );
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    setBrowserPermission(window.Notification.permission);
+  }, [settings.notificationsBrowser]);
+
+  useEffect(() => {
+    if (notificationFilter === "unread") return;
+    const validFilters = ["all", "orders", "stock", "customers", "live", "system"];
+    if (!validFilters.includes(notificationFilter)) setNotificationFilter("all");
+  }, [notificationFilter]);
+
+  useEffect(() => {
+    const count = Number(notificationState?.lastUnreadCount || 0);
+    if (!count) return;
+    document.title = `(${count}) ${settings?.storeName || "GREEN DIXAM"}`;
+    return () => {
+      document.title = settings?.storeName || "GREEN DIXAM";
+    };
+  }, [notificationState?.lastUnreadCount, settings?.storeName]);
+
+  useEffect(() => {
+    setDoc(
+      doc(db, "store", "notificationState"),
+      { lastSeenAtMs: Date.now() },
+      { merge: true },
+    ).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const updateOnlineStatus = () => {
+      setDoc(
+        doc(db, "store", "notificationState"),
+        { adminOnline: navigator.onLine, updatedAtMs: Date.now() },
+        { merge: true },
+      ).catch(() => {});
+    };
+
+    if (typeof window === "undefined") return undefined;
+    updateOnlineStatus();
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
   }, []);
 
   useEffect(() => {
@@ -4543,6 +4663,254 @@ function Admin({
         ) / liveVisitorRows.length,
       )
     : 0;
+
+  const notificationReadKeys = notificationState?.readKeys || {};
+  const lowStockThreshold = Math.max(0, Number(settings.lowStockThreshold ?? 3));
+  const highValueOrderThreshold = Math.max(
+    0,
+    Number(settings.highValueOrderThreshold || 500),
+  );
+  const notificationItems = useMemo(() => {
+    const items = [];
+    const now = Date.now();
+    const readMap = notificationReadKeys || {};
+    const enabled = (key) => settings[key] !== false;
+
+    if (enabled("notifyNewOrders")) {
+      dashboardOrders
+        .filter((order) => ["new", "processing"].includes(order.status || "new"))
+        .slice(0, 30)
+        .forEach((order) => {
+          const time = orderTimestamp(order.createdAt) || now;
+          const isNew = (order.status || "new") === "new";
+          items.push({
+            key: `order-${order.id}`,
+            type: "orders",
+            tone: isNew ? "urgent" : "warning",
+            title: isNew ? "طلب جديد يحتاج تأكيد" : "طلب قيد التجهيز",
+            message: `${order.customerName || order.name || "عميل"} - ${formatPrice(order.total)} ر.س`,
+            meta: formatOrderDate(order.createdAt),
+            time,
+            icon: "order",
+            actionLabel: "فتح الطلبات",
+            tab: "orders",
+          });
+        });
+    }
+
+    if (enabled("notifyHighValueOrders") && highValueOrderThreshold > 0) {
+      dashboardOrders
+        .filter((order) => Number(order.total || 0) >= highValueOrderThreshold)
+        .slice(0, 12)
+        .forEach((order) => {
+          const time = orderTimestamp(order.createdAt) || now;
+          items.push({
+            key: `high-order-${order.id}`,
+            type: "orders",
+            tone: "success",
+            title: "طلب بقيمة عالية",
+            message: `${order.customerName || order.name || "عميل"} وصل إلى ${formatPrice(order.total)} ر.س`,
+            meta: `الحد: ${formatPrice(highValueOrderThreshold)} ر.س`,
+            time,
+            icon: "trend",
+            actionLabel: "مراجعة الطلب",
+            tab: "orders",
+          });
+        });
+    }
+
+    if (enabled("notifyLowStock")) {
+      products
+        .filter(
+          (product) =>
+            product.status !== "hidden" &&
+            Number(product.stock || 0) <= lowStockThreshold,
+        )
+        .sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0))
+        .slice(0, 20)
+        .forEach((product, index) => {
+          items.push({
+            key: `stock-${product.id}`,
+            type: "stock",
+            tone: Number(product.stock || 0) <= 0 ? "danger" : "warning",
+            title:
+              Number(product.stock || 0) <= 0
+                ? "منتج نفد من المخزون"
+                : "مخزون منخفض",
+            message: `${product.name || "منتج"} - المتبقي ${Number(product.stock || 0)}`,
+            meta: product.category || "المنتجات",
+            time: orderTimestamp(product.updatedAt) || now - 1000 * (index + 1),
+            icon: "stock",
+            actionLabel: "فتح المنتجات",
+            tab: "products",
+          });
+        });
+    }
+
+    if (enabled("notifyCustomers")) {
+      customers
+        .filter((customer) => orderTimestamp(customer.createdAt) >= weekStart.getTime())
+        .sort((a, b) => orderTimestamp(b.createdAt) - orderTimestamp(a.createdAt))
+        .slice(0, 12)
+        .forEach((customer) => {
+          const time = orderTimestamp(customer.createdAt) || now;
+          items.push({
+            key: `customer-${customer.id}`,
+            type: "customers",
+            tone: "neutral",
+            title: "عميل جديد سجّل في المتجر",
+            message: customer.name || customer.email || "عميل جديد",
+            meta: formatOrderDate(customer.createdAt),
+            time,
+            icon: "customer",
+            actionLabel: "فتح العملاء",
+            tab: "customers",
+          });
+        });
+    }
+
+    if (enabled("notifyLiveEvents")) {
+      liveEvents.slice(0, 15).forEach((event) => {
+        const time = Number(event.createdAtMs || 0) || now;
+        items.push({
+          key: `live-${event.id}`,
+          type: "live",
+          tone: event.type === "checkout" ? "urgent" : "neutral",
+          title: event.title || "نشاط مباشر في المتجر",
+          message: event.path || "/",
+          meta: event.type === "cart" ? "سلة" : event.type === "checkout" ? "إتمام طلب" : "مباشر",
+          time,
+          icon: "live",
+          actionLabel: "فتح لوحة التحكم",
+          tab: "dashboard",
+        });
+      });
+    }
+
+    if (settings.storeStatus && settings.storeStatus !== "open") {
+      items.push({
+        key: `system-store-${settings.storeStatus}`,
+        type: "system",
+        tone: "danger",
+        title: "حالة المتجر ليست مفتوحة",
+        message:
+          settings.storeStatus === "maintenance"
+            ? "المتجر في وضع الصيانة"
+            : "الطلبات متوقفة مؤقتًا",
+        meta: "الإعدادات",
+        time: now,
+        icon: "system",
+        actionLabel: "فتح الإعدادات",
+        tab: "settings",
+      });
+    }
+
+    return items
+      .map((item) => ({ ...item, read: Boolean(readMap[item.key]) }))
+      .sort((a, b) => Number(b.time || 0) - Number(a.time || 0));
+  }, [
+    dashboardOrders,
+    products,
+    customers,
+    liveEvents,
+    settings.notifyNewOrders,
+    settings.notifyHighValueOrders,
+    settings.notifyLowStock,
+    settings.notifyCustomers,
+    settings.notifyLiveEvents,
+    settings.storeStatus,
+    settings.lowStockThreshold,
+    settings.highValueOrderThreshold,
+    notificationReadKeys,
+    weekStart,
+  ]);
+
+  const unreadNotificationsCount = notificationItems.filter((item) => !item.read).length;
+  const notificationCounts = notificationItems.reduce(
+    (acc, item) => {
+      acc.all += 1;
+      acc[item.type] = (acc[item.type] || 0) + 1;
+      if (!item.read) acc.unread += 1;
+      return acc;
+    },
+    { all: 0, unread: 0 },
+  );
+  const filteredNotificationItems = notificationItems.filter((item) => {
+    if (notificationFilter === "all") return true;
+    if (notificationFilter === "unread") return !item.read;
+    return item.type === notificationFilter;
+  });
+
+  useEffect(() => {
+    setDoc(
+      doc(db, "store", "notificationState"),
+      {
+        lastUnreadCount: unreadNotificationsCount,
+        lastNotificationAtMs: notificationItems[0]?.time || 0,
+        updatedAtMs: Date.now(),
+      },
+      { merge: true },
+    ).catch(() => {});
+  }, [unreadNotificationsCount, notificationItems[0]?.time]);
+
+  const saveNotificationState = async (patch) => {
+    try {
+      await setDoc(
+        doc(db, "store", "notificationState"),
+        { ...patch, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
+        { merge: true },
+      );
+    } catch (error) {
+      console.error("Save notification state failed:", error);
+      setNotice("تعذر تحديث حالة الإشعارات");
+      setTimeout(() => setNotice(""), 3000);
+    }
+  };
+
+  const markNotificationRead = async (key) => {
+    if (!key) return;
+    await saveNotificationState({
+      readKeys: { ...notificationReadKeys, [key]: Date.now() },
+    });
+  };
+
+  const markAllNotificationsRead = async () => {
+    const nextReadKeys = { ...notificationReadKeys };
+    notificationItems.forEach((item) => {
+      nextReadKeys[item.key] = nextReadKeys[item.key] || Date.now();
+    });
+    await saveNotificationState({ readKeys: nextReadKeys });
+    setNotice("تم تعليم كل الإشعارات كمقروءة");
+    setTimeout(() => setNotice(""), 2200);
+  };
+
+  const clearNotificationReads = async () => {
+    await saveNotificationState({ readKeys: {} });
+    setNotice("تم إعادة إظهار الإشعارات كمستجدة");
+    setTimeout(() => setNotice(""), 2200);
+  };
+
+  const requestBrowserNotifications = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setNotice("المتصفح لا يدعم إشعارات سطح المكتب");
+      setTimeout(() => setNotice(""), 3000);
+      return;
+    }
+
+    const permission = await window.Notification.requestPermission();
+    setBrowserPermission(permission);
+    if (permission === "granted") {
+      await saveSettings({ notificationsBrowser: true });
+      new window.Notification(settings.storeName || "GREEN DIXAM", {
+        body: "تم تفعيل إشعارات المتصفح للوحة التحكم",
+      });
+      setNotice("تم تفعيل إشعارات المتصفح");
+    } else {
+      await saveSettings({ notificationsBrowser: false });
+      setNotice("لم يتم السماح بإشعارات المتصفح");
+    }
+    setTimeout(() => setNotice(""), 3000);
+  };
 
   const themeSections = [
     {
@@ -7303,27 +7671,36 @@ function Admin({
         )}
 
         {tab === "settings" && canAccessAdminSection("settings") && (
-          <section className="admin-card admin-placeholder-page">
-            <div className="pro-card-head">
-              <div>
-                <span>Store Settings</span>
-                <h2>الإعدادات</h2>
-                <p>إعدادات المتجر العامة وطرق التشغيل ستضاف هنا.</p>
-              </div>
-            </div>
-          </section>
+          <AdminSettingsPanel
+            settings={settings}
+            draftSettings={draftSettings}
+            updateDraft={updateDraft}
+            saveDraftSettings={saveDraftSettings}
+            resetDraftSettings={resetDraftSettings}
+            uploadSettingImage={uploadSettingImage}
+            setTab={setTab}
+          />
         )}
 
         {tab === "notifications" && canAccessAdminSection("notifications") && (
-          <section className="admin-card admin-placeholder-page">
-            <div className="pro-card-head">
-              <div>
-                <span>Notifications Center</span>
-                <h2>الإشعارات</h2>
-                <p>إدارة تنبيهات الطلبات والعملاء والتحديثات ستضاف هنا.</p>
-              </div>
-            </div>
-          </section>
+          <AdminNotificationsPanel
+            items={filteredNotificationItems}
+            allItems={notificationItems}
+            unreadCount={unreadNotificationsCount}
+            counts={notificationCounts}
+            filter={notificationFilter}
+            setFilter={setNotificationFilter}
+            markRead={markNotificationRead}
+            markAllRead={markAllNotificationsRead}
+            clearReads={clearNotificationReads}
+            settings={settings}
+            saveSettings={saveSettings}
+            browserPermission={browserPermission}
+            requestBrowserNotifications={requestBrowserNotifications}
+            lowStockThreshold={lowStockThreshold}
+            highValueOrderThreshold={highValueOrderThreshold}
+            setTab={setTab}
+          />
         )}
 
         {tab === "customers" && canAccessAdminSection("customers") && (
@@ -7344,6 +7721,701 @@ function Admin({
           noPermissionCard(titleFor(tab, adminLanguage))}
       </main>
     </div>
+  );
+}
+
+
+function AdminSettingsPanel({
+  settings,
+  draftSettings,
+  updateDraft,
+  saveDraftSettings,
+  resetDraftSettings,
+  uploadSettingImage,
+  setTab,
+}) {
+  const storeStatuses = [
+    {
+      value: "open",
+      label: "مفتوح",
+      desc: "العملاء يستطيعون تصفح المتجر وإرسال الطلبات.",
+    },
+    {
+      value: "maintenance",
+      label: "صيانة",
+      desc: "إظهار رسالة تنبيه وإيقاف استقبال الطلبات مؤقتًا.",
+    },
+    {
+      value: "paused",
+      label: "متوقف مؤقتًا",
+      desc: "المتجر ظاهر لكن إتمام الطلب متوقف.",
+    },
+  ];
+
+  const currentStatus = draftSettings.storeStatus || "open";
+  const statusMeta =
+    storeStatuses.find((item) => item.value === currentStatus) ||
+    storeStatuses[0];
+  const numberValue = (key, fallback = 0) =>
+    draftSettings[key] === undefined || draftSettings[key] === null
+      ? fallback
+      : draftSettings[key];
+  const textValue = (key, fallback = "") =>
+    draftSettings[key] === undefined || draftSettings[key] === null
+      ? fallback
+      : draftSettings[key];
+
+  const saveAndStay = async () => {
+    await saveDraftSettings();
+  };
+
+  return (
+    <section className="admin-settings-page">
+      <div className="admin-card settings-hero-card">
+        <div className="pro-card-head settings-head">
+          <div>
+            <span>Store Settings</span>
+            <h2>الإعدادات</h2>
+            <p>
+              إدارة تشغيل المتجر، الشحن، التواصل، وسياسات الخدمة من مكان واحد.
+            </p>
+          </div>
+          <div className={`settings-status-pill ${currentStatus}`}>
+            <i></i>
+            {statusMeta.label}
+          </div>
+        </div>
+
+        <div className="settings-quick-grid">
+          <div>
+            <span>حالة المتجر</span>
+            <b>{statusMeta.label}</b>
+            <small>{statusMeta.desc}</small>
+          </div>
+          <div>
+            <span>رسوم الشحن</span>
+            <b>{formatPrice(numberValue("shippingFee", 35))} ر.س</b>
+            <small>
+              حد الشحن المجاني: {formatPrice(numberValue("freeShippingThreshold", 0))} ر.س
+            </small>
+          </div>
+          <div>
+            <span>أقل طلب</span>
+            <b>{formatPrice(numberValue("minimumOrderTotal", 0))} ر.س</b>
+            <small>0 يعني بدون حد أدنى.</small>
+          </div>
+          <div>
+            <span>تنبيهات الإدارة</span>
+            <b>{settings.notificationsBrowser ? "مفعلة" : "داخل اللوحة"}</b>
+            <small>{settings.notificationEmail || "لم يتم تحديد بريد تنبيهات"}</small>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-grid-pro">
+        <div className="admin-card settings-section-card">
+          <div className="settings-section-title">
+            <Settings size={20} />
+            <div>
+              <h3>تشغيل المتجر</h3>
+              <p>تحكم في استقبال الطلبات ورسالة الصيانة.</p>
+            </div>
+          </div>
+
+          <label>
+            حالة المتجر
+            <select
+              value={currentStatus}
+              onChange={(e) => updateDraft("storeStatus", e.target.value)}
+            >
+              {storeStatuses.map((status) => (
+                <option value={status.value} key={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="setting-toggle-row">
+            <input
+              type="checkbox"
+              checked={draftSettings.checkoutEnabled !== false}
+              onChange={(e) => updateDraft("checkoutEnabled", e.target.checked)}
+            />
+            <span>
+              <b>تفعيل إتمام الطلب</b>
+              <small>عند إيقافه لن يستطيع العميل إرسال طلب عبر الواتساب.</small>
+            </span>
+          </label>
+
+          <label>
+            عنوان رسالة الصيانة
+            <input
+              value={textValue("maintenanceTitle", "المتجر تحت الصيانة")}
+              onChange={(e) => updateDraft("maintenanceTitle", e.target.value)}
+              placeholder="المتجر تحت الصيانة"
+            />
+          </label>
+
+          <label>
+            رسالة تظهر للعميل عند إيقاف الطلبات
+            <textarea
+              rows="4"
+              value={textValue(
+                "maintenanceMessage",
+                "نرتب لك تجربة أفضل. الطلبات متوقفة مؤقتًا وسنعود قريبًا.",
+              )}
+              onChange={(e) => updateDraft("maintenanceMessage", e.target.value)}
+              placeholder="اكتب رسالة واضحة للعميل"
+            />
+          </label>
+        </div>
+
+        <div className="admin-card settings-section-card">
+          <div className="settings-section-title">
+            <Truck size={20} />
+            <div>
+              <h3>الشحن والطلبات</h3>
+              <p>هذه القيم تؤثر مباشرة على سلة العميل وإتمام الطلب.</p>
+            </div>
+          </div>
+
+          <div className="settings-two-cols">
+            <label>
+              رسوم الشحن
+              <input
+                type="number"
+                min="0"
+                value={numberValue("shippingFee", 35)}
+                onChange={(e) => updateDraft("shippingFee", Number(e.target.value || 0))}
+              />
+            </label>
+            <label>
+              الشحن المجاني من
+              <input
+                type="number"
+                min="0"
+                value={numberValue("freeShippingThreshold", 0)}
+                onChange={(e) =>
+                  updateDraft("freeShippingThreshold", Number(e.target.value || 0))
+                }
+              />
+            </label>
+          </div>
+
+          <div className="settings-two-cols">
+            <label>
+              الحد الأدنى للطلب
+              <input
+                type="number"
+                min="0"
+                value={numberValue("minimumOrderTotal", 0)}
+                onChange={(e) =>
+                  updateDraft("minimumOrderTotal", Number(e.target.value || 0))
+                }
+              />
+            </label>
+            <label>
+              بادئة رقم الطلب
+              <input
+                value={textValue("orderPrefix", "GD")}
+                onChange={(e) => updateDraft("orderPrefix", e.target.value)}
+                placeholder="GD"
+              />
+            </label>
+          </div>
+
+          <label>
+            نص التوصيل في صفحة المنتج
+            <textarea
+              rows="3"
+              value={textValue(
+                "deliveryInfo",
+                "توصيل سريع داخل السعودية مع تغليف يحافظ على النبات.",
+              )}
+              onChange={(e) => updateDraft("deliveryInfo", e.target.value)}
+            />
+          </label>
+        </div>
+
+        <div className="admin-card settings-section-card">
+          <div className="settings-section-title">
+            <Phone size={20} />
+            <div>
+              <h3>قنوات التواصل</h3>
+              <p>تظهر في الهيدر وتستخدمها الإشعارات الإدارية.</p>
+            </div>
+          </div>
+
+          <label>
+            واتساب المتجر
+            <input
+              value={textValue("homeHeaderWhatsapp", STORE_WHATSAPP)}
+              onChange={(e) => updateDraft("homeHeaderWhatsapp", e.target.value)}
+              placeholder="9665xxxxxxxx"
+            />
+          </label>
+
+          <div className="settings-two-cols">
+            <label>
+              بريد الدعم
+              <input
+                type="email"
+                value={textValue("supportEmail", "")}
+                onChange={(e) => updateDraft("supportEmail", e.target.value)}
+                placeholder="support@example.com"
+              />
+            </label>
+            <label>
+              بريد الإشعارات
+              <input
+                type="email"
+                value={textValue("notificationEmail", "")}
+                onChange={(e) => updateDraft("notificationEmail", e.target.value)}
+                placeholder="admin@example.com"
+              />
+            </label>
+          </div>
+
+          <div className="settings-two-cols">
+            <label>
+              Instagram
+              <input
+                value={textValue("homeHeaderInstagram", "")}
+                onChange={(e) => updateDraft("homeHeaderInstagram", e.target.value)}
+                placeholder="رابط أو اسم الحساب"
+              />
+            </label>
+            <label>
+              TikTok
+              <input
+                value={textValue("homeHeaderTiktok", "")}
+                onChange={(e) => updateDraft("homeHeaderTiktok", e.target.value)}
+                placeholder="رابط أو اسم الحساب"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="admin-card settings-section-card">
+          <div className="settings-section-title">
+            <ShieldCheck size={20} />
+            <div>
+              <h3>السياسات والثقة</h3>
+              <p>نصوص مختصرة تساعد العميل قبل الشراء.</p>
+            </div>
+          </div>
+
+          <label>
+            مدة الاسترجاع بالأيام
+            <input
+              type="number"
+              min="0"
+              value={numberValue("returnPolicyDays", 7)}
+              onChange={(e) => updateDraft("returnPolicyDays", Number(e.target.value || 0))}
+            />
+          </label>
+
+          <label>
+            نص سياسة الاسترجاع
+            <textarea
+              rows="4"
+              value={textValue(
+                "returnPolicyText",
+                "يمكن طلب الاسترجاع أو الاستبدال خلال 7 أيام من استلام الطلب بشرط أن يكون المنتج بحالته الأصلية.",
+              )}
+              onChange={(e) => updateDraft("returnPolicyText", e.target.value)}
+            />
+          </label>
+
+          <label>
+            ملاحظة الخصوصية
+            <textarea
+              rows="3"
+              value={textValue(
+                "privacyNote",
+                "نستخدم بياناتك فقط لتجهيز الطلب والتواصل بخصوص الشحن والدعم.",
+              )}
+              onChange={(e) => updateDraft("privacyNote", e.target.value)}
+            />
+          </label>
+        </div>
+
+        <div className="admin-card settings-section-card settings-logo-card">
+          <div className="settings-section-title">
+            <Palette size={20} />
+            <div>
+              <h3>لمسة سريعة للهوية</h3>
+              <p>اختصار لتعديل اسم المتجر والشعار بدون الرجوع لهوية المتجر.</p>
+            </div>
+          </div>
+
+          <div className="settings-two-cols">
+            <label>
+              اسم المتجر
+              <input
+                value={textValue("storeName", "GREEN DIXAM")}
+                onChange={(e) => updateDraft("storeName", e.target.value)}
+              />
+            </label>
+            <label>
+              الشعار النصي
+              <input
+                value={textValue("tagline", "rare nature, refined living")}
+                onChange={(e) => updateDraft("tagline", e.target.value)}
+              />
+            </label>
+          </div>
+
+          <label>
+            رابط الشعار
+            <input
+              value={textValue("logo", "")}
+              onChange={(e) => updateDraft("logo", e.target.value)}
+              placeholder="https://..."
+            />
+          </label>
+          <label className="settings-file-upload">
+            رفع شعار من الجهاز
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => uploadSettingImage("logo", e.target.files?.[0])}
+            />
+          </label>
+          {draftSettings.logo && (
+            <div className="settings-logo-preview">
+              <img src={draftSettings.logo} alt="logo preview" />
+            </div>
+          )}
+        </div>
+
+        <div className="admin-card settings-section-card settings-preview-card">
+          <div className="settings-section-title">
+            <Eye size={20} />
+            <div>
+              <h3>معاينة سريعة</h3>
+              <p>ملخص ما سيطبّق بعد الحفظ.</p>
+            </div>
+          </div>
+
+          <div className={`settings-store-preview ${currentStatus}`}>
+            <span>{textValue("storeName", "GREEN DIXAM")}</span>
+            <h3>{statusMeta.label}</h3>
+            <p>
+              {currentStatus === "open"
+                ? "المتجر يستقبل الطلبات بشكل طبيعي."
+                : textValue(
+                    "maintenanceMessage",
+                    "الطلبات متوقفة مؤقتًا وسنعود قريبًا.",
+                  )}
+            </p>
+            <div>
+              <b>الشحن: {formatPrice(numberValue("shippingFee", 35))} ر.س</b>
+              <b>أقل طلب: {formatPrice(numberValue("minimumOrderTotal", 0))} ر.س</b>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="admin-secondary"
+            onClick={() => setTab("notifications")}
+          >
+            فتح إعدادات الإشعارات
+          </button>
+        </div>
+      </div>
+
+      <div className="admin-save-bar settings-save-bar">
+        <div>
+          <b>التغييرات غير محفوظة حتى تضغط حفظ</b>
+          <span>سيتم حفظ كل الإعدادات في Firebase وتظهر مباشرة في المتجر.</span>
+        </div>
+        <div className="save-bar-actions">
+          <button className="admin-secondary" onClick={resetDraftSettings}>
+            إلغاء التغييرات
+          </button>
+          <button className="admin-primary" onClick={saveAndStay}>
+            <Save size={17} /> حفظ الإعدادات
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AdminNotificationsPanel({
+  items,
+  allItems,
+  unreadCount,
+  counts,
+  filter,
+  setFilter,
+  markRead,
+  markAllRead,
+  clearReads,
+  settings,
+  saveSettings,
+  browserPermission,
+  requestBrowserNotifications,
+  lowStockThreshold,
+  highValueOrderThreshold,
+  setTab,
+}) {
+  const filterTabs = [
+    { key: "all", label: "الكل", count: counts.all || 0 },
+    { key: "unread", label: "غير مقروء", count: counts.unread || 0 },
+    { key: "orders", label: "الطلبات", count: counts.orders || 0 },
+    { key: "stock", label: "المخزون", count: counts.stock || 0 },
+    { key: "customers", label: "العملاء", count: counts.customers || 0 },
+    { key: "live", label: "المباشر", count: counts.live || 0 },
+    { key: "system", label: "النظام", count: counts.system || 0 },
+  ];
+
+  const preferenceRows = [
+    {
+      key: "notifyNewOrders",
+      title: "طلبات جديدة وقيد التجهيز",
+      desc: "ينبهك عند وصول طلب جديد أو وجود طلب يحتاج متابعة.",
+    },
+    {
+      key: "notifyHighValueOrders",
+      title: "طلبات بقيمة عالية",
+      desc: "إظهار تنبيه للطلبات التي تتجاوز حد القيمة المحدد.",
+    },
+    {
+      key: "notifyLowStock",
+      title: "المخزون المنخفض",
+      desc: "إظهار المنتجات التي تحتاج إعادة تعبئة.",
+    },
+    {
+      key: "notifyCustomers",
+      title: "العملاء الجدد",
+      desc: "إشعار عند تسجيل عميل جديد خلال آخر أسبوع.",
+    },
+    {
+      key: "notifyLiveEvents",
+      title: "الأحداث المباشرة",
+      desc: "يعرض إضافات السلة ومحاولات إتمام الطلب من الزوار.",
+    },
+  ];
+
+  const iconFor = (item) => {
+    if (item.icon === "order") return <ClipboardList size={20} />;
+    if (item.icon === "stock") return <PackagePlus size={20} />;
+    if (item.icon === "customer") return <Users size={20} />;
+    if (item.icon === "trend") return <TrendingUp size={20} />;
+    if (item.icon === "system") return <Settings size={20} />;
+    return <Bell size={20} />;
+  };
+
+  const permissionText = {
+    granted: "مسموح",
+    denied: "مرفوض من المتصفح",
+    default: "لم يتم الطلب بعد",
+    unsupported: "غير مدعوم",
+  }[browserPermission || "default"];
+
+  const notificationHealth = unreadCount
+    ? `لديك ${unreadCount} إشعار غير مقروء`
+    : "كل الإشعارات مقروءة";
+
+  return (
+    <section className="admin-notifications-page">
+      <div className="admin-card notifications-hero-card">
+        <div className="pro-card-head notifications-head">
+          <div>
+            <span>Notifications Center</span>
+            <h2>الإشعارات</h2>
+            <p>
+              مركز واحد لمتابعة الطلبات الجديدة، المخزون، العملاء، والأحداث المباشرة.
+            </p>
+          </div>
+          <div className="notifications-unread-badge">
+            <Bell size={19} />
+            <b>{unreadCount}</b>
+            <small>غير مقروء</small>
+          </div>
+        </div>
+
+        <div className="notifications-kpi-grid">
+          <div>
+            <span>الحالة</span>
+            <b>{notificationHealth}</b>
+            <small>يتم التحديث مباشرة من بيانات المتجر.</small>
+          </div>
+          <div>
+            <span>طلبات تحتاج متابعة</span>
+            <b>{counts.orders || 0}</b>
+            <small>طلبات جديدة أو عالية القيمة.</small>
+          </div>
+          <div>
+            <span>تنبيهات المخزون</span>
+            <b>{counts.stock || 0}</b>
+            <small>الحد الحالي: {lowStockThreshold}</small>
+          </div>
+          <div>
+            <span>إذن المتصفح</span>
+            <b>{permissionText}</b>
+            <small>خاص بجهازك الحالي فقط.</small>
+          </div>
+        </div>
+      </div>
+
+      <div className="notifications-layout">
+        <div className="admin-card notifications-feed-card">
+          <div className="notifications-toolbar">
+            <div className="notification-filters">
+              {filterTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  className={filter === tab.key ? "on" : ""}
+                  onClick={() => setFilter(tab.key)}
+                  type="button"
+                >
+                  {tab.label}
+                  <b>{tab.count}</b>
+                </button>
+              ))}
+            </div>
+            <div className="notification-actions">
+              <button className="admin-secondary" onClick={markAllRead} type="button">
+                تعليم الكل كمقروء
+              </button>
+              <button className="admin-secondary" onClick={clearReads} type="button">
+                إعادة إظهار الكل
+              </button>
+            </div>
+          </div>
+
+          <div className="notifications-list">
+            {items.length ? (
+              items.map((item) => (
+                <article
+                  className={`notification-row ${item.tone || "neutral"} ${item.read ? "is-read" : "is-unread"}`}
+                  key={item.key}
+                >
+                  <div className="notification-icon">{iconFor(item)}</div>
+                  <div className="notification-body">
+                    <div>
+                      <h3>{item.title}</h3>
+                      {!item.read && <span className="notification-dot">جديد</span>}
+                    </div>
+                    <p>{item.message}</p>
+                    <small>{item.meta || "تحديث المتجر"}</small>
+                  </div>
+                  <div className="notification-row-actions">
+                    {item.tab && (
+                      <button
+                        className="admin-secondary"
+                        type="button"
+                        onClick={() => setTab(item.tab)}
+                      >
+                        {item.actionLabel || "فتح"}
+                      </button>
+                    )}
+                    {!item.read && (
+                      <button
+                        className="admin-primary"
+                        type="button"
+                        onClick={() => markRead(item.key)}
+                      >
+                        تم
+                      </button>
+                    )}
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className="notifications-empty">
+                <CheckCircle2 size={34} />
+                <h3>لا توجد إشعارات في هذا القسم</h3>
+                <p>عند وصول طلبات أو انخفاض المخزون ستظهر هنا تلقائيًا.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <aside className="admin-card notifications-settings-card">
+          <div className="settings-section-title">
+            <Settings size={20} />
+            <div>
+              <h3>إعدادات الإشعارات</h3>
+              <p>اختر نوع التنبيهات التي تريد ظهورها في المركز.</p>
+            </div>
+          </div>
+
+          <div className="notification-preferences">
+            {preferenceRows.map((row) => (
+              <label className="setting-toggle-row notification-pref" key={row.key}>
+                <input
+                  type="checkbox"
+                  checked={settings[row.key] !== false}
+                  onChange={(e) => saveSettings({ [row.key]: e.target.checked })}
+                />
+                <span>
+                  <b>{row.title}</b>
+                  <small>{row.desc}</small>
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div className="notifications-thresholds">
+            <label>
+              حد المخزون المنخفض
+              <input
+                type="number"
+                min="0"
+                defaultValue={lowStockThreshold}
+                onBlur={(e) =>
+                  saveSettings({ lowStockThreshold: Number(e.target.value || 0) })
+                }
+              />
+            </label>
+            <label>
+              حد الطلب العالي
+              <input
+                type="number"
+                min="0"
+                defaultValue={highValueOrderThreshold}
+                onBlur={(e) =>
+                  saveSettings({ highValueOrderThreshold: Number(e.target.value || 0) })
+                }
+              />
+            </label>
+          </div>
+
+          <label className="setting-toggle-row notification-pref browser-pref">
+            <input
+              type="checkbox"
+              checked={settings.notificationsBrowser === true}
+              onChange={(e) => saveSettings({ notificationsBrowser: e.target.checked })}
+            />
+            <span>
+              <b>إشعارات المتصفح</b>
+              <small>تحتاج سماح من المتصفح على هذا الجهاز.</small>
+            </span>
+          </label>
+          <button
+            type="button"
+            className="admin-primary full-width"
+            onClick={requestBrowserNotifications}
+          >
+            طلب السماح من المتصفح
+          </button>
+
+          <div className="notifications-mini-summary">
+            <b>مصادر الإشعارات الحالية</b>
+            <p>
+              {allItems.length
+                ? `${allItems.length} إشعار من الطلبات والمخزون والأحداث.`
+                : "لا توجد إشعارات حالية."}
+            </p>
+          </div>
+        </aside>
+      </div>
+    </section>
   );
 }
 
