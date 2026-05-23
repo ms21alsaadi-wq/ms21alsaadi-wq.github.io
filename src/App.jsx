@@ -1099,15 +1099,35 @@ function Store({
     setCouponMessage("");
   }
 
+  function hasManagedStock(product) {
+    return product?.stock !== undefined && product?.stock !== "";
+  }
+
+  function isOutOfStock(product) {
+    return hasManagedStock(product) && Number(product.stock || 0) <= 0;
+  }
+
   function addToCart(product) {
+    if (isOutOfStock(product)) {
+      setCouponMessage("هذا المنتج غير متوفر حالياً");
+      setCartOpen(true);
+      return;
+    }
+
     const size =
       selectedSize[product.id] || sizesArray(product.sizes)[0] || "Free";
     setCart((prev) => {
       const found = prev.find((i) => i.id === product.id && i.size === size);
+      const stockLimit = hasManagedStock(product)
+        ? Math.max(0, Number(product.stock || 0))
+        : Infinity;
       if (found)
         return prev.map((i) =>
           i.id === product.id && i.size === size
-            ? { ...i, qty: Number(i.qty || 0) + 1 }
+            ? {
+                ...i,
+                qty: Math.min(stockLimit, Number(i.qty || 0) + 1),
+              }
             : i,
         );
       return [...prev, { ...product, size, qty: 1 }];
@@ -1183,6 +1203,24 @@ function Store({
     if (minimumOrderTotal > 0 && subtotal < minimumOrderTotal) {
       setCouponMessage(
         `الحد الأدنى للطلب هو ${formatPrice(minimumOrderTotal)} ر.س`,
+      );
+      return;
+    }
+
+    const unavailableItem = cart.find((item) => isOutOfStock(item));
+    if (unavailableItem) {
+      setCouponMessage(`المنتج "${unavailableItem.name}" غير متوفر حالياً`);
+      return;
+    }
+
+    const overStockItem = cart.find(
+      (item) =>
+        hasManagedStock(item) &&
+        Number(item.qty || 0) > Number(item.stock || 0),
+    );
+    if (overStockItem) {
+      setCouponMessage(
+        `الكمية المطلوبة من "${overStockItem.name}" أكبر من المخزون المتاح`,
       );
       return;
     }
@@ -1284,10 +1322,11 @@ function Store({
     const items = cart
       .map(
         (item) =>
-          `• ${item.name}\nالالحجم: ${item.size}\nالكمية: ${item.qty}\nالسعر: ${formatPrice(item.price)} ر.س`,
+          `• ${item.name}\nالحجم: ${item.size}\nالكمية: ${item.qty}\nالسعر: ${formatPrice(item.price)} ر.س`,
       )
       .join("\n\n");
-    const message = `🛒 طلب جديد من المتجر:\n\n👤 العميل: ${customer.name}\n📱 الجوال: ${customer.phone}\n📧 الإيميل: ${customer.email || authUser.email}\n📍 المدينة: ${customer.city}\n🏠 العنوان: ${customer.address}\n\n${items}\n\n💰 الإجمالي: ${formatPrice(total)} ر.س\n\n📦 الرجاء تأكيد الطلب`;
+    const orderNumber = `${settings.orderPrefix || "GD"}-${orderRef.id.slice(0, 6).toUpperCase()}`;
+    const message = `طلب جديد من ${settings.storeName || "المتجر"}\n\nرقم الطلب: ${orderNumber}\n\nبيانات العميل:\nالاسم: ${customer.name}\nالجوال: ${customer.phone}\nالإيميل: ${customer.email || authUser.email}\nالمدينة: ${customer.city}\nالعنوان: ${customer.address}\n\nالمنتجات:\n${items}\n\nملخص الطلب:\nالمجموع الفرعي: ${formatPrice(subtotal)} ر.س\nالخصم: ${formatPrice(discount)} ر.س\nالشحن: ${formatPrice(shippingFee)} ر.س\nالإجمالي: ${formatPrice(total)} ر.س\n\nالرجاء تأكيد الطلب وتجهيزه.`;
     window.open(
       `https://wa.me/${settings.homeHeaderWhatsapp || STORE_WHATSAPP}?text=${encodeURIComponent(message)}`,
       "_blank",
@@ -1800,10 +1839,24 @@ function Store({
                         </button>
                         <b>{item.qty}</b>
                         <button
+                          disabled={
+                            hasManagedStock(item) &&
+                            Number(item.qty || 0) >= Number(item.stock || 0)
+                          }
                           onClick={() =>
                             setCart((c) =>
                               c.map((x, idx) =>
-                                idx === i ? { ...x, qty: x.qty + 1 } : x,
+                                idx === i
+                                  ? {
+                                      ...x,
+                                      qty: hasManagedStock(x)
+                                        ? Math.min(
+                                            Number(x.stock || 0),
+                                            Number(x.qty || 0) + 1,
+                                          )
+                                        : Number(x.qty || 0) + 1,
+                                    }
+                                  : x,
                               ),
                             )
                           }
@@ -2362,14 +2415,20 @@ function ProductDetailPage({
   const selected = selectedSize[product.id] || sizes[0] || "Free";
   const oldPrice = Number(product.oldPrice || 0);
   const price = Number(product.price || 0);
-  const stock = Number(product.stock || 0);
+  const hasManagedStock =
+    product.stock !== undefined && product.stock !== "";
+  const stock = hasManagedStock ? Number(product.stock || 0) : null;
+  const outOfStock = hasManagedStock && stock <= 0;
   const hasDiscount = oldPrice > price;
   const discountPercent = hasDiscount
     ? Math.round(((oldPrice - price) / oldPrice) * 100)
     : 0;
   const rating = Number(product.rating || 5);
   const reviewCount = Number(product.reviewCount || product.reviews || 24);
-  const safeQty = Math.max(1, Math.min(Number(qty || 1), stock || 1));
+  const safeQty = Math.max(
+    1,
+    hasManagedStock ? Math.min(Number(qty || 1), stock || 1) : Number(qty || 1),
+  );
   const storeName = settings?.storeName || "GREEN DIXAM";
   const productDescription =
     product.longDescription ||
@@ -2489,7 +2548,7 @@ function ProductDetailPage({
                 <Star size={16} fill="currentColor" /> {rating.toFixed(1)}
               </span>
               <button type="button">{reviewCount} تقييم</button>
-              {stock > 0 ? (
+              {!outOfStock ? (
                 <b className="in-stock">متوفر الآن</b>
               ) : (
                 <b className="out-stock">غير متوفر</b>
@@ -2516,7 +2575,7 @@ function ProductDetailPage({
               </p>
               <p>
                 <span>التوفر</span>
-                <b>{stock > 0 ? "متوفر" : "غير متوفر"}</b>
+                <b>{!outOfStock ? "متوفر" : "غير متوفر"}</b>
               </p>
               {product.sku && (
                 <p>
@@ -2592,7 +2651,9 @@ function ProductDetailPage({
                   type="button"
                   onClick={() =>
                     setQty((prev) =>
-                      Math.min(stock || 99, Number(prev || 1) + 1),
+                      hasManagedStock
+                        ? Math.min(stock || 1, Number(prev || 1) + 1)
+                        : Number(prev || 1) + 1,
                     )
                   }
                 >
@@ -2606,15 +2667,15 @@ function ProductDetailPage({
                 type="button"
                 className="product-detail-add product-cart-cta"
                 onClick={handleAddQtyToCart}
-                disabled={stock === 0}
+                disabled={outOfStock}
               >
-                {stock === 0 ? "غير متوفر" : "أضف إلى السلة"}
+                {outOfStock ? "غير متوفر" : "أضف إلى السلة"}
               </button>
               <button
                 type="button"
                 className="product-buy-now"
                 onClick={handleAddQtyToCart}
-                disabled={stock === 0}
+                disabled={outOfStock}
               >
                 اشتري الآن
               </button>
@@ -2629,7 +2690,13 @@ function ProductDetailPage({
               )}
               <p>
                 <span>المخزون</span>
-                <b>{stock > 0 ? `${stock} قطعة` : "غير متوفر"}</b>
+                <b>
+                  {hasManagedStock
+                    ? stock > 0
+                      ? `${stock} قطعة`
+                      : "غير متوفر"
+                    : "متوفر"}
+                </b>
               </p>
             </div>
           </aside>
