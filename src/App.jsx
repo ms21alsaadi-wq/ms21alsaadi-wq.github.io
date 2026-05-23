@@ -6495,6 +6495,51 @@ function Admin({
                       </button>
                     </div>
 
+                    <div className="admin-card product-live-preview-panel">
+                      <div className="product-live-preview-head">
+                        <span>Live Preview</span>
+                        <h3>معاينة المنتج</h3>
+                      </div>
+                      <div className="live-product-preview">
+                        <div className="live-product-image">
+                          {imagePreview ? (
+                            <img
+                              src={imagePreview}
+                              alt="معاينة المنتج"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <span>صورة المنتج</span>
+                          )}
+                        </div>
+                        <div className="live-product-preview-body">
+                          <b>{productPreview.name || "اسم المنتج"}</b>
+                          <small>{productPreview.category || "القسم"}</small>
+                          {productPreview.description && (
+                            <span>{productPreview.description}</span>
+                          )}
+                          <strong>
+                            {productPreview.price
+                              ? `${formatPrice(productPreview.price)} ر.س`
+                              : "السعر"}
+                          </strong>
+                          {productPreview.oldPrice &&
+                            Number(productPreview.oldPrice || 0) >
+                              Number(productPreview.price || 0) && (
+                              <del>
+                                {formatPrice(productPreview.oldPrice)} ر.س
+                              </del>
+                            )}
+                          <small>
+                            {productPreview.stock === ""
+                              ? "المخزون غير محدد"
+                              : `المخزون: ${productPreview.stock}`}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+
                     <form
                       id="product-editor-form"
                       onSubmit={saveProduct}
@@ -7115,50 +7160,6 @@ function Admin({
                       )}
                     </form>
 
-                    <div className="admin-card product-live-preview-panel">
-                      <div className="product-live-preview-head">
-                        <span>Live Preview</span>
-                        <h3>معاينة المنتج</h3>
-                      </div>
-                      <div className="live-product-preview">
-                        <div className="live-product-image">
-                          {imagePreview ? (
-                            <img
-                              src={imagePreview}
-                              alt="معاينة المنتج"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                          ) : (
-                            <span>صورة المنتج</span>
-                          )}
-                        </div>
-                        <div className="live-product-preview-body">
-                          <b>{productPreview.name || "اسم المنتج"}</b>
-                          <small>{productPreview.category || "القسم"}</small>
-                          {productPreview.description && (
-                            <span>{productPreview.description}</span>
-                          )}
-                          <strong>
-                            {productPreview.price
-                              ? `${formatPrice(productPreview.price)} ر.س`
-                              : "السعر"}
-                          </strong>
-                          {productPreview.oldPrice &&
-                            Number(productPreview.oldPrice || 0) >
-                              Number(productPreview.price || 0) && (
-                              <del>
-                                {formatPrice(productPreview.oldPrice)} ر.س
-                              </del>
-                            )}
-                          <small>
-                            {productPreview.stock === ""
-                              ? "المخزون غير محدد"
-                              : `المخزون: ${productPreview.stock}`}
-                          </small>
-                        </div>
-                      </div>
-                    </div>
                   </div>
 
                   <div className="product-modal-footer">

@@ -10035,8 +10035,7 @@ a[href="./"]:hover {
 }
 .product-editor-tabs-form .product-options-master-card,
 .product-editor-tabs-form .products-six-card-grid .product-six-card,
-.product-editor-tabs-form .gallery-manager,
-.product-editor-tabs-form .product-live-preview-panel {
+.product-editor-tabs-form .gallery-manager {
   display: none !important;
 }
 .product-editor-tabs-form .products-six-card-grid {
@@ -10070,8 +10069,7 @@ a[href="./"]:hover {
 }
 .product-editor-tabs-form.active-tab-seo
   .products-six-card-grid
-  .product-six-card:nth-child(6),
-.product-editor-tabs-form.active-tab-seo .product-live-preview-panel {
+  .product-six-card:nth-child(6) {
   display: block !important;
 }
 .product-modal-shell .product-six-card,
@@ -13106,8 +13104,7 @@ button.product-flat-top-btn:hover svg {
 }
 .admin-main .product-editor-tabs-form .product-options-master-card,
 .admin-main .product-editor-tabs-form .products-six-card-grid .product-six-card,
-.admin-main .product-editor-tabs-form .gallery-manager,
-.admin-main .product-editor-tabs-form .product-live-preview-panel {
+.admin-main .product-editor-tabs-form .gallery-manager {
   display: none !important;
 }
 .admin-main
@@ -13137,10 +13134,7 @@ button.product-flat-top-btn:hover svg {
 .admin-main
   .product-editor-tabs-form.active-tab-seo
   .products-six-card-grid
-  .product-six-card:nth-child(6),
-.admin-main
-  .product-editor-tabs-form.active-tab-seo
-  .product-live-preview-panel {
+  .product-six-card:nth-child(6) {
   display: block !important;
 }
 .admin-main
