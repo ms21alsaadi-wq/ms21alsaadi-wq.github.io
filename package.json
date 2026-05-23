@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "react-router-dom": "^7.0.0",
+    "zustand": "^5.0.0",
     "@emailjs/browser": "^4.4.1",
     "firebase": "^11.0.0",
     "lucide-react": "^0.454.0",
