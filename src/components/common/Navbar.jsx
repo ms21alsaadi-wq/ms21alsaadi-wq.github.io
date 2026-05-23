@@ -2,15 +2,19 @@ import { Link } from 'react-router-dom'
 
 function Navbar() {
   return (
-    <header className="border-b bg-white sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="text-2xl font-bold">
-          FLOWER STORE
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur border-b">
+      <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+        <Link
+          to="/"
+          className="text-2xl font-black tracking-wide"
+        >
+          BLOOM
         </Link>
 
-        <nav className="flex gap-6">
+        <nav className="flex items-center gap-8 text-sm font-medium">
           <Link to="/">Home</Link>
           <Link to="/cart">Cart</Link>
+          <Link to="/admin">Admin</Link>
         </nav>
       </div>
     </header>

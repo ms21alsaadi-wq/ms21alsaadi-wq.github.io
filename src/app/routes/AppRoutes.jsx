@@ -6,6 +6,7 @@ import HomePage from '../../pages/Home/HomePage'
 import ProductPage from '../../pages/Product/ProductPage'
 import CartPage from '../../pages/Cart/CartPage'
 import CheckoutPage from '../../pages/Checkout/CheckoutPage'
+import AdminPage from '../../pages/Admin/AdminPage'
 
 function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ function AppRoutes() {
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
