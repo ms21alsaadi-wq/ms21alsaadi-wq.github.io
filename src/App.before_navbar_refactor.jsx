@@ -1,23 +1,3 @@
-
-
-/*
-========================================
-SAFE REFACTOR STARTED
-
-Prepared files:
-- components/common/Navbar.jsx
-- components/common/Footer.jsx
-- components/products/ProductGrid.jsx
-
-Next step:
-Move JSX gradually from this file
-without breaking the store.
-
-Backup:
-App.before_navbar_refactor.jsx
-========================================
-*/
-
 import React, { useEffect, useMemo, useState } from "react";
 import { initializeApp, deleteApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
