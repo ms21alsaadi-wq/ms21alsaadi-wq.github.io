@@ -113,6 +113,7 @@ import {
   SEOManager,
   findProductByPath,
   productPath,
+  productSlug,
 } from "./components/SEOManager.jsx";
 import {
   ADMIN_PERMISSION_DESCRIPTIONS,
