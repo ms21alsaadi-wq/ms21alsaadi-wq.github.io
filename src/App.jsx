@@ -3684,6 +3684,26 @@ function Admin({
   const [notice, setNotice] = useState("");
   const [draftSettings, setDraftSettings] = useState(settings);
   const [imagePreview, setImagePreview] = useState(editing?.image || "");
+  const [productPreview, setProductPreview] = useState({
+    name: "",
+    description: "",
+    brand: "",
+    category: "نباتات داخلية",
+    price: "",
+    oldPrice: "",
+    stock: "",
+    sku: "",
+    status: "active",
+    rating: 4.8,
+    tag: "Rare",
+    sizes: "صغير,متوسط,كبير",
+    colors: "",
+    featured: false,
+    seoSlug: "",
+    seoTitle: "",
+    seoDescription: "",
+    image: "",
+  });
   const [galleryImages, setGalleryImages] = useState([]);
   const [pendingImport, setPendingImport] = useState([]);
   const [productSearch, setProductSearch] = useState("");
@@ -3716,6 +3736,31 @@ function Admin({
       return "unsupported";
     }
     return window.Notification.permission;
+  });
+
+  const productPreviewFromProduct = (product = null) => ({
+    name: product?.name || "",
+    description: product?.description || "",
+    brand: product?.brand || "",
+    category: product?.category || "نباتات داخلية",
+    price: product?.price ?? "",
+    oldPrice: product?.oldPrice ?? "",
+    stock: product?.stock ?? "",
+    sku: product?.sku || "",
+    status: product?.status || "active",
+    rating: product?.rating ?? 4.8,
+    tag: product?.tag || "Rare",
+    sizes: Array.isArray(product?.sizes)
+      ? product.sizes.join(",")
+      : product?.sizes || "صغير,متوسط,كبير",
+    colors: Array.isArray(product?.colors)
+      ? product.colors.join(",")
+      : product?.colors || "",
+    featured: Boolean(product?.featured),
+    seoSlug: product?.seoSlug || "",
+    seoTitle: product?.seoTitle || "",
+    seoDescription: product?.seoDescription || "",
+    image: product?.image || "",
   });
 
   useEffect(() => {
@@ -3887,6 +3932,7 @@ function Admin({
 
   useEffect(() => {
     setImagePreview(editing?.image || "");
+    setProductPreview(productPreviewFromProduct(editing));
     setGalleryImages(Array.isArray(editing?.gallery) ? editing.gallery : []);
     const currentOptions =
       Array.isArray(editing?.options) && editing.options.length
@@ -4255,6 +4301,7 @@ function Admin({
   const resetProductEditor = () => {
     setEditing(null);
     setImagePreview("");
+    setProductPreview(productPreviewFromProduct(null));
     setGalleryImages([]);
     setProductOptions([{ size: "", color: "", stock: "", price: "", sku: "" }]);
     setProductFormTab("info");
@@ -4263,8 +4310,28 @@ function Admin({
 
   const openProductEditor = (product = null) => {
     setEditing(product);
+    setImagePreview(product?.image || "");
+    setProductPreview(productPreviewFromProduct(product));
     setProductFormTab("info");
     setProductModalOpen(true);
+  };
+
+  const updateProductPreviewFromField = (name, value) => {
+    if (!name || name === "imageFile") return;
+    setProductPreview((prev) => ({ ...prev, [name]: value }));
+    if (name === "imageUrl") {
+      setImagePreview(value);
+      setProductPreview((prev) => ({ ...prev, image: value }));
+    }
+  };
+
+  const updateProductPreviewFromForm = (event) => {
+    const target = event.target;
+    if (!target?.name) return;
+    updateProductPreviewFromField(
+      target.name,
+      target.type === "checkbox" ? target.checked : target.value,
+    );
   };
 
   const saveProduct = async (e) => {
@@ -4338,7 +4405,7 @@ function Admin({
       ),
       seoTitle: f.seoTitle?.value?.trim() || "",
       seoDescription: f.seoDescription?.value?.trim() || "",
-      stock: Number(f.stock.value || 0),
+      stock: f.stock.value === "" ? "" : Number(f.stock.value || 0),
       sku: f.sku.value.trim(),
       status: f.status.value,
       featured: f.featured.checked,
@@ -6431,20 +6498,22 @@ function Admin({
                     <form
                       id="product-editor-form"
                       onSubmit={saveProduct}
+                      onChange={updateProductPreviewFromForm}
                       className={`product-form products-six-card-form product-editor-tabs-form active-tab-${productFormTab}`}
                     >
-                      <div className="product-options-master-card">
-                        <div className="product-options-master-head">
-                          <div>
-                            <span>نظام خيارات المنتج</span>
-                            <h3>
-                              إدارة خيارات المقاسات والألوان والأسعار والمخزون
-                            </h3>
+                      {productFormTab === "options" && (
+                        <div className="product-options-master-card">
+                          <div className="product-options-master-head">
+                            <div>
+                              <span>نظام خيارات المنتج</span>
+                              <h3>
+                                إدارة خيارات المقاسات والألوان والأسعار والمخزون
+                              </h3>
+                            </div>
+                            <span className="product-section-icon">
+                              <Settings size={18} />
+                            </span>
                           </div>
-                          <span className="product-section-icon">
-                            <Settings size={18} />
-                          </span>
-                        </div>
 
                         <div className="options-master-grid">
                           <div className="options-preview-panel">
@@ -6509,11 +6578,11 @@ function Admin({
                                     <span>{option.color || "—"}</span>
                                     <span>{option.size || "—"}</span>
                                     <span>
-                                      {option.price || editing?.price || "—"}
+                                      {option.price || productPreview.price || "—"}
                                     </span>
                                     <span>
                                       {option.oldPrice ||
-                                        editing?.oldPrice ||
+                                        productPreview.oldPrice ||
                                         "—"}
                                     </span>
                                     <span>{option.stock || 0}</span>
@@ -6688,6 +6757,7 @@ function Admin({
                           </div>
                         </div>
                       </div>
+                      )}
                       <div className="products-six-card-grid">
                         <div className="pro-form-section product-six-card">
                           <h3>
@@ -6699,6 +6769,7 @@ function Admin({
                               name="name"
                               defaultValue={editing?.name || ""}
                               placeholder="مثال: مونستيرا فاخرة"
+                              required
                             />
                           </Control>
                           <Control label="الوصف">
@@ -6740,6 +6811,7 @@ function Admin({
                                 min="0"
                                 step="1"
                                 defaultValue={editing?.price || ""}
+                                required
                               />
                             </Control>
                             <Control label="السعر قبل الخصم">
@@ -6759,7 +6831,8 @@ function Admin({
                                 type="number"
                                 min="0"
                                 step="1"
-                                defaultValue={editing?.stock || 0}
+                                defaultValue={editing?.stock ?? ""}
+                                placeholder="اتركه فارغًا إذا لم تكن تدير المخزون"
                               />
                             </Control>
                             <Control label="SKU">
@@ -6830,14 +6903,19 @@ function Admin({
                           </div>
 
                           <div className="product-options-mini-note">
-                            تم نقل إدارة خيارات المنتج إلى كرت مستقل ومرتب أعلى
-                            النموذج.
+                            لإدارة المقاسات والألوان والأسعار المتقدمة افتح تبويب
+                            الخيارات.
                           </div>
                           <Control label="رابط الصورة">
                             <input
                               name="imageUrl"
                               defaultValue={editing?.image || ""}
-                              onChange={(e) => setImagePreview(e.target.value)}
+                              onChange={(e) =>
+                                updateProductPreviewFromField(
+                                  "imageUrl",
+                                  e.target.value,
+                                )
+                              }
                               placeholder="ضع رابط صورة المنتج هنا"
                             />
                           </Control>
@@ -6848,14 +6926,17 @@ function Admin({
                               accept="image/*"
                               onChange={async (e) => {
                                 const file = e.target.files[0];
-                                if (file)
-                                  setImagePreview(
-                                    await fileToDataUrl(file, {
-                                      maxWidth: 1100,
-                                      maxHeight: 900,
-                                      quality: 0.82,
-                                    }),
-                                  );
+                                if (!file) return;
+                                const dataUrl = await fileToDataUrl(file, {
+                                  maxWidth: 1100,
+                                  maxHeight: 900,
+                                  quality: 0.82,
+                                });
+                                setImagePreview(dataUrl);
+                                setProductPreview((prev) => ({
+                                  ...prev,
+                                  image: dataUrl,
+                                }));
                               }}
                             />
                           </Control>
@@ -6917,7 +6998,7 @@ function Admin({
                               <input
                                 name="priceDisplayOnly"
                                 type="text"
-                                value={editing?.price || ""}
+                                value={productPreview.price || ""}
                                 readOnly
                                 placeholder="من حقل السعر"
                               />
@@ -6926,7 +7007,7 @@ function Admin({
                               <input
                                 name="oldPriceDisplayOnly"
                                 type="text"
-                                value={editing?.oldPrice || ""}
+                                value={productPreview.oldPrice || ""}
                                 readOnly
                                 placeholder="من حقل السعر قبل الخصم"
                               />
@@ -6949,7 +7030,10 @@ function Admin({
                             <input
                               name="seoSlug"
                               defaultValue={
-                                editing?.seoSlug || productSlug(editing || {})
+                                editing?.seoSlug ||
+                                productSlug({
+                                  name: productPreview.name || "product",
+                                })
                               }
                               placeholder="مثال: monstera-premium"
                             />
@@ -6970,20 +7054,22 @@ function Admin({
                           </Control>
                           <div className="seo-preview-box">
                             <b>
-                              {editing?.seoTitle ||
-                                editing?.name ||
+                              {productPreview.seoTitle ||
+                                productPreview.name ||
                                 "اسم المنتج"}
                             </b>
                             <span>
-                              {editing?.seoDescription ||
-                                editing?.description ||
+                              {productPreview.seoDescription ||
+                                productPreview.description ||
                                 "وصف المنتج يظهر هنا بعد الحفظ"}
                             </span>
                           </div>
                           <div className="product-card-note">
                             بعد الحفظ سيكون الرابط مثل: /product/
-                            {editing?.seoSlug ||
-                              productSlug(editing || { name: "product" })}
+                            {productPreview.seoSlug ||
+                              productSlug({
+                                name: productPreview.name || "product",
+                              })}
                           </div>
                         </div>
                       </div>
@@ -7048,13 +7134,28 @@ function Admin({
                           )}
                         </div>
                         <div className="live-product-preview-body">
-                          <b>{editing?.name || "اسم المنتج"}</b>
-                          <small>{editing?.category || "القسم"}</small>
+                          <b>{productPreview.name || "اسم المنتج"}</b>
+                          <small>{productPreview.category || "القسم"}</small>
+                          {productPreview.description && (
+                            <span>{productPreview.description}</span>
+                          )}
                           <strong>
-                            {editing?.price
-                              ? `${formatPrice(editing.price)} ر.س`
+                            {productPreview.price
+                              ? `${formatPrice(productPreview.price)} ر.س`
                               : "السعر"}
                           </strong>
+                          {productPreview.oldPrice &&
+                            Number(productPreview.oldPrice || 0) >
+                              Number(productPreview.price || 0) && (
+                              <del>
+                                {formatPrice(productPreview.oldPrice)} ر.س
+                              </del>
+                            )}
+                          <small>
+                            {productPreview.stock === ""
+                              ? "المخزون غير محدد"
+                              : `المخزون: ${productPreview.stock}`}
+                          </small>
                         </div>
                       </div>
                     </div>
