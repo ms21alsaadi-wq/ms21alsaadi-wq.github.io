@@ -1,11 +1,5 @@
-function ProductGrid({ products = [] }) {
-  return (
-    <>
-      {/* 
-        Move your product grid JSX here gradually.
-      */}
-    </>
-  )
+function ProductGrid(props) {
+  return props.children || null
 }
 
 export default ProductGrid

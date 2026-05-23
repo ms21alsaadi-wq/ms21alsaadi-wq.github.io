@@ -113,12 +113,6 @@ import {
 } from "./services/staffAuthApi.js";
 import { fileToDataUrl } from "./utils/media.js";
 
-import Navbar from './components/common/Navbar'
-import Footer from './components/common/Footer'
-import ProductGrid from './components/products/ProductGrid'
-
-
-
 const ADMIN_ROUTE_TABS = [
   "dashboard",
   "reports",
@@ -161,25 +155,7 @@ export default function App() {
   useEffect(() => {
     const onPop = () => setPath(window.location.pathname);
     window.addEventListener("popstate", onPop);
-    
-{/* 
-========================================
-PHASE 2 SAFE REFACTOR
-
-Prepared extraction targets:
-- Navbar
-- Footer
-- ProductGrid
-
-You can now move real JSX gradually
-into separate files safely.
-
-Backup:
-App.phase2.backup.jsx
-========================================
-*/}
-
-return () => window.removeEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   useEffect(() => {

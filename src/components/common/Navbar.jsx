@@ -1,12 +1,5 @@
-function Navbar() {
-  return (
-    <>
-      {/* 
-        Move your navbar JSX here gradually.
-        This file was prepared during safe refactor.
-      */}
-    </>
-  )
+function Navbar(props) {
+  return props.children || null
 }
 
 export default Navbar
