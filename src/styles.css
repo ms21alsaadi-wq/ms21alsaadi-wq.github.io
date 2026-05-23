@@ -11160,7 +11160,7 @@ textarea:focus {
   display: block !important;
 }
 .product-live-preview-panel {
-  display: none !important;
+  display: block !important;
 }
 .product-modal-footer {
   position: relative !important;
