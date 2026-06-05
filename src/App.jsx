@@ -23,7 +23,6 @@ import { initializeApp, deleteApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import {
   Search,
-  Heart,
   Star,
   Truck,
   ShieldCheck,
@@ -105,8 +104,6 @@ import {
   normalizePageHref,
   getTrafficSource,
   formatDuration,
-  normalizeVideoUrl,
-  isGoogleDriveVideo,
   firebaseError,
 } from "./utils/helpers";
 import {
@@ -135,6 +132,9 @@ import {
 import { fileToDataUrl } from "./utils/media.js";
 import Navbar from "./components/common/Navbar.jsx";
 import Footer from "./components/common/Footer.jsx";
+import CartDrawer from "./components/common/CartDrawer.jsx";
+import HeroSection from "./components/common/HeroSection.jsx";
+import ProductGrid from "./components/products/ProductGrid.jsx";
 
 const ADMIN_ROUTE_TABS = [
   "dashboard",
@@ -1360,7 +1360,6 @@ function Store({
       style={theme}
       dir={siteLang === "EN" ? "ltr" : "rtl"}
     >
-      <HeroStyle />
       {(settings.storeStatus && settings.storeStatus !== "open") ||
       settings.checkoutEnabled === false ? (
         <div className="store-operation-banner">
@@ -1401,7 +1400,7 @@ function Store({
         <StoreCustomPage page={currentStorePage} products={products} go={go} />
       ) : (
         <>
-          <HeroSection settings={settings} products={products} />
+          <HeroSection settings={settings} />
 
           <section className="container feature-grid">
             <Feature
@@ -1569,94 +1568,15 @@ function Store({
                   "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}
               </p>
             </div>
-            <div className="products-grid">
-              {filtered.map((p) => {
-                const sizes = sizesArray(p.sizes);
-                return (
-                  <article
-                    className="product product-link-card"
-                    key={p.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => go(productPath(p))}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") go(productPath(p));
-                    }}
-                  >
-                    <div className="product-img">
-                      <img
-                        src={p.image}
-                        alt={p.name}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <span>{p.tag}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFavorites((prev) =>
-                            prev.includes(p.id)
-                              ? prev.filter((x) => x !== p.id)
-                              : [...prev, p.id],
-                          );
-                        }}
-                      >
-                        <Heart
-                          className={favorites.includes(p.id) ? "heart-on" : ""}
-                        />
-                      </button>
-                    </div>
-                    <div className="product-body">
-                      <div className="product-top">
-                        <div>
-                          <small>{p.brand}</small>
-                          <h3>{p.name}</h3>
-                        </div>
-                        <em>{p.category}</em>
-                      </div>
-                      <div className="rating">
-                        <Star size={15} fill="currentColor" /> {p.rating}
-                      </div>
-                      <div className="sizes">
-                        {sizes.map((s) => (
-                          <button
-                            className={
-                              (selectedSize[p.id] || sizes[0]) === s
-                                ? "active"
-                                : ""
-                            }
-                            key={s}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedSize((prev) => ({
-                                ...prev,
-                                [p.id]: s,
-                              }));
-                            }}
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="product-foot">
-                        <div>
-                          <b>{formatPrice(p.price)} ر.س</b>
-                          <del>{formatPrice(p.oldPrice)} ر.س</del>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(p);
-                          }}
-                        >
-                          أضف
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+            <ProductGrid
+              products={filtered}
+              go={go}
+              addToCart={addToCart}
+              favorites={favorites}
+              setFavorites={setFavorites}
+              selectedSize={selectedSize}
+              setSelectedSize={setSelectedSize}
+            />
           </section>
 
           <StoreReturnPolicy settings={settings} />
@@ -1666,563 +1586,25 @@ function Store({
       <Footer settings={settings} />
 
       {cartOpen && (
-        <div className="cart-overlay">
-          <div className="cart-bg" onClick={() => setCartOpen(false)} />
-          <aside className="cart-panel">
-            <div className="cart-head">
-              <h3>سلة الشراء</h3>
-              <button onClick={() => setCartOpen(false)}>
-                <X />
-              </button>
-            </div>
-            <div className="cart-body">
-              {cart.length === 0 ? (
-                <div className="empty">السلة فارغة</div>
-              ) : (
-                cart.map((item, i) => (
-                  <div className="cart-item" key={`${item.id}-${i}`}>
-                    <img
-                      src={item.image}
-                      alt={item.name || "منتج"}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div>
-                      <b>{item.name}</b>
-                      <span>الحجم: {item.size}</span>
-                      <span>{formatPrice(item.price)} ر.س</span>
-                      <div className="qty">
-                        <button
-                          onClick={() =>
-                            setCart((c) =>
-                              c.map((x, idx) =>
-                                idx === i
-                                  ? { ...x, qty: Math.max(1, x.qty - 1) }
-                                  : x,
-                              ),
-                            )
-                          }
-                        >
-                          <Minus size={14} />
-                        </button>
-                        <b>{item.qty}</b>
-                        <button
-                          disabled={
-                            hasManagedStock(item) &&
-                            Number(item.qty || 0) >= Number(item.stock || 0)
-                          }
-                          onClick={() =>
-                            setCart((c) =>
-                              c.map((x, idx) =>
-                                idx === i
-                                  ? {
-                                      ...x,
-                                      qty: hasManagedStock(x)
-                                        ? Math.min(
-                                            Number(x.stock || 0),
-                                            Number(x.qty || 0) + 1,
-                                          )
-                                        : Number(x.qty || 0) + 1,
-                                    }
-                                  : x,
-                              ),
-                            )
-                          }
-                        >
-                          <Plus size={14} />
-                        </button>
-                        <button
-                          onClick={() =>
-                            setCart((c) => c.filter((_, idx) => idx !== i))
-                          }
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="cart-foot">
-              <div className="coupon-box">
-                <label>كود الخصم</label>
-                <div className="coupon-input-row">
-                  <input
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="مثال: GREEN10"
-                  />
-                  <button type="button" onClick={applyCoupon}>
-                    تطبيق
-                  </button>
-                </div>
-                {couponMessage && (
-                  <span
-                    className={
-                      appliedCoupon ? "coupon-success" : "coupon-error"
-                    }
-                  >
-                    {couponMessage}
-                  </span>
-                )}
-                {appliedCoupon && (
-                  <button
-                    type="button"
-                    className="remove-coupon"
-                    onClick={removeCoupon}
-                  >
-                    إزالة الكوبون
-                  </button>
-                )}
-              </div>
-
-              <div className="cart-summary-lines">
-                <p>
-                  <span>المجموع الفرعي</span>
-                  <b>{formatPrice(subtotal)} ر.س</b>
-                </p>
-                {appliedCoupon && (
-                  <p className="discount-line">
-                    <span>خصم {appliedCoupon.percent}%</span>
-                    <b>- {formatPrice(discount)} ر.س</b>
-                  </p>
-                )}
-                <p>
-                  <span>الشحن</span>
-                  <b>{formatPrice(shippingFee)} ر.س</b>
-                </p>
-                <p className="total-line">
-                  <span>الإجمالي</span>
-                  <b>{formatPrice(total)} ر.س</b>
-                </p>
-              </div>
-
-              <button onClick={checkoutWhatsApp}>إتمام الطلب عبر واتساب</button>
-            </div>
-          </aside>
-        </div>
+        <CartDrawer
+          cart={cart}
+          setCart={setCart}
+          setCartOpen={setCartOpen}
+          hasManagedStock={hasManagedStock}
+          couponCode={couponCode}
+          setCouponCode={setCouponCode}
+          applyCoupon={applyCoupon}
+          couponMessage={couponMessage}
+          appliedCoupon={appliedCoupon}
+          removeCoupon={removeCoupon}
+          subtotal={subtotal}
+          discount={discount}
+          shippingFee={shippingFee}
+          total={total}
+          checkoutWhatsApp={checkoutWhatsApp}
+        />
       )}
     </div>
-  );
-}
-
-function HeroSection({ settings, products }) {
-  const layout = settings.homeHeroLayout || "split";
-  const title = settings.homeHeroTitle || "";
-  const desc = settings.homeHeroDesc || "";
-  const buttonText = settings.homeHeroButton ?? "تسوق الآن";
-  const buttonLink = settings.homeHeroButtonLink || "#products";
-  const image = settings.homeHeroImage || "";
-  const bgImage = settings.homeHeroBgImage || "";
-  const imagePosition = settings.homeHeroImagePosition || "left";
-  const rawVideo = settings.homeHeroVideo || "";
-  const video = normalizeVideoUrl(rawVideo);
-  const driveVideo = isGoogleDriveVideo(rawVideo);
-
-  const content = (
-    <div className="hero-copy hero-dynamic-copy">
-      <h1>{title}</h1>
-      <p>{desc}</p>
-      {buttonText?.trim() && (
-        <div className="hero-actions">
-          <a href={buttonLink} className="primary">
-            {buttonText}
-          </a>
-        </div>
-      )}
-    </div>
-  );
-
-  if (layout === "video") {
-    return (
-      <section className="hero-full-media hero-video-mode">
-        {video ? (
-          driveVideo ? (
-            <iframe
-              className="hero-full-video hero-drive-video"
-              src={video}
-              title={title || "Hero Video"}
-              allow="autoplay; fullscreen"
-              allowFullScreen
-            />
-          ) : (
-            <video
-              className="hero-full-video"
-              src={video}
-              autoPlay
-              muted
-              loop
-              playsInline
-            />
-          )
-        ) : image ? (
-          <img
-            className="hero-full-video"
-            src={image}
-            alt={title}
-            loading="eager"
-            decoding="async"
-          />
-        ) : (
-          <div className="hero-full-placeholder">
-            ارفع فيديو الهيرو من لوحة التحكم
-          </div>
-        )}
-        <div className="hero-media-overlay" />
-        <div className="container hero-media-content">{content}</div>
-      </section>
-    );
-  }
-
-  if (layout === "banner") {
-    return (
-      <section className="hero-full-media hero-banner-mode">
-        {image ? (
-          <img
-            className="hero-full-video"
-            src={image}
-            alt={title}
-            loading="eager"
-            decoding="async"
-          />
-        ) : (
-          <div className="hero-full-placeholder">
-            ارفع بنر الهيرو من لوحة التحكم
-          </div>
-        )}
-        <div className="hero-media-overlay light" />
-        <div className="container hero-media-content centered">{content}</div>
-      </section>
-    );
-  }
-
-  return (
-    <section
-      className={`hero-layered hero-layered-${imagePosition}`}
-      style={{
-        backgroundImage: bgImage
-          ? `linear-gradient(90deg, rgba(245,241,232,.86), rgba(245,241,232,.48)), url(${bgImage})`
-          : undefined,
-      }}
-    >
-      <div className="container hero-layered-inner">
-        <div className="hero-layered-text">{content}</div>
-
-        <div className="hero-layered-image-card">
-          {image ? (
-            <img src={image} alt={title} loading="eager" decoding="async" />
-          ) : (
-            <div className="hero-full-placeholder">
-              ارفع الصورة الأمامية للهيرو
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function HeroStyle() {
-  return (
-    <style>{`
-      .hero-full-media {
-        position: relative;
-        width: 100%;
-        min-height: min(760px, 86vh);
-        overflow: hidden;
-        display: grid;
-        align-items: center;
-        background: #0F3D2E;
-      }
-
-      .hero-full-video {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-
-      .hero-media-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(90deg, rgba(0,0,0,.64), rgba(0,0,0,.18), rgba(0,0,0,.48));
-        z-index: 1;
-      }
-
-      .hero-media-overlay.light {
-        background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.46));
-      }
-
-      .hero-media-content {
-        position: relative;
-        z-index: 2;
-        padding-top: 90px;
-        padding-bottom: 90px;
-      }
-
-      .hero-media-content .hero-dynamic-copy {
-        max-width: 620px;
-        color: #fff;
-      }
-
-      .hero-media-content.centered {
-        display: flex;
-        justify-content: center;
-        text-align: center;
-      }
-
-      .hero-media-content.centered .hero-dynamic-copy {
-        align-items: center;
-        margin: 0 auto;
-      }
-
-      .hero-media-content .pill {
-        background: rgba(255,255,255,.16);
-        color: #fff;
-        border-color: rgba(255,255,255,.28);
-      }
-
-      .hero-media-content h1,
-      .hero-media-content p,
-      .hero-media-content .stats span,
-      .hero-media-content .stats b {
-        color: #fff;
-      }
-
-      .hero-full-placeholder {
-        min-height: 360px;
-        display: grid;
-        place-items: center;
-        color: rgba(255,255,255,.85);
-        background: linear-gradient(135deg, #0F3D2E, #174d39);
-        font-weight: 900;
-        text-align: center;
-        padding: 24px;
-      }
-
-      .hero-split-mode .hero-full-placeholder {
-        width: 100%;
-        height: 100%;
-        min-height: 360px;
-        border-radius: 28px;
-      }
-
-
-      .hero-admin-compact-form {
-        max-width: 1180px !important;
-        margin-inline: auto !important;
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 14px !important;
-        align-items: end !important;
-      }
-
-      .hero-admin-compact-form > .control:first-child,
-      .hero-admin-compact-form > .control:nth-child(2) {
-        grid-column: span 1 !important;
-      }
-
-      .hero-admin-compact-form textarea {
-        min-height: 86px !important;
-        resize: vertical !important;
-      }
-
-      .hero-admin-options-grid,
-      .hero-admin-image-tools {
-        grid-column: 1 / -1 !important;
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 14px !important;
-        align-items: end !important;
-      }
-
-      .hero-admin-compact-form .section-image-preview {
-        grid-column: 1 / -1 !important;
-        max-height: 170px !important;
-        object-fit: cover !important;
-        border-radius: 14px !important;
-      }
-
-      .hero-admin-compact-form .control,
-      .hero-admin-options-grid .control,
-      .hero-admin-image-tools .control {
-        margin: 0 !important;
-      }
-
-      .hero-admin-compact-form input,
-      .hero-admin-compact-form select,
-      .hero-admin-compact-form textarea {
-        min-height: 48px !important;
-      }
-
-      @media (max-width: 900px) {
-        .hero-admin-compact-form,
-        .hero-admin-options-grid,
-        .hero-admin-image-tools {
-          grid-template-columns: 1fr !important;
-        }
-      }
-
-
-      .hero-layered {
-        position: relative;
-        width: 100%;
-        min-height: min(760px, 86vh);
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        display: grid;
-        align-items: center;
-        overflow: hidden;
-        padding: 70px 0;
-      }
-
-      .hero-layered:not([style*="background-image"]) {
-        background: linear-gradient(135deg, #fbf8ef, #eef4ef);
-      }
-
-      .hero-layered-inner {
-        display: grid;
-        grid-template-columns: 1fr 1.1fr;
-        gap: 42px;
-        align-items: center;
-        position: relative;
-        z-index: 2;
-      }
-
-      .hero-layered-right .hero-layered-inner {
-        grid-template-columns: 1.1fr 1fr;
-      }
-
-      .hero-layered-right .hero-layered-image-card { order: 2; }
-      .hero-layered-right .hero-layered-text { order: 1; }
-      .hero-layered-left .hero-layered-image-card { order: 1; }
-      .hero-layered-left .hero-layered-text { order: 2; }
-
-      .hero-layered-image-card {
-        border-radius: 34px;
-        overflow: hidden;
-        background: rgba(255,255,255,.72);
-        padding: 14px;
-        box-shadow: 0 28px 70px rgba(15,61,46,.14);
-        border: 1px solid rgba(194,169,104,.26);
-        min-height: 420px;
-      }
-
-      .hero-layered-image-card img {
-        width: 100%;
-        height: 100%;
-        min-height: 420px;
-        object-fit: cover;
-        border-radius: 24px;
-        display: block;
-      }
-
-      .hero-layered-text {
-        display: flex;
-        justify-content: center;
-      }
-
-      .hero-layered-text .hero-dynamic-copy {
-        max-width: 640px;
-      }
-
-      .hero-layered-text h1 {
-        font-size: clamp(42px, 5vw, 78px);
-        line-height: 1.08;
-      }
-
-      .hero-layered-text p {
-        font-size: clamp(16px, 1.4vw, 21px);
-      }
-
-      .hero-admin-compact-form {
-        max-width: 1180px !important;
-        margin-inline: auto !important;
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 14px !important;
-        align-items: end !important;
-      }
-
-      .hero-admin-compact-form textarea {
-        min-height: 86px !important;
-        resize: vertical !important;
-      }
-
-      .hero-admin-options-grid,
-      .hero-admin-image-tools,
-      .hero-admin-bg-tools {
-        grid-column: 1 / -1 !important;
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 14px !important;
-        align-items: end !important;
-      }
-
-      .hero-admin-compact-form .control,
-      .hero-admin-options-grid .control,
-      .hero-admin-image-tools .control,
-      .hero-admin-bg-tools .control {
-        margin: 0 !important;
-      }
-
-      .hero-admin-compact-form input,
-      .hero-admin-compact-form select,
-      .hero-admin-compact-form textarea {
-        min-height: 48px !important;
-      }
-
-      @media (max-width: 900px) {
-        .hero-layered {
-          min-height: auto;
-          padding: 42px 0;
-        }
-
-        .hero-layered-inner,
-        .hero-layered-right .hero-layered-inner {
-          grid-template-columns: 1fr;
-          gap: 24px;
-        }
-
-        .hero-layered-image-card,
-        .hero-layered-image-card img {
-          min-height: 320px;
-        }
-
-        .hero-layered-left .hero-layered-image-card,
-        .hero-layered-right .hero-layered-image-card,
-        .hero-layered-left .hero-layered-text,
-        .hero-layered-right .hero-layered-text {
-          order: initial;
-        }
-
-        .hero-admin-compact-form,
-        .hero-admin-options-grid,
-        .hero-admin-image-tools,
-        .hero-admin-bg-tools {
-          grid-template-columns: 1fr !important;
-        }
-      }
-
-      @media (max-width: 780px) {
-        .hero-full-media {
-          min-height: 620px;
-        }
-
-        .hero-media-content {
-          padding-top: 60px;
-          padding-bottom: 60px;
-        }
-
-        .hero-media-content .hero-dynamic-copy {
-          max-width: 100%;
-        }
-      }
-    `}</style>
   );
 }
 
