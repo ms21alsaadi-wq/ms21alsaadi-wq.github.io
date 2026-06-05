@@ -14,6 +14,13 @@ function limitSeoText(value, max = 160) {
   return `${text.slice(0, max - 1).trim()}…`;
 }
 
+function productAvailability(product) {
+  const hasManagedStock = product?.stock !== undefined && product?.stock !== "";
+  return hasManagedStock && Number(product.stock || 0) <= 0
+    ? "https://schema.org/OutOfStock"
+    : "https://schema.org/InStock";
+}
+
 export function productSlug(product) {
   return makePageSlug(
     product?.seoSlug || product?.slug || product?.name || product?.id,
@@ -284,10 +291,7 @@ export function SEOManager({ path, settings, products = [] }) {
               url: canonicalUrl,
               priceCurrency: "SAR",
               price: Number(currentProduct.price || 0),
-              availability:
-                Number(currentProduct.stock || 0) === 0
-                  ? "https://schema.org/OutOfStock"
-                  : "https://schema.org/InStock",
+              availability: productAvailability(currentProduct),
             },
           }
         : null,
@@ -316,10 +320,7 @@ export function SEOManager({ path, settings, products = [] }) {
                   "@type": "Offer",
                   priceCurrency: "SAR",
                   price: Number(product.price || 0),
-                  availability:
-                    Number(product.stock || 0) === 0
-                      ? "https://schema.org/OutOfStock"
-                      : "https://schema.org/InStock",
+                  availability: productAvailability(product),
                 },
               },
             })),

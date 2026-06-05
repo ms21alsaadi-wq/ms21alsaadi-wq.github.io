@@ -6,8 +6,8 @@ import {
   Star,
   Truck,
 } from "lucide-react";
-import { productPath } from "../SEOManager.jsx";
 import { formatPrice, makePageSlug, sizesArray } from "../../utils/helpers.js";
+import ProductGrid from "./ProductGrid.jsx";
 
 function ProductDetailPage({
   product,
@@ -383,47 +383,14 @@ function ProductDetailPage({
             <span>منتجات مشابهة</span>
             <h2>قد يعجبك أيضًا</h2>
           </div>
-          <div className="products-grid">
-            {relatedProducts.map((item) => (
-              <article
-                className="product product-link-card"
-                key={item.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => go(productPath(item))}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") go(productPath(item));
-                }}
-              >
-                <div className="product-img">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <span>{item.tag}</span>
-                </div>
-                <div className="product-body">
-                  <div className="product-top">
-                    <div>
-                      <small>{item.brand}</small>
-                      <h3>{item.name}</h3>
-                    </div>
-                    <em>{item.category}</em>
-                  </div>
-                  <div className="product-foot">
-                    <div>
-                      <b>{formatPrice(item.price)} ر.س</b>
-                      {item.oldPrice && (
-                        <del>{formatPrice(item.oldPrice)} ر.س</del>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <ProductGrid
+            products={relatedProducts}
+            go={go}
+            showFavorite={false}
+            showRating={false}
+            showSizes={false}
+            showAddToCart={false}
+          />
         </section>
       )}
     </main>

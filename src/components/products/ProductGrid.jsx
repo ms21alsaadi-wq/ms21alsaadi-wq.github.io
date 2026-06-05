@@ -10,9 +10,14 @@ function ProductGrid({
   setFavorites,
   selectedSize = {},
   setSelectedSize,
+  className = "",
+  showFavorite = true,
+  showRating = true,
+  showSizes = true,
+  showAddToCart = true,
 }) {
   return (
-    <div className="products-grid">
+    <div className={`products-grid ${className}`.trim()}>
       {products.map((product) => {
         const sizes = sizesArray(product.sizes);
 
@@ -35,20 +40,22 @@ function ProductGrid({
                 decoding="async"
               />
               <span>{product.tag}</span>
-              <button
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setFavorites((prev) =>
-                    prev.includes(product.id)
-                      ? prev.filter((id) => id !== product.id)
-                      : [...prev, product.id],
-                  );
-                }}
-              >
-                <Heart
-                  className={favorites.includes(product.id) ? "heart-on" : ""}
-                />
-              </button>
+              {showFavorite && setFavorites && (
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setFavorites((prev) =>
+                      prev.includes(product.id)
+                        ? prev.filter((id) => id !== product.id)
+                        : [...prev, product.id],
+                    );
+                  }}
+                >
+                  <Heart
+                    className={favorites.includes(product.id) ? "heart-on" : ""}
+                  />
+                </button>
+              )}
             </div>
             <div className="product-body">
               <div className="product-top">
@@ -58,43 +65,51 @@ function ProductGrid({
                 </div>
                 <em>{product.category}</em>
               </div>
-              <div className="rating">
-                <Star size={15} fill="currentColor" /> {product.rating}
-              </div>
-              <div className="sizes">
-                {sizes.map((size) => (
-                  <button
-                    className={
-                      (selectedSize[product.id] || sizes[0]) === size
-                        ? "active"
-                        : ""
-                    }
-                    key={size}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setSelectedSize((prev) => ({
-                        ...prev,
-                        [product.id]: size,
-                      }));
-                    }}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
+              {showRating && (
+                <div className="rating">
+                  <Star size={15} fill="currentColor" /> {product.rating}
+                </div>
+              )}
+              {showSizes && sizes.length > 0 && setSelectedSize && (
+                <div className="sizes">
+                  {sizes.map((size) => (
+                    <button
+                      className={
+                        (selectedSize[product.id] || sizes[0]) === size
+                          ? "active"
+                          : ""
+                      }
+                      key={size}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSelectedSize((prev) => ({
+                          ...prev,
+                          [product.id]: size,
+                        }));
+                      }}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="product-foot">
                 <div>
                   <b>{formatPrice(product.price)} ر.س</b>
-                  <del>{formatPrice(product.oldPrice)} ر.س</del>
+                  {product.oldPrice && (
+                    <del>{formatPrice(product.oldPrice)} ر.س</del>
+                  )}
                 </div>
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    addToCart(product);
-                  }}
-                >
-                  أضف
-                </button>
+                {showAddToCart && addToCart && (
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      addToCart(product);
+                    }}
+                  >
+                    أضف
+                  </button>
+                )}
               </div>
             </div>
           </article>
