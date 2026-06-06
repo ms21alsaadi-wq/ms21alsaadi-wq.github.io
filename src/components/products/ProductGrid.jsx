@@ -20,10 +20,19 @@ function ProductGrid({
     <div className={`products-grid ${className}`.trim()}>
       {products.map((product) => {
         const sizes = sizesArray(product.sizes);
+        const price = Number(product.price || 0);
+        const oldPrice = Number(product.oldPrice || 0);
+        const hasDiscount = oldPrice > price;
+        const discountPercent = hasDiscount
+          ? Math.round(((oldPrice - price) / oldPrice) * 100)
+          : 0;
+        const hasManagedStock =
+          product.stock !== undefined && product.stock !== "";
+        const outOfStock = hasManagedStock && Number(product.stock || 0) <= 0;
 
         return (
           <article
-            className="product product-link-card"
+            className={`product product-link-card${outOfStock ? " out-of-stock" : ""}`}
             key={product.id}
             role="button"
             tabIndex={0}
@@ -39,7 +48,13 @@ function ProductGrid({
                 loading="lazy"
                 decoding="async"
               />
-              <span>{product.tag}</span>
+              {product.tag && <span>{product.tag}</span>}
+              {hasDiscount && (
+                <em className="product-discount-badge">-{discountPercent}%</em>
+              )}
+              {outOfStock && (
+                <strong className="product-stock-badge">غير متوفر</strong>
+              )}
               {showFavorite && setFavorites && (
                 <button
                   onClick={(event) => {
@@ -102,12 +117,14 @@ function ProductGrid({
                 </div>
                 {showAddToCart && addToCart && (
                   <button
+                    disabled={outOfStock}
                     onClick={(event) => {
                       event.stopPropagation();
+                      if (outOfStock) return;
                       addToCart(product);
                     }}
                   >
-                    أضف
+                    {outOfStock ? "نفد" : "أضف"}
                   </button>
                 )}
               </div>

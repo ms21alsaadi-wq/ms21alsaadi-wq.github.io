@@ -1821,6 +1821,35 @@ h3,
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.product-discount-badge,
+.product-stock-badge {
+  position: absolute;
+  z-index: 3;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: 0 10px 26px rgba(15, 61, 46, 0.12);
+}
+.product-discount-badge {
+  left: 16px;
+  bottom: 16px;
+  background: #fff1e9;
+  color: #aa4d15;
+  border: 1px solid rgba(170, 77, 21, 0.14);
+}
+.product-stock-badge {
+  right: 16px;
+  bottom: 16px;
+  background: #fff0f0;
+  color: #9d2b2b;
+  border: 1px solid rgba(157, 43, 43, 0.14);
+}
+.product.out-of-stock .product-img img {
+  filter: grayscale(0.35) opacity(0.72);
+}
 .product-img button {
   left: 16px !important;
   top: 16px !important;
@@ -1907,6 +1936,12 @@ h3,
   padding: 12px 16px !important;
   min-width: 82px;
   justify-content: center;
+}
+.product-foot button:disabled {
+  background: #e7e0d3 !important;
+  color: #8b8174 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
 }
 .filters {
   margin-top: 10px;
@@ -16036,10 +16071,27 @@ button.product-flat-top-btn:hover svg {
   .products-six-card-grid
   > .product-six-card:not(.product-tab-hidden):not([hidden]),
 .admin-main
-  .product-editor-tabs-form
+.product-editor-tabs-form
   .products-six-card-grid
   > .product-six-card:not(.product-tab-hidden):not([hidden]) {
   display: block !important;
   visibility: visible !important;
   height: auto !important;
+}
+
+/* Store product-card purchase states. */
+.product .product-discount-badge,
+.product .product-stock-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.product.out-of-stock .product-foot button:disabled {
+  background: #e7e0d3 !important;
+  color: #8b8174 !important;
+  border: 0 !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
 }
