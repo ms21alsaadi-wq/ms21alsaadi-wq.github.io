@@ -15998,3 +15998,36 @@ button.product-flat-top-btn:hover svg {
     grid-template-columns: 1fr;
   }
 }
+
+/* Final product editor tab visibility guard. */
+.product-editor-tabs-form .products-six-card-grid > .product-six-card.product-tab-hidden,
+.product-editor-tabs-form .products-six-card-grid > .product-six-card[hidden],
+.admin-main
+  .product-editor-tabs-form
+  .products-six-card-grid
+  > .product-six-card.product-tab-hidden,
+.admin-main
+  .product-editor-tabs-form
+  .products-six-card-grid
+  > .product-six-card[hidden] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+.product-editor-tabs-form
+  .products-six-card-grid
+  > .product-six-card:not(.product-tab-hidden):not([hidden]),
+.admin-main
+  .product-editor-tabs-form
+  .products-six-card-grid
+  > .product-six-card:not(.product-tab-hidden):not([hidden]) {
+  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
+}

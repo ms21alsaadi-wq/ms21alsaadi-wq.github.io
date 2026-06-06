@@ -20,11 +20,13 @@ export default function ProductEditorFields({
   const showPricing = productFormTab === "pricing";
   const showImages = productFormTab === "images";
   const showSeo = productFormTab === "seo";
+  const sectionClass = (isVisible) =>
+    `pro-form-section product-six-card${isVisible ? "" : " product-tab-hidden"}`;
 
   return (
     <>
       <div className="products-six-card-grid">
-        <div className="pro-form-section product-six-card" hidden={!showInfo}>
+        <div className={sectionClass(showInfo)} hidden={!showInfo}>
           <h3>
             <span className="product-section-icon">📝</span> معلومات المنتج
           </h3>
@@ -60,10 +62,7 @@ export default function ProductEditorFields({
           </div>
         </div>
 
-        <div
-          className="pro-form-section product-six-card"
-          hidden={!showPricing}
-        >
+        <div className={sectionClass(showPricing)} hidden={!showPricing}>
           <h3>
             <span className="product-section-icon">🏷️</span> السعر والمخزون
           </h3>
@@ -127,7 +126,7 @@ export default function ProductEditorFields({
           </div>
         </div>
 
-        <div className="pro-form-section product-six-card" hidden={!showImages}>
+        <div className={sectionClass(showImages)} hidden={!showImages}>
           <h3>
             <span className="product-section-icon">🖼️</span> الخيارات والصورة
           </h3>
@@ -214,10 +213,7 @@ export default function ProductEditorFields({
           )}
         </div>
 
-        <div
-          className="pro-form-section product-six-card"
-          hidden={!showPricing}
-        >
+        <div className={sectionClass(showPricing)} hidden={!showPricing}>
           <h3>
             <span className="product-section-icon">%</span> المنتجات بخصم
           </h3>
@@ -247,7 +243,7 @@ export default function ProductEditorFields({
           <div className="product-card-note">عدّل الخصم من كرت السعر والمخزون.</div>
         </div>
 
-        <div className="pro-form-section product-six-card" hidden={!showSeo}>
+        <div className={sectionClass(showSeo)} hidden={!showSeo}>
           <h3>
             <span className="product-section-icon">🔎</span> SEO
           </h3>
