@@ -1,4 +1,4 @@
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { formatPrice } from "../../utils/helpers.js";
 
 const PRODUCT_PLACEHOLDER =
@@ -32,6 +32,19 @@ export default function AdminProductsList({
   toggleAllVisibleProducts,
   toggleProductSelection,
 }) {
+  const hasProductFilters =
+    productSearch.trim() ||
+    productStatusFilter !== "all" ||
+    productCategoryFilter !== "all" ||
+    productSort !== "custom";
+
+  const resetProductFilters = () => {
+    setProductSearch("");
+    setProductStatusFilter("all");
+    setProductCategoryFilter("all");
+    setProductSort("custom");
+  };
+
   return (
     <div className="admin-card products-manager pro-products-manager full-products-manager products-list-compact-final">
       <div className="pro-card-head products-manager-head">
@@ -109,7 +122,6 @@ export default function AdminProductsList({
           <option value="all">{t("allProducts")}</option>
           <option value="active">{t("visibleProducts")}</option>
           <option value="hidden">المخفية</option>
-          <option value="featured">المميزة</option>
           <option value="out">نفد المخزون</option>
         </select>
 
@@ -132,6 +144,15 @@ export default function AdminProductsList({
           <option value="stock_low">المخزون الأقل</option>
           <option value="name">الاسم</option>
         </select>
+
+        <button
+          type="button"
+          className="products-reset-filters"
+          onClick={resetProductFilters}
+          disabled={!hasProductFilters}
+        >
+          <RotateCcw size={16} /> تصفير
+        </button>
       </div>
 
       {products.length > 0 && (
@@ -261,7 +282,6 @@ export default function AdminProductsList({
                 <h3>{p.name}</h3>
                 <div className="admin-product-badges">
                   <span>{p.category || "بدون قسم"}</span>
-                  {p.featured && <span>مميز</span>}
                   {Array.isArray(p.options) && p.options.length > 0 && (
                     <span>{p.options.length} خيارات</span>
                   )}
@@ -346,6 +366,11 @@ export default function AdminProductsList({
           <div className="products-empty-state">
             <b>لا توجد منتجات مطابقة</b>
             <span>جرّب تغيير البحث أو الفلتر.</span>
+            {hasProductFilters && (
+              <button type="button" onClick={resetProductFilters}>
+                <RotateCcw size={16} /> تصفير البحث والفلاتر
+              </button>
+            )}
           </div>
         )}
       </div>
