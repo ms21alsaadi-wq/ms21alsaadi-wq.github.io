@@ -9985,6 +9985,13 @@ a[href="./"]:hover {
   .product-six-card:nth-child(6) {
   display: block !important;
 }
+.product-editor-tabs-form .products-six-card-grid .product-six-card:not([hidden]) {
+  display: block !important;
+}
+.product-editor-tabs-form .products-six-card-grid .product-six-card[hidden] {
+  display: none !important;
+  margin-bottom: 0 !important;
+}
 .product-modal-shell .product-six-card,
 .product-modal-shell .product-options-master-card,
 .product-modal-shell .gallery-manager {
@@ -13167,6 +13174,19 @@ button.product-flat-top-btn:hover svg {
   .products-six-card-grid
   .product-six-card:nth-child(5) {
   margin-bottom: 14px !important;
+}
+.admin-main
+  .product-editor-tabs-form
+  .products-six-card-grid
+  .product-six-card:not([hidden]) {
+  display: block !important;
+}
+.admin-main
+  .product-editor-tabs-form
+  .products-six-card-grid
+  .product-six-card[hidden] {
+  display: none !important;
+  margin-bottom: 0 !important;
 }
 .admin-main .product-modal-shell .product-six-card,
 .admin-main .product-modal-shell .product-options-master-card,
