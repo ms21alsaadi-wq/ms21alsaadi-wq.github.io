@@ -24,6 +24,20 @@ function Account({
 
   const currentEmail = auth.currentUser?.email || customer?.email || "";
   const currentUid = auth.currentUser?.uid || customer?.id || "";
+  const profileFields = [
+    {
+      key: "name",
+      label: "الاسم",
+      value: customer?.name || auth.currentUser?.displayName || "",
+    },
+    { key: "phone", label: "رقم الجوال", value: customer?.phone || "" },
+    { key: "city", label: "المدينة", value: customer?.city || "" },
+    { key: "address", label: "العنوان", value: customer?.address || "" },
+  ];
+  const missingProfileFields = profileFields.filter(
+    (field) => !String(field.value || "").trim(),
+  );
+  const profileReady = missingProfileFields.length === 0;
 
   const myOrders = (orders || [])
     .filter(
@@ -69,13 +83,20 @@ function Account({
   async function saveProfile(e) {
     e.preventDefault();
     const data = {
-      name: e.target.name.value,
+      name: e.target.name.value.trim(),
       email: auth.currentUser.email,
-      phone: e.target.phone.value,
-      city: e.target.city.value,
-      address: e.target.address.value,
+      phone: e.target.phone.value.trim(),
+      city: e.target.city.value.trim(),
+      address: e.target.address.value.trim(),
       updatedAt: serverTimestamp(),
     };
+
+    if (!data.name || !data.phone || !data.city || !data.address) {
+      setMessage("أكمل بيانات الشحن المطلوبة");
+      setTimeout(() => setMessage(""), 2200);
+      return;
+    }
+
     await setDoc(doc(db, "customers", auth.currentUser.uid), data, {
       merge: true,
     });
@@ -175,6 +196,25 @@ function Account({
                   <span>Profile</span>
                   <h2>بياناتي</h2>
                   <p>أكمل بياناتك حتى نستخدمها تلقائياً عند إتمام الطلب.</p>
+                </div>
+
+                <div
+                  className={`account-readiness-card ${
+                    profileReady ? "ready" : "warning"
+                  }`}
+                >
+                  <b>
+                    {profileReady
+                      ? "بيانات الشحن مكتملة"
+                      : "بيانات الشحن تحتاج إكمال"}
+                  </b>
+                  <span>
+                    {profileReady
+                      ? "تقدر الآن إتمام الطلب من السلة بدون الرجوع لتعديل بياناتك."
+                      : `أكمل: ${missingProfileFields
+                          .map((field) => field.label)
+                          .join("، ")}`}
+                  </span>
                 </div>
 
                 <form

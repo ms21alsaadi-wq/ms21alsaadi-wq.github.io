@@ -4408,6 +4408,32 @@ h3,
 .account-section-title h2 {
   font-size: clamp(28px, 4vw, 42px);
 }
+.account-readiness-card {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 18px;
+  border-radius: 22px;
+  padding: 16px 18px;
+  border: 1px solid rgba(194, 169, 104, 0.24);
+  background: #f5f1e8;
+}
+.account-readiness-card b {
+  color: #0f3d2e;
+  font-size: 18px;
+}
+.account-readiness-card span {
+  color: #6b705f;
+  font-weight: 800;
+  line-height: 1.7;
+}
+.account-readiness-card.ready {
+  border-color: rgba(15, 61, 46, 0.18);
+  background: rgba(15, 61, 46, 0.08);
+}
+.account-readiness-card.warning {
+  border-color: rgba(194, 169, 104, 0.36);
+  background: rgba(194, 169, 104, 0.14);
+}
 .account-profile-grid {
   display: grid !important;
   grid-template-columns: 1fr 1fr;
