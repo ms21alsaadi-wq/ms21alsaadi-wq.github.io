@@ -1,15 +1,22 @@
 import {
   CheckCircle2,
   Cloud,
-  Code2,
   Database,
   Mail,
   MessageCircle,
+  PackageCheck,
   Plug,
   ShieldCheck,
+  Truck,
 } from "lucide-react";
 
 const integrations = [
+  {
+    title: "شركات الشحن",
+    description: "ربط إنشاء الشحنات، حساب الأسعار، وطباعة البوليصات.",
+    icon: Truck,
+    status: "جاهز للإعداد",
+  },
   {
     title: "واتساب",
     description: "رقم التواصل وروابط إرسال الطلبات والتنبيهات للعملاء.",
@@ -42,38 +49,35 @@ const integrations = [
   },
 ];
 
-const apiEndpoints = [
+const shippingCompanies = [
   {
-    label: "إدارة الموظفين",
-    path: "/api/staff-auth",
-    method: "POST",
+    name: "سمسا",
+    env: "SMSA_API_KEY",
+    status: "يحتاج بيانات الشركة",
+  },
+  {
+    name: "أرامكس",
+    env: "ARAMEX_API_KEY",
+    status: "يحتاج بيانات الشركة",
+  },
+  {
+    name: "البريد السعودي / سبل",
+    env: "SPL_API_KEY",
+    status: "يحتاج بيانات الشركة",
+  },
+  {
+    name: "DHL",
+    env: "DHL_API_KEY",
+    status: "يحتاج بيانات الشركة",
   },
 ];
 
-export default function IntegrationsPanel({
-  draftSettings,
-  saveSettings,
-  setDraftSettings,
-}) {
-  const pages = Array.isArray(draftSettings?.homePages)
-    ? draftSettings.homePages
-    : [];
-  const apiPageExists = pages.some((page) => page?.href === "/page/api");
+const shippingEndpoints = [
+  { method: "GET", path: "/api/shipping", label: "فحص حالة الربط" },
+  { method: "POST", path: "/api/shipping", label: "مدخل أسعار وتتبع وإنشاء شحنات" },
+];
 
-  const addApiPage = async () => {
-    if (apiPageExists) return;
-    const nextPages = [
-      ...pages,
-      {
-        label: "API",
-        href: "/page/api",
-        visible: true,
-      },
-    ];
-    setDraftSettings((prev) => ({ ...prev, homePages: nextPages }));
-    await saveSettings({ homePages: nextPages });
-  };
-
+export default function IntegrationsPanel() {
   return (
     <section className="admin-card integrations-panel">
       <div className="pro-card-head integrations-head">
@@ -81,8 +85,8 @@ export default function IntegrationsPanel({
           <span>Integrations</span>
           <h2>التكاملات</h2>
           <p>
-            مركز واحد لمتابعة وربط خدمات المتجر الخارجية مثل واتساب، البريد،
-            النشر، وقاعدة البيانات.
+            مركز واحد لمتابعة وربط خدمات المتجر الخارجية، وأهمها شركات الشحن
+            التي تحتاج مفاتيح API آمنة داخل Vercel.
           </p>
         </div>
         <div className="integrations-head-icon">
@@ -107,36 +111,35 @@ export default function IntegrationsPanel({
         ))}
       </div>
 
-      <div className="api-page-manager">
-        <div className="api-page-main">
+      <div className="shipping-integration-manager">
+        <div className="shipping-integration-main">
           <div className="integration-icon">
-            <Code2 size={22} />
+            <PackageCheck size={22} />
           </div>
           <div>
-            <span>API page</span>
-            <h3>صفحة API في المتجر</h3>
+            <span>Shipping API</span>
+            <h3>ربط شركات الشحن</h3>
             <p>
-              أضف صفحة ظاهرة في المتجر باسم API ورابطها /page/api، ثم تقدر
-              تطورها لاحقاً كمركز شرح للتكاملات أو روابط الخدمات.
+              هذا المكان مخصص لتجهيز ربط شركات الشحن. مفاتيح الشركات لا تُكتب
+              داخل لوحة التحكم، بل تحفظ كمتغيرات آمنة في Vercel ثم تستخدمها
+              ملفات API في الخادم.
             </p>
           </div>
         </div>
 
-        <div className="api-page-actions">
-          <code>/page/api</code>
-          <button
-            type="button"
-            className="admin-primary"
-            onClick={addApiPage}
-            disabled={apiPageExists}
-          >
-            {apiPageExists ? "صفحة API مضافة" : "إضافة صفحة API"}
-          </button>
+        <div className="shipping-company-grid">
+          {shippingCompanies.map((company) => (
+            <div className="shipping-company-card" key={company.name}>
+              <b>{company.name}</b>
+              <code>{company.env}</code>
+              <span>{company.status}</span>
+            </div>
+          ))}
         </div>
 
         <div className="api-endpoints-list">
-          <b>نقاط API الحالية</b>
-          {apiEndpoints.map((endpoint) => (
+          <b>مسارات API الخاصة بالشحن</b>
+          {shippingEndpoints.map((endpoint) => (
             <div className="api-endpoint-row" key={endpoint.path}>
               <span>{endpoint.method}</span>
               <code>{endpoint.path}</code>

@@ -16065,7 +16065,7 @@ button.product-flat-top-btn:hover svg {
   font-size: 12px;
   font-weight: 950;
 }
-.api-page-manager {
+.shipping-integration-manager {
   display: grid;
   gap: 14px;
   padding: 20px;
@@ -16073,50 +16073,63 @@ button.product-flat-top-btn:hover svg {
   border: 1px solid rgba(15, 74, 53, 0.12);
   background: linear-gradient(135deg, #ffffff, #f8faf5);
 }
-.api-page-main {
+.shipping-integration-main {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr);
   gap: 14px;
   align-items: start;
 }
-.api-page-main span {
+.shipping-integration-main span {
   color: #78907f;
   font-size: 12px;
   font-weight: 950;
   text-transform: uppercase;
 }
-.api-page-main h3 {
+.shipping-integration-main h3 {
   margin: 4px 0 6px;
   color: #10251d;
   font-size: 20px;
 }
-.api-page-main p {
+.shipping-integration-main p {
   margin: 0;
   color: #647064;
   line-height: 1.7;
   font-weight: 800;
 }
-.api-page-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.shipping-company-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  flex-wrap: wrap;
+}
+.shipping-company-card {
+  display: grid;
+  gap: 8px;
   padding: 14px;
   border-radius: 18px;
   background: #ffffff;
-  border: 1px dashed rgba(15, 74, 53, 0.16);
+  border: 1px solid rgba(15, 74, 53, 0.1);
 }
-.api-page-actions code,
+.shipping-company-card b {
+  color: #10251d;
+  font-size: 15px;
+}
+.shipping-company-card code {
+  direction: ltr;
+  unicode-bidi: plaintext;
+  color: #0f4a35;
+  font-size: 12px;
+  font-weight: 900;
+}
+.shipping-company-card span {
+  color: #647064;
+  font-size: 12px;
+  font-weight: 850;
+}
 .api-endpoint-row code {
   direction: ltr;
   unicode-bidi: plaintext;
   color: #0f4a35;
   font-weight: 900;
-}
-.api-page-actions button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
 }
 .api-endpoints-list {
   display: grid;
@@ -16154,6 +16167,9 @@ button.product-flat-top-btn:hover svg {
     grid-template-columns: 1fr;
   }
   .integrations-grid {
+    grid-template-columns: 1fr;
+  }
+  .shipping-company-grid {
     grid-template-columns: 1fr;
   }
   .api-endpoint-row {
