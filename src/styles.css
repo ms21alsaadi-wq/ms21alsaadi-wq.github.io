@@ -11968,6 +11968,7 @@ button.product-flat-top-btn:hover svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
 }
+
 .admin-main .products-grid,
 .admin-main .admin-product-cards,
 .admin-main .products-grid.store-page-products {
@@ -12274,6 +12275,65 @@ button.product-flat-top-btn:hover svg {
 .products-view-mode-toggle button.active svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
+}
+
+.products-command-actions .products-view-mode-toggle {
+  display: contents !important;
+}
+
+.products-command-actions .products-view-mode-toggle button,
+.products-command-actions .product-flat-top-btn {
+  flex: 0 0 168px !important;
+  width: 168px !important;
+  min-width: 168px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 18px !important;
+  border: 1px solid rgba(15, 77, 54, 0.16) !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  color: #0f4d36 !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.products-command-actions .products-view-mode-toggle button:hover,
+.products-command-actions .products-view-mode-toggle button.active,
+.products-command-actions .product-flat-top-btn:hover {
+  background: #0f4d36 !important;
+  color: #ffffff !important;
+  border-color: #0f4d36 !important;
+}
+
+.products-command-actions .products-view-mode-toggle button:hover svg,
+.products-command-actions .products-view-mode-toggle button.active svg,
+.products-command-actions .product-flat-top-btn:hover svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+@media (max-width: 760px) {
+  .products-command-actions .products-view-mode-toggle button,
+  .products-command-actions .product-flat-top-btn {
+    flex: 1 1 calc(50% - 6px) !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 440px) {
+  .products-command-actions .products-view-mode-toggle button,
+  .products-command-actions .product-flat-top-btn {
+    flex-basis: 100% !important;
+  }
 }
 .admin-main .admin-product-cards.products-view-cards {
   display: grid !important;

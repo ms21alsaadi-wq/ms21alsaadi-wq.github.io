@@ -785,7 +785,7 @@ function Admin({
       stock: f.stock.value === "" ? "" : Number(f.stock.value || 0),
       sku: f.sku.value.trim(),
       status: f.status.value,
-      featured: f.featured.checked,
+      featured: editing?.featured || false,
       image: image || editing?.image || "",
       gallery,
       order: editing?.order ?? Date.now(),

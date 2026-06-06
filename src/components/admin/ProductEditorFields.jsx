@@ -219,29 +219,6 @@ export default function ProductEditorFields({
           hidden={!showPricing}
         >
           <h3>
-            <span className="product-section-icon">⭐</span> منتجات مميزة
-          </h3>
-          <p className="product-card-help">
-            فعّل ظهور المنتج ضمن المنتجات البارزة في واجهة المتجر.
-          </p>
-          <label className="feature-toggle compact-feature-toggle">
-            <input
-              name="featured"
-              type="checkbox"
-              defaultChecked={editing?.featured || false}
-            />
-            <span>منتج مميز في الواجهة</span>
-          </label>
-          <div className="product-card-note">
-            يعتمد على نفس خيار المنتج المميز الحالي.
-          </div>
-        </div>
-
-        <div
-          className="pro-form-section product-six-card"
-          hidden={!showPricing}
-        >
-          <h3>
             <span className="product-section-icon">%</span> المنتجات بخصم
           </h3>
           <p className="product-card-help">
