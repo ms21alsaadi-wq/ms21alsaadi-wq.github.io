@@ -250,7 +250,7 @@ a {
 }
 .filters {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr 0.8fr;
+  grid-template-columns: 1.2fr 0.8fr 0.8fr auto;
   gap: 14px;
   padding: 16px;
   margin-bottom: 34px;
@@ -275,6 +275,68 @@ a {
 }
 .filters select {
   padding: 15px;
+}
+.store-filter-reset {
+  min-width: 130px;
+  border: 0;
+  border-radius: 18px;
+  background: #0f3d2e;
+  color: #fff;
+  font-weight: 900;
+  padding: 0 18px;
+  cursor: pointer;
+}
+.store-filter-reset:disabled {
+  background: #e7e0d3;
+  color: #8b8174;
+  cursor: not-allowed;
+}
+.store-results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: -6px 0 18px;
+  padding: 12px 16px;
+  border: 1px solid rgba(194, 169, 104, 0.22);
+  border-radius: 20px;
+  background: rgba(255, 250, 240, 0.76);
+}
+.store-results-bar b {
+  color: #0f3d2e;
+  font-size: 18px;
+}
+.store-results-bar span {
+  color: #6b705f;
+  font-weight: 800;
+}
+.store-products-empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 46px 18px;
+  border: 1px dashed rgba(194, 169, 104, 0.36);
+  border-radius: 28px;
+  background: rgba(255, 250, 240, 0.72);
+  text-align: center;
+}
+.store-products-empty b {
+  color: #0f3d2e;
+  font-size: 24px;
+}
+.store-products-empty span {
+  color: #6b705f;
+  font-weight: 800;
+}
+.store-products-empty button {
+  margin-top: 4px;
+  border: 0;
+  border-radius: 16px;
+  background: #0f3d2e;
+  color: #fff;
+  font-weight: 900;
+  padding: 13px 18px;
+  cursor: pointer;
 }
 .section-title span {
   font-size: 12px;
@@ -2019,6 +2081,9 @@ h3,
   }
 }
 @media (max-width: 850px) {
+  .filters {
+    grid-template-columns: 1fr 1fr !important;
+  }
   .products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -2027,6 +2092,15 @@ h3,
   }
 }
 @media (max-width: 560px) {
+  .filters,
+  .store-results-bar {
+    grid-template-columns: 1fr !important;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .store-filter-reset {
+    min-height: 50px;
+  }
   .products-grid {
     grid-template-columns: 1fr !important;
   }

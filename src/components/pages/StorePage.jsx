@@ -34,7 +34,6 @@ function Store({
   go,
   path,
 }) {
-  const [queryText, setQueryText] = useState("");
   const [brand, setBrand] = useState("All");
   const [category, setCategory] = useState("All");
   const [cart, setCart] = useState(() => {
@@ -174,17 +173,22 @@ function Store({
       products
         .filter((p) => (p.status || "active") !== "hidden")
         .filter((p) => {
-          const q = queryText.toLowerCase().trim();
+          const q = searchQuery.toLowerCase().trim();
           const searchable =
-            `${p.name || ""} ${p.brand || ""} ${p.category || ""}`.toLowerCase();
+            `${p.name || ""} ${p.brand || ""} ${p.category || ""} ${p.description || ""}`.toLowerCase();
           return (
             (!q || searchable.includes(q)) &&
             (brand === "All" || p.brand === brand) &&
             (category === "All" || p.category === category)
           );
         }),
-    [products, queryText, brand, category],
+    [products, searchQuery, brand, category],
   );
+  const activeFilterCount =
+    (searchQuery.trim() ? 1 : 0) +
+    (brand !== "All" ? 1 : 0) +
+    (category !== "All" ? 1 : 0);
+  const hasActiveFilters = activeFilterCount > 0;
 
   const cartCount = cart.reduce((n, i) => n + Number(i.qty || 0), 0);
   const subtotal = cart.reduce(
@@ -205,20 +209,6 @@ function Store({
     ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100))
     : 0;
   const total = Math.max(0, subtotal - discount) + shippingFee;
-  const filteredProducts = useMemo(
-    () =>
-      products
-        .filter((p) => (p.status || "active") !== "hidden")
-        .filter((p) => {
-          const q = searchQuery.trim().toLowerCase();
-          if (!q) return true;
-          return `${p.name || ""} ${p.category || ""} ${p.description || ""}`
-            .toLowerCase()
-            .includes(q);
-        }),
-    [products, searchQuery],
-  );
-
   const visibleHomePages = (
     settings.homePages || [
       { label: "النباتات", href: "/page/products", visible: true },
@@ -298,6 +288,12 @@ function Store({
     setAppliedCoupon(null);
     setCouponCode("");
     setCouponMessage("");
+  }
+
+  function resetStoreFilters() {
+    setSearchQuery("");
+    setBrand("All");
+    setCategory("All");
   }
 
   function hasManagedStock(product) {
@@ -732,8 +728,8 @@ function Store({
             <div className="search-box">
               <Search size={18} />
               <input
-                value={queryText}
-                onChange={(e) => setQueryText(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ابحث عن منتج أو براند..."
               />
             </div>
@@ -754,6 +750,14 @@ function Store({
                 </option>
               ))}
             </select>
+            <button
+              className="store-filter-reset"
+              type="button"
+              disabled={!hasActiveFilters}
+              onClick={resetStoreFilters}
+            >
+              مسح الفلاتر
+            </button>
           </section>
           <section id="products" className="container product-section">
             <div className="section-title">
@@ -767,15 +771,33 @@ function Store({
                   "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}
               </p>
             </div>
-            <ProductGrid
-              products={filtered}
-              go={go}
-              addToCart={addToCart}
-              favorites={favorites}
-              setFavorites={setFavorites}
-              selectedSize={selectedSize}
-              setSelectedSize={setSelectedSize}
-            />
+            <div className="store-results-bar">
+              <b>{filtered.length} منتج</b>
+              <span>
+                {hasActiveFilters
+                  ? "هذه النتائج حسب البحث والفلاتر المختارة."
+                  : "كل المنتجات الظاهرة في المتجر."}
+              </span>
+            </div>
+            {filtered.length ? (
+              <ProductGrid
+                products={filtered}
+                go={go}
+                addToCart={addToCart}
+                favorites={favorites}
+                setFavorites={setFavorites}
+                selectedSize={selectedSize}
+                setSelectedSize={setSelectedSize}
+              />
+            ) : (
+              <div className="store-products-empty">
+                <b>ما لقينا منتجات مطابقة</b>
+                <span>جرّب كلمة بحث مختلفة أو امسح الفلاتر الحالية.</span>
+                <button type="button" onClick={resetStoreFilters}>
+                  عرض كل المنتجات
+                </button>
+              </div>
+            )}
           </section>
 
           <StoreReturnPolicy settings={settings} />
