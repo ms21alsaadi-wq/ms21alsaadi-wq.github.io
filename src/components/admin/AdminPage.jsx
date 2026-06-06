@@ -1657,7 +1657,11 @@ function Admin({
         )}
 
         {tab === "integrations" && canAccessAdminSection("integrations") && (
-          <IntegrationsPanel />
+          <IntegrationsPanel
+            draftSettings={draftSettings}
+            saveSettings={saveSettings}
+            setDraftSettings={setDraftSettings}
+          />
         )}
 
         {tab === "notifications" && canAccessAdminSection("notifications") && (

@@ -1,6 +1,7 @@
 import {
   CheckCircle2,
   Cloud,
+  Code2,
   Database,
   Mail,
   MessageCircle,
@@ -41,7 +42,38 @@ const integrations = [
   },
 ];
 
-export default function IntegrationsPanel() {
+const apiEndpoints = [
+  {
+    label: "إدارة الموظفين",
+    path: "/api/staff-auth",
+    method: "POST",
+  },
+];
+
+export default function IntegrationsPanel({
+  draftSettings,
+  saveSettings,
+  setDraftSettings,
+}) {
+  const pages = Array.isArray(draftSettings?.homePages)
+    ? draftSettings.homePages
+    : [];
+  const apiPageExists = pages.some((page) => page?.href === "/page/api");
+
+  const addApiPage = async () => {
+    if (apiPageExists) return;
+    const nextPages = [
+      ...pages,
+      {
+        label: "API",
+        href: "/page/api",
+        visible: true,
+      },
+    ];
+    setDraftSettings((prev) => ({ ...prev, homePages: nextPages }));
+    await saveSettings({ homePages: nextPages });
+  };
+
   return (
     <section className="admin-card integrations-panel">
       <div className="pro-card-head integrations-head">
@@ -73,6 +105,45 @@ export default function IntegrationsPanel() {
             </div>
           </article>
         ))}
+      </div>
+
+      <div className="api-page-manager">
+        <div className="api-page-main">
+          <div className="integration-icon">
+            <Code2 size={22} />
+          </div>
+          <div>
+            <span>API page</span>
+            <h3>صفحة API في المتجر</h3>
+            <p>
+              أضف صفحة ظاهرة في المتجر باسم API ورابطها /page/api، ثم تقدر
+              تطورها لاحقاً كمركز شرح للتكاملات أو روابط الخدمات.
+            </p>
+          </div>
+        </div>
+
+        <div className="api-page-actions">
+          <code>/page/api</code>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={addApiPage}
+            disabled={apiPageExists}
+          >
+            {apiPageExists ? "صفحة API مضافة" : "إضافة صفحة API"}
+          </button>
+        </div>
+
+        <div className="api-endpoints-list">
+          <b>نقاط API الحالية</b>
+          {apiEndpoints.map((endpoint) => (
+            <div className="api-endpoint-row" key={endpoint.path}>
+              <span>{endpoint.method}</span>
+              <code>{endpoint.path}</code>
+              <small>{endpoint.label}</small>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
