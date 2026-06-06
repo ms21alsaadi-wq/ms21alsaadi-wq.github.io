@@ -789,6 +789,8 @@ function Store({
           cart={cart}
           setCart={setCart}
           setCartOpen={setCartOpen}
+          authUser={authUser}
+          customer={customer}
           hasManagedStock={hasManagedStock}
           couponCode={couponCode}
           setCouponCode={setCouponCode}

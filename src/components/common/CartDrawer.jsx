@@ -5,6 +5,8 @@ function CartDrawer({
   cart = [],
   setCart,
   setCartOpen,
+  authUser,
+  customer,
   hasManagedStock,
   couponCode,
   setCouponCode,
@@ -19,6 +21,26 @@ function CartDrawer({
   checkoutWhatsApp,
 }) {
   const itemCount = cart.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+  const hasCustomerDetails = Boolean(
+    customer?.name && customer?.phone && customer?.city && customer?.address,
+  );
+  const checkoutReadiness = !authUser
+    ? {
+        title: "تسجيل الدخول مطلوب",
+        text: "سجل دخولك كعميل حتى نقدر نحفظ طلبك وبيانات الشحن.",
+        status: "warning",
+      }
+    : !hasCustomerDetails
+      ? {
+          title: "بيانات الشحن ناقصة",
+          text: "أكمل الاسم، الجوال، المدينة، والعنوان من حسابك قبل الإرسال.",
+          status: "warning",
+        }
+      : {
+          title: "جاهز لإتمام الطلب",
+          text: "بياناتك مكتملة وسيتم إرسال الطلب عبر واتساب.",
+          status: "ready",
+        };
 
   return (
     <div className="cart-overlay">
@@ -114,6 +136,11 @@ function CartDrawer({
           )}
         </div>
         <div className="cart-foot">
+          <div className={`cart-checkout-readiness ${checkoutReadiness.status}`}>
+            <b>{checkoutReadiness.title}</b>
+            <span>{checkoutReadiness.text}</span>
+          </div>
+
           <div className="coupon-box">
             <label>كود الخصم</label>
             <div className="coupon-input-row">

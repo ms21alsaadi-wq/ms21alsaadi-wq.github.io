@@ -526,6 +526,32 @@ a {
   background: #fff;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
+.cart-checkout-readiness {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 61, 46, 0.12);
+  background: #f7fbf7;
+}
+.cart-checkout-readiness b {
+  color: #0f3d2e;
+  font-size: 14px;
+}
+.cart-checkout-readiness span {
+  color: #647064;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.7;
+}
+.cart-checkout-readiness.warning {
+  background: #fffaf0;
+  border-color: rgba(194, 169, 104, 0.28);
+}
+.cart-checkout-readiness.warning b {
+  color: #8a5a12;
+}
 .cart-foot p {
   display: flex;
   justify-content: space-between;
