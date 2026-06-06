@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   PackagePlus,
   RotateCcw,
@@ -15,16 +15,28 @@ function ProductDetailPage({
   settings,
   go,
   addToCart,
+  setCartOpen,
   selectedSize,
   setSelectedSize,
 }) {
   const [activeImage, setActiveImage] = useState(product?.image || "");
   const [qty, setQty] = useState(1);
+  const [addedNotice, setAddedNotice] = useState("");
+  const addedNoticeTimer = useRef(null);
 
   useEffect(() => {
     setActiveImage(product?.image || "");
     setQty(1);
+    setAddedNotice("");
+    window.clearTimeout(addedNoticeTimer.current);
   }, [product?.id, product?.image]);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(addedNoticeTimer.current);
+    },
+    [],
+  );
 
   const relatedProducts = (products || [])
     .filter(
@@ -106,8 +118,27 @@ function ProductDetailPage({
     product.careGuide ||
     product.usage ||
     "يحفظ في مكان مناسب بعيدًا عن الظروف القاسية، واتبع تعليمات العناية المرفقة إن وجدت.";
-  const handleAddQtyToCart = () => {
+  const addSelectedQuantityToCart = () => {
     for (let i = 0; i < safeQty; i += 1) addToCart(product);
+  };
+
+  const handleAddQtyToCart = () => {
+    addSelectedQuantityToCart();
+    setAddedNotice(
+      safeQty > 1
+        ? `تمت إضافة ${safeQty} من ${product.name} إلى السلة`
+        : `تمت إضافة ${product.name} إلى السلة`,
+    );
+    window.clearTimeout(addedNoticeTimer.current);
+    addedNoticeTimer.current = window.setTimeout(
+      () => setAddedNotice(""),
+      2400,
+    );
+  };
+
+  const handleBuyNow = () => {
+    addSelectedQuantityToCart();
+    setCartOpen?.(true);
   };
 
   return (
@@ -325,12 +356,18 @@ function ProductDetailPage({
               <button
                 type="button"
                 className="product-buy-now"
-                onClick={handleAddQtyToCart}
+                onClick={handleBuyNow}
                 disabled={outOfStock}
               >
                 اشتري الآن
               </button>
             </div>
+
+            {addedNotice && (
+              <div className="product-added-notice" role="status">
+                {addedNotice}
+              </div>
+            )}
 
             <div className="product-mini-meta">
               {product.sku && (

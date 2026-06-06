@@ -13962,6 +13962,18 @@ button.product-flat-top-btn:hover svg {
   cursor: not-allowed;
   opacity: 0.55;
 }
+.product-added-notice {
+  margin-top: 10px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #edf8f1;
+  border: 1px solid rgba(36, 115, 67, 0.14);
+  color: #247343;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.5;
+  text-align: center;
+}
 .product-whatsapp-share {
   margin-top: 10px;
   display: flex;

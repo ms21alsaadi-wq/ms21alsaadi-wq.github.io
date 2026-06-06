@@ -591,6 +591,7 @@ function Store({
           settings={settings}
           go={go}
           addToCart={addToCart}
+          setCartOpen={setCartOpen}
           selectedSize={selectedSize}
           setSelectedSize={setSelectedSize}
         />
