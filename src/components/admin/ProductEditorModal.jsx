@@ -2,6 +2,8 @@ import { Save } from "lucide-react";
 import ProductEditorFields from "./ProductEditorFields.jsx";
 import ProductOptionsEditor from "./ProductOptionsEditor.jsx";
 
+const PRODUCT_FORM_TABS = ["info", "pricing", "images", "options", "seo"];
+
 export default function ProductEditorModal({
   addProductOption,
   editing,
@@ -24,6 +26,11 @@ export default function ProductEditorModal({
   updateProductPreviewFromForm,
   uploadGalleryImages,
 }) {
+  const currentTabIndex = PRODUCT_FORM_TABS.indexOf(productFormTab);
+  const nextTab =
+    PRODUCT_FORM_TABS[Math.min(currentTabIndex + 1, PRODUCT_FORM_TABS.length - 1)];
+  const hasNextTab = currentTabIndex < PRODUCT_FORM_TABS.length - 1;
+
   return (
     <div className="product-modal-backdrop" onClick={resetProductEditor}>
       <div className="product-modal-shell" onClick={(e) => e.stopPropagation()}>
@@ -84,6 +91,7 @@ export default function ProductEditorModal({
             id="product-editor-form"
             onSubmit={saveProduct}
             onChange={updateProductPreviewFromForm}
+            noValidate
             className={`product-form products-six-card-form product-editor-tabs-form active-tab-${productFormTab}`}
           >
             {productFormTab === "options" && (
@@ -101,6 +109,7 @@ export default function ProductEditorModal({
               galleryImages={galleryImages}
               imagePreview={imagePreview}
               makeGalleryImagePrimary={makeGalleryImagePrimary}
+              productFormTab={productFormTab}
               productPreview={productPreview}
               removeGalleryImage={removeGalleryImage}
               setImagePreview={setImagePreview}
@@ -124,9 +133,9 @@ export default function ProductEditorModal({
             <button
               type="button"
               className="admin-secondary"
-              onClick={() => setProductFormTab("info")}
+              onClick={() => setProductFormTab(hasNextTab ? nextTab : "info")}
             >
-              مراجعة المعلومات
+              {hasNextTab ? "التالي" : "مراجعة المعلومات"}
             </button>
             <button
               type="submit"

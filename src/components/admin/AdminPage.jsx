@@ -689,6 +689,31 @@ function Admin({
   const saveProduct = async (e) => {
     e.preventDefault();
     const f = e.target;
+    const productName = f.name.value.trim();
+    const productPrice = Number(f.price.value);
+    const productRating = Number(f.rating.value || 5);
+
+    if (!productName) {
+      setNotice("اكتب اسم المنتج أولاً");
+      setProductFormTab("info");
+      setTimeout(() => setNotice(""), 2600);
+      return;
+    }
+
+    if (!Number.isFinite(productPrice) || productPrice <= 0) {
+      setNotice("اكتب سعر المنتج بشكل صحيح");
+      setProductFormTab("pricing");
+      setTimeout(() => setNotice(""), 2600);
+      return;
+    }
+
+    if (!Number.isFinite(productRating) || productRating < 0 || productRating > 5) {
+      setNotice("التقييم يجب أن يكون بين 0 و 5");
+      setProductFormTab("pricing");
+      setTimeout(() => setNotice(""), 2600);
+      return;
+    }
+
     let image = f.imageUrl.value.trim();
     if (f.imageFile.files[0])
       image = await fileToDataUrl(f.imageFile.files[0], {
@@ -740,19 +765,19 @@ function Admin({
     ];
 
     const product = {
-      name: f.name.value.trim(),
+      name: productName,
       brand: f.brand.value.trim(),
       category: f.category.value.trim(),
-      price: Number(f.price.value),
+      price: productPrice,
       oldPrice: Number(f.oldPrice.value || f.price.value),
-      rating: Number(f.rating.value || 5),
+      rating: productRating,
       sizes,
       colors,
       options: cleanOptions,
       tag: f.tag.value.trim(),
       description: f.description.value.trim(),
       seoSlug: makePageSlug(
-        f.seoSlug?.value?.trim() || f.name.value.trim() || id,
+        f.seoSlug?.value?.trim() || productName || id,
         id,
       ),
       seoTitle: f.seoTitle?.value?.trim() || "",

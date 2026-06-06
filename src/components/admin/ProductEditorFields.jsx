@@ -7,6 +7,7 @@ export default function ProductEditorFields({
   galleryImages,
   imagePreview,
   makeGalleryImagePrimary,
+  productFormTab,
   productPreview,
   removeGalleryImage,
   setImagePreview,
@@ -15,10 +16,15 @@ export default function ProductEditorFields({
   updateProductPreviewFromField,
   uploadGalleryImages,
 }) {
+  const showInfo = productFormTab === "info";
+  const showPricing = productFormTab === "pricing";
+  const showImages = productFormTab === "images";
+  const showSeo = productFormTab === "seo";
+
   return (
     <>
       <div className="products-six-card-grid">
-        <div className="pro-form-section product-six-card">
+        <div className="pro-form-section product-six-card" hidden={!showInfo}>
           <h3>
             <span className="product-section-icon">📝</span> معلومات المنتج
           </h3>
@@ -54,7 +60,10 @@ export default function ProductEditorFields({
           </div>
         </div>
 
-        <div className="pro-form-section product-six-card">
+        <div
+          className="pro-form-section product-six-card"
+          hidden={!showPricing}
+        >
           <h3>
             <span className="product-section-icon">🏷️</span> السعر والمخزون
           </h3>
@@ -118,7 +127,7 @@ export default function ProductEditorFields({
           </div>
         </div>
 
-        <div className="pro-form-section product-six-card">
+        <div className="pro-form-section product-six-card" hidden={!showImages}>
           <h3>
             <span className="product-section-icon">🖼️</span> الخيارات والصورة
           </h3>
@@ -205,7 +214,10 @@ export default function ProductEditorFields({
           )}
         </div>
 
-        <div className="pro-form-section product-six-card">
+        <div
+          className="pro-form-section product-six-card"
+          hidden={!showPricing}
+        >
           <h3>
             <span className="product-section-icon">⭐</span> منتجات مميزة
           </h3>
@@ -225,7 +237,10 @@ export default function ProductEditorFields({
           </div>
         </div>
 
-        <div className="pro-form-section product-six-card">
+        <div
+          className="pro-form-section product-six-card"
+          hidden={!showPricing}
+        >
           <h3>
             <span className="product-section-icon">%</span> المنتجات بخصم
           </h3>
@@ -255,7 +270,7 @@ export default function ProductEditorFields({
           <div className="product-card-note">عدّل الخصم من كرت السعر والمخزون.</div>
         </div>
 
-        <div className="pro-form-section product-six-card">
+        <div className="pro-form-section product-six-card" hidden={!showSeo}>
           <h3>
             <span className="product-section-icon">🔎</span> SEO
           </h3>
@@ -307,7 +322,7 @@ export default function ProductEditorFields({
         </div>
       </div>
 
-      {galleryImages.length > 0 && (
+      {showImages && galleryImages.length > 0 && (
         <div className="gallery-manager compact-gallery-manager">
           <div className="gallery-manager-head">
             <b>معرض الصور</b>
