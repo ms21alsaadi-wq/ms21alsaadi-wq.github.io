@@ -100,5 +100,3 @@ FIREBASE_SERVICE_ACCOUNT_JSON={"project_id":"your_project_id","client_email":"..
 - عملاء جدد.
 - أحداث مباشرة من الزوار.
 - تعليم الإشعارات كمقروءة وحفظ الحالة في Firebase.
-
-راجع `SETTINGS_NOTIFICATIONS_REPORT.md` لتفاصيل أكثر.
