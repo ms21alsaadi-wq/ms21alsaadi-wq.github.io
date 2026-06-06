@@ -44,6 +44,7 @@ import CustomersPanel from "./CustomersPanel.jsx";
 import CouponsPanel from "./CouponsPanel.jsx";
 import HomepagePanel from "./HomepagePanel.jsx";
 import IdentityPanel from "./IdentityPanel.jsx";
+import IntegrationsPanel from "./IntegrationsPanel.jsx";
 import OrdersPanel from "./OrdersPanel.jsx";
 import ProductEditorModal from "./ProductEditorModal.jsx";
 import ProductsCommandCenter from "./ProductsCommandCenter.jsx";
@@ -1653,6 +1654,10 @@ function Admin({
             uploadSettingImage={uploadSettingImage}
             setTab={setTab}
           />
+        )}
+
+        {tab === "integrations" && canAccessAdminSection("integrations") && (
+          <IntegrationsPanel />
         )}
 
         {tab === "notifications" && canAccessAdminSection("notifications") && (

@@ -6,6 +6,7 @@ import {
   LogOut,
   PackagePlus,
   Palette,
+  Plug,
   Settings,
   TrendingUp,
   Users,
@@ -92,6 +93,7 @@ export default function AdminSidebar({
       {renderNavButton("customers", "customers", <Users />, t("customers"))}
       {renderNavButton("products", "products", <PackagePlus />, t("products"))}
       {renderNavButton("coupons", "coupons", <Palette />, t("coupons"))}
+      {renderNavButton("integrations", "integrations", <Plug />, t("integrations"))}
       {renderNavButton("users", "users", <Users />, t("users"))}
       {renderNavButton("settings", "settings", <Settings />, t("settings"))}
       {renderNavButton("notifications", "notifications", <Bell />, t("notifications"))}

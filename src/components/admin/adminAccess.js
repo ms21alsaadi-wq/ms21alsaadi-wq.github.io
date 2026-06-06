@@ -12,6 +12,7 @@ export const tabPermission = {
   orders: "orders",
   customers: "customers",
   coupons: "coupons",
+  integrations: "integrations",
   settings: "settings",
   notifications: "notifications",
   users: "users",
@@ -38,6 +39,7 @@ export function expandPermissionsForNewTabs(profile = {}) {
     "orders",
     "customers",
     "coupons",
+    "integrations",
     "users",
   ];
 

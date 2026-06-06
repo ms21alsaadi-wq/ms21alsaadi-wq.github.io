@@ -10,6 +10,7 @@ export const adminI18n = {
       products: "المنتجات",
       productManagement: "إدارة المنتجات",
       coupons: "الكوبونات",
+      integrations: "التكاملات",
       users: "المستخدمين",
       settings: "الإعدادات",
       notifications: "الإشعارات",
@@ -133,6 +134,7 @@ export const adminI18n = {
       products: "Products",
       productManagement: "Product management",
       coupons: "Coupons",
+      integrations: "Integrations",
       users: "Users",
       settings: "Settings",
       notifications: "Notifications",
@@ -247,5 +249,4 @@ export const adminI18n = {
       seo: "SEO",
     },
   };
-
 
