@@ -18,12 +18,17 @@ function CartDrawer({
   total,
   checkoutWhatsApp,
 }) {
+  const itemCount = cart.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+
   return (
     <div className="cart-overlay">
       <div className="cart-bg" onClick={() => setCartOpen(false)} />
       <aside className="cart-panel">
         <div className="cart-head">
-          <h3>سلة الشراء</h3>
+          <div>
+            <h3>سلة الشراء</h3>
+            <span>{itemCount ? `${itemCount} منتج في السلة` : "السلة فارغة"}</span>
+          </div>
           <button onClick={() => setCartOpen(false)}>
             <X />
           </button>
@@ -44,6 +49,12 @@ function CartDrawer({
                   <b>{item.name}</b>
                   <span>الحجم: {item.size}</span>
                   <span>{formatPrice(item.price)} ر.س</span>
+                  {hasManagedStock(item) &&
+                    Number(item.qty || 0) >= Number(item.stock || 0) && (
+                      <em className="cart-stock-limit">
+                        وصلت للكمية المتوفرة
+                      </em>
+                    )}
                   <div className="qty">
                     <button
                       onClick={() =>
@@ -148,7 +159,9 @@ function CartDrawer({
             </p>
           </div>
 
-          <button onClick={checkoutWhatsApp}>إتمام الطلب عبر واتساب</button>
+          <button disabled={!cart.length} onClick={checkoutWhatsApp}>
+            {cart.length ? "إتمام الطلب عبر واتساب" : "أضف منتجات أولاً"}
+          </button>
         </div>
       </aside>
     </div>

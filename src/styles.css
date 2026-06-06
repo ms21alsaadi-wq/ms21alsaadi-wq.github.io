@@ -446,6 +446,18 @@ a {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.cart-head h3 {
+  margin: 0;
+}
+.cart-head span {
+  display: block;
+  margin-top: 4px;
+  color: #6b776f;
+  font-size: 13px;
+  font-weight: 800;
 }
 .cart-head button {
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -486,6 +498,17 @@ a {
   font-size: 13px;
   margin-top: 3px;
 }
+.cart-stock-limit {
+  display: inline-flex;
+  margin-top: 7px;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: #fff7f3;
+  color: #7f1d1d;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
 .qty {
   display: flex;
   gap: 8px;
@@ -511,6 +534,12 @@ a {
 .cart-foot button {
   width: 100%;
   justify-content: center;
+}
+.cart-foot > button:disabled {
+  background: #e7e0d3 !important;
+  color: #8b8174 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
 }
 .login-page,
 .admin {
@@ -16091,6 +16120,14 @@ button.product-flat-top-btn:hover svg {
   background: #e7e0d3 !important;
   color: #8b8174 !important;
   border: 0 !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.cart-foot > button:disabled {
+  background: #e7e0d3 !important;
+  color: #8b8174 !important;
   opacity: 1 !important;
   cursor: not-allowed !important;
   box-shadow: none !important;
