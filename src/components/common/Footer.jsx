@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { STORE_WHATSAPP } from "../../data/storeData.js";
-import { normalizePageHref } from "../../utils/helpers.js";
+import { makePageSlug, normalizePageHref } from "../../utils/helpers.js";
 
 function Footer({ settings, go, visibleHomePages = [] }) {
   const whatsapp = settings.homeHeaderWhatsapp || STORE_WHATSAPP;
@@ -37,6 +37,16 @@ function Footer({ settings, go, visibleHomePages = [] }) {
   const footerCopyright =
     settings.footerCopyright ||
     `© ${currentYear} ${settings.storeName || "GREEN DIXAM"}`;
+  const isHomeLink = (label = "") =>
+    /الرئيسية|الرئيسيه|home/i.test(String(label || ""));
+  const resolveFooterHref = (link = {}) => {
+    const rawHref = String(link.href || "").trim();
+    if (rawHref === "whatsapp") return `https://wa.me/${whatsapp}`;
+    if ((!rawHref || rawHref === "/") && !isHomeLink(link.label)) {
+      return `/page/${makePageSlug(link.label || "footer-page")}`;
+    }
+    return rawHref || "/";
+  };
 
   const handleFooterLink = (event, href = "") => {
     if (!href) return;
@@ -73,10 +83,7 @@ function Footer({ settings, go, visibleHomePages = [] }) {
           <div className="footer-links" key={`${section.title}-${sectionIndex}`}>
             <b>{section.title || "قسم الفوتر"}</b>
             {(section.links || []).map((link, linkIndex) => {
-              const href =
-                link.href === "whatsapp"
-                  ? `https://wa.me/${whatsapp}`
-                  : link.href || "/";
+              const href = resolveFooterHref(link);
               const isExternal =
                 href.startsWith("http") || href.startsWith("mailto:");
               return (
@@ -85,7 +92,7 @@ function Footer({ settings, go, visibleHomePages = [] }) {
                   href={href}
                   target={isExternal ? "_blank" : undefined}
                   rel={isExternal ? "noreferrer" : undefined}
-                  onClick={(event) => handleFooterLink(event, link.href)}
+                  onClick={(event) => handleFooterLink(event, href)}
                 >
                   {link.label || "رابط"}
                 </a>

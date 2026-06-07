@@ -7,6 +7,7 @@ import {
   couponUsedByCustomer,
   formatPrice,
   getTrafficSource,
+  makePageSlug,
   normalizePageHref,
   sizesArray,
 } from "../../utils/helpers.js";
@@ -216,9 +217,39 @@ function Store({
       { label: "دليل العناية", href: "/page/care-guide", visible: true },
     ]
   ).filter((page) => page.visible !== false);
+  const footerPages = (settings.footerSections || []).flatMap(
+    (section, sectionIndex) =>
+      (section.links || [])
+        .filter((link) => {
+          const href = String(link.href || "").trim();
+          const label = String(link.label || "").trim();
+          const isHomeLink = /الرئيسية|الرئيسيه|home/i.test(label);
+          return (
+            label &&
+            href !== "whatsapp" &&
+            !href.startsWith("http") &&
+            !href.startsWith("mailto:") &&
+            !href.startsWith("#") &&
+            !(href === "/" && isHomeLink)
+          );
+        })
+        .map((link, linkIndex) => {
+          const href = String(link.href || "").trim();
+          return {
+            label: link.label,
+            href:
+              !href || href === "/"
+                ? `/page/${makePageSlug(link.label, `footer-${sectionIndex + 1}-${linkIndex + 1}`)}`
+                : href,
+            content: link.content || "",
+            source: "footer",
+          };
+        }),
+  );
+  const storePages = [...visibleHomePages, ...footerPages];
 
   const currentStorePage = path.startsWith("/page/")
-    ? visibleHomePages.find(
+    ? storePages.find(
         (page, index) => normalizePageHref(page, index) === path,
       )
     : null;

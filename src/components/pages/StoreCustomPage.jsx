@@ -5,6 +5,11 @@ function StoreCustomPage({ page, products = [], go }) {
   const label = page?.label || "صفحة";
   const slug = makePageSlug(page?.href || label);
   const keyword = label.toLowerCase();
+  const pageContent = String(page?.content || "").trim();
+  const contentBlocks = pageContent
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
 
   const pageProducts = products.filter((product) => {
     const text =
@@ -40,15 +45,24 @@ function StoreCustomPage({ page, products = [], go }) {
       </button>
 
       <div className="store-page-hero">
-        <span>Store Page</span>
+        <span>{page?.source === "footer" ? "Footer Page" : "Store Page"}</span>
         <h1>{label}</h1>
         <p>
-          هذه صفحة مستقلة داخل المتجر ويمكن التحكم باسمها ورابطها وظهورها من قسم
-          الصفحات في لوحة التحكم.
+          {pageContent
+            ? "هذه الصفحة مرتبطة بالفوتر ويمكن تعديل محتواها من لوحة التحكم."
+            : "هذه صفحة مستقلة داخل المتجر ويمكن التحكم باسمها ورابطها من لوحة التحكم."}
         </p>
       </div>
 
-      {pageProducts.length > 0 ? (
+      {pageContent && (
+        <article className="store-page-content-card">
+          {contentBlocks.map((block, index) => (
+            <p key={index}>{block}</p>
+          ))}
+        </article>
+      )}
+
+      {!pageContent && pageProducts.length > 0 ? (
         <ProductGrid
           products={pageProducts}
           go={go}
@@ -57,7 +71,7 @@ function StoreCustomPage({ page, products = [], go }) {
           showSizes={false}
           showAddToCart={false}
         />
-      ) : (
+      ) : !pageContent ? (
         <div className="store-page-empty">
           <h2>{label}</h2>
           <p>
@@ -65,7 +79,7 @@ function StoreCustomPage({ page, products = [], go }) {
             رابطها من لوحة التحكم.
           </p>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }

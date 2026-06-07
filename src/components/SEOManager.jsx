@@ -78,8 +78,25 @@ function pageTitleFromPath(path, settings) {
   const homePages = Array.isArray(settings?.homePages)
     ? settings.homePages
     : [];
+  const footerPages = Array.isArray(settings?.footerSections)
+    ? settings.footerSections.flatMap((section, sectionIndex) =>
+        (section.links || []).map((link, linkIndex) => {
+          const href = String(link.href || "").trim();
+          const label = String(link.label || "").trim();
+          const isHomeLink = /الرئيسية|الرئيسيه|home/i.test(label);
+          return {
+            ...link,
+            href:
+              (!href || href === "/") && !isHomeLink
+                ? `/page/${makePageSlug(label, `footer-${sectionIndex + 1}-${linkIndex + 1}`)}`
+                : href,
+          };
+        }),
+      )
+    : [];
+  const allPages = [...homePages, ...footerPages];
   const matchedPage = path?.startsWith("/page/")
-    ? homePages.find((page, index) => normalizePageHref(page, index) === path)
+    ? allPages.find((page, index) => normalizePageHref(page, index) === path)
     : null;
 
   if (path?.startsWith("/admin")) return `لوحة التحكم | ${storeName}`;
@@ -93,8 +110,25 @@ function pageDescriptionFromPath(path, settings) {
   const homePages = Array.isArray(settings?.homePages)
     ? settings.homePages
     : [];
+  const footerPages = Array.isArray(settings?.footerSections)
+    ? settings.footerSections.flatMap((section, sectionIndex) =>
+        (section.links || []).map((link, linkIndex) => {
+          const href = String(link.href || "").trim();
+          const label = String(link.label || "").trim();
+          const isHomeLink = /الرئيسية|الرئيسيه|home/i.test(label);
+          return {
+            ...link,
+            href:
+              (!href || href === "/") && !isHomeLink
+                ? `/page/${makePageSlug(label, `footer-${sectionIndex + 1}-${linkIndex + 1}`)}`
+                : href,
+          };
+        }),
+      )
+    : [];
+  const allPages = [...homePages, ...footerPages];
   const matchedPage = path?.startsWith("/page/")
-    ? homePages.find((page, index) => normalizePageHref(page, index) === path)
+    ? allPages.find((page, index) => normalizePageHref(page, index) === path)
     : null;
 
   if (path?.startsWith("/admin"))
@@ -105,7 +139,8 @@ function pageDescriptionFromPath(path, settings) {
     return "حساب العميل لمتابعة الطلبات وتحديث بيانات الشحن.";
   if (matchedPage?.label)
     return limitSeoText(
-      `${matchedPage.label} - ${settings?.homeProductsDesc || settings?.homeHeroDesc || settings?.heroSubtitle}`,
+      matchedPage.content ||
+        `${matchedPage.label} - ${settings?.homeProductsDesc || settings?.homeHeroDesc || settings?.heroSubtitle}`,
       155,
     );
   return limitSeoText(

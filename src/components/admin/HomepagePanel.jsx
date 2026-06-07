@@ -1,3 +1,4 @@
+import { makePageSlug } from "../../utils/helpers.js";
 import { Control } from "./AdminUi.jsx";
 
 export default function HomepagePanel({
@@ -43,6 +44,8 @@ export default function HomepagePanel({
     next[sectionIndex] = { ...currentSection, links };
     updateDraft("footerSections", next);
   };
+  const footerPageHref = (label) =>
+    `/page/${makePageSlug(label || "footer-page")}`;
 
   return (
     <section className="homepage-admin-page">
@@ -186,49 +189,78 @@ export default function HomepagePanel({
                               {(footerSection.links || []).map(
                                 (link, linkIndex) => (
                                   <div
-                                    className="footer-admin-link-row"
+                                    className="footer-admin-link-card"
                                     key={linkIndex}
                                   >
-                                    <input
-                                      value={link.label || ""}
+                                    <div className="footer-admin-link-row">
+                                      <input
+                                        value={link.label || ""}
+                                        onChange={(e) =>
+                                          updateFooterLink(
+                                            sectionIndex,
+                                            linkIndex,
+                                            { label: e.target.value },
+                                          )
+                                        }
+                                        placeholder="اسم الرابط"
+                                      />
+                                      <input
+                                        value={link.href || ""}
+                                        onChange={(e) =>
+                                          updateFooterLink(
+                                            sectionIndex,
+                                            linkIndex,
+                                            { href: e.target.value },
+                                          )
+                                        }
+                                        placeholder="/page/about-us أو whatsapp"
+                                      />
+                                      <button
+                                        type="button"
+                                        className="admin-secondary"
+                                        onClick={() =>
+                                          updateFooterLink(
+                                            sectionIndex,
+                                            linkIndex,
+                                            {
+                                              href: footerPageHref(link.label),
+                                            },
+                                          )
+                                        }
+                                      >
+                                        صفحة
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="admin-secondary"
+                                        onClick={() => {
+                                          const next = [...footerSections];
+                                          const links = [
+                                            ...(next[sectionIndex].links || []),
+                                          ];
+                                          links.splice(linkIndex, 1);
+                                          next[sectionIndex] = {
+                                            ...next[sectionIndex],
+                                            links,
+                                          };
+                                          updateDraft("footerSections", next);
+                                        }}
+                                      >
+                                        حذف
+                                      </button>
+                                    </div>
+                                    <textarea
+                                      value={link.content || ""}
                                       onChange={(e) =>
                                         updateFooterLink(
                                           sectionIndex,
                                           linkIndex,
-                                          { label: e.target.value },
+                                          { content: e.target.value },
                                         )
                                       }
-                                      placeholder="اسم الرابط"
+                                      placeholder="محتوى الصفحة التي ستظهر عند الضغط على هذا الرابط"
+                                      rows="4"
                                     />
-                                    <input
-                                      value={link.href || ""}
-                                      onChange={(e) =>
-                                        updateFooterLink(
-                                          sectionIndex,
-                                          linkIndex,
-                                          { href: e.target.value },
-                                        )
-                                      }
-                                      placeholder="/account أو #products أو whatsapp"
-                                    />
-                                    <button
-                                      type="button"
-                                      className="admin-secondary"
-                                      onClick={() => {
-                                        const next = [...footerSections];
-                                        const links = [
-                                          ...(next[sectionIndex].links || []),
-                                        ];
-                                        links.splice(linkIndex, 1);
-                                        next[sectionIndex] = {
-                                          ...next[sectionIndex],
-                                          links,
-                                        };
-                                        updateDraft("footerSections", next);
-                                      }}
-                                    >
-                                      حذف
-                                    </button>
                                   </div>
                                 ),
                               )}

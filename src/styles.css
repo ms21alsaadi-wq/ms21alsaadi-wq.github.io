@@ -6077,11 +6077,24 @@ h3,
   align-items: center;
 }
 .footer-admin-link-row {
-  grid-template-columns: 1fr 1.4fr auto;
+  grid-template-columns: 1fr 1.25fr auto auto;
+}
+.footer-admin-link-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(194, 169, 104, 0.18);
+  border-radius: 16px;
+  padding: 10px;
+  background: #fffdf7;
 }
 .footer-admin-section input,
-.footer-admin-link-row input {
+.footer-admin-link-row input,
+.footer-admin-link-card textarea {
   min-height: 46px;
+}
+.footer-admin-link-card textarea {
+  resize: vertical;
+  line-height: 1.8;
 }
 .pages-admin-list {
   display: grid;
@@ -13670,6 +13683,25 @@ button.product-flat-top-btn:hover svg {
 .product-link-card:focus-visible {
   outline: 3px solid rgba(15, 61, 46, 0.25);
   outline-offset: 4px;
+}
+.store-page-content-card {
+  max-width: 920px;
+  margin: 24px auto 0;
+  padding: 30px;
+  border-radius: 28px;
+  background: var(--card, #fff);
+  border: 1px solid rgba(15, 61, 46, 0.1);
+  box-shadow: 0 20px 55px rgba(15, 61, 46, 0.08);
+}
+.store-page-content-card p {
+  margin: 0 0 16px;
+  color: #24372c;
+  font-weight: 750;
+  line-height: 2;
+  white-space: pre-line;
+}
+.store-page-content-card p:last-child {
+  margin-bottom: 0;
 }
 .product-detail-page {
   padding-top: 38px;
