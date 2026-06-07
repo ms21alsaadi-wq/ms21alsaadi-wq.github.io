@@ -87,6 +87,28 @@ export const defaultSettings = {
 
   homeProductsTitle: "نباتات نادرة ومنتجات فاخرة مختارة بعناية",
   homeProductsDesc: "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا.",
+  footerTitle: "GREEN DIXAM",
+  footerDescription: "متجر نباتات وهدايا خضراء بتجربة شراء سهلة.",
+  footerLocation: "الرياض، السعودية",
+  footerCopyright: "",
+  footerSections: [
+    {
+      title: "روابط المتجر",
+      links: [
+        { label: "الصفحة الرئيسية", href: "/" },
+        { label: "المنتجات", href: "#products" },
+        { label: "العروض", href: "/page/offers" },
+      ],
+    },
+    {
+      title: "خدمة العميل",
+      links: [
+        { label: "حسابي", href: "/account" },
+        { label: "تصفح المنتجات", href: "#products" },
+        { label: "تواصل واتساب", href: "whatsapp" },
+      ],
+    },
+  ],
 
   storeStatus: "open",
   checkoutEnabled: true,

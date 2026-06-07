@@ -473,7 +473,10 @@ a {
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(
+      auto-fit,
+      minmax(160px, 1fr)
+    );
   gap: 24px;
   padding: 42px 0;
 }
@@ -6039,6 +6042,47 @@ h3,
   border-radius: 18px;
   padding: 16px;
 }
+.footer-admin-tools {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+  background: #fffdf7;
+  border: 1px solid rgba(194, 169, 104, 0.24);
+  border-radius: 18px;
+  padding: 16px;
+}
+.footer-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.footer-admin-sections,
+.footer-admin-links {
+  display: grid;
+  gap: 12px;
+}
+.footer-admin-section {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(194, 169, 104, 0.22);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(245, 241, 232, 0.48);
+}
+.footer-admin-section-head,
+.footer-admin-link-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.footer-admin-link-row {
+  grid-template-columns: 1fr 1.4fr auto;
+}
+.footer-admin-section input,
+.footer-admin-link-row input {
+  min-height: 46px;
+}
 .pages-admin-list {
   display: grid;
   gap: 10px;
@@ -6053,6 +6097,11 @@ h3,
   justify-self: start;
 }
 @media (max-width: 900px) {
+  .footer-admin-grid,
+  .footer-admin-section-head,
+  .footer-admin-link-row {
+    grid-template-columns: 1fr;
+  }
   .page-row-editor {
     grid-template-columns: 1fr;
   }

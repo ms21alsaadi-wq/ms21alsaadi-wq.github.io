@@ -9,6 +9,41 @@ export default function HomepagePanel({
   updateDraft,
   uploadSettingImage,
 }) {
+  const defaultFooterSections = [
+    {
+      title: "روابط المتجر",
+      links: [
+        { label: "الصفحة الرئيسية", href: "/" },
+        { label: "المنتجات", href: "#products" },
+        { label: "العروض", href: "/page/offers" },
+      ],
+    },
+    {
+      title: "خدمة العميل",
+      links: [
+        { label: "حسابي", href: "/account" },
+        { label: "تصفح المنتجات", href: "#products" },
+        { label: "تواصل واتساب", href: "whatsapp" },
+      ],
+    },
+  ];
+  const footerSections = Array.isArray(draftSettings.footerSections)
+    ? draftSettings.footerSections
+    : defaultFooterSections;
+  const updateFooterSection = (sectionIndex, changes) => {
+    const next = [...footerSections];
+    next[sectionIndex] = { ...next[sectionIndex], ...changes };
+    updateDraft("footerSections", next);
+  };
+  const updateFooterLink = (sectionIndex, linkIndex, changes) => {
+    const next = [...footerSections];
+    const currentSection = next[sectionIndex] || { title: "", links: [] };
+    const links = [...(currentSection.links || [])];
+    links[linkIndex] = { ...links[linkIndex], ...changes };
+    next[sectionIndex] = { ...currentSection, links };
+    updateDraft("footerSections", next);
+  };
+
   return (
     <section className="homepage-admin-page">
       <div className="homepage-sections-list">
@@ -93,6 +128,149 @@ export default function HomepagePanel({
                         placeholder="وصف القسم"
                       />
                     </Control>
+                  )}
+
+                  {section.footerExtra && (
+                    <div className="footer-admin-tools">
+                      <div className="footer-admin-grid">
+                        <Control label="الموقع">
+                          <input
+                            value={draftSettings.footerLocation || ""}
+                            onChange={(e) =>
+                              updateDraft("footerLocation", e.target.value)
+                            }
+                            placeholder="الرياض، السعودية"
+                          />
+                        </Control>
+                        <Control label="نص الحقوق">
+                          <input
+                            value={draftSettings.footerCopyright || ""}
+                            onChange={(e) =>
+                              updateDraft("footerCopyright", e.target.value)
+                            }
+                            placeholder="يترك فارغاً لاستخدام اسم المتجر والسنة"
+                          />
+                        </Control>
+                      </div>
+
+                      <div className="footer-admin-sections">
+                        {footerSections.map((footerSection, sectionIndex) => (
+                          <div
+                            className="footer-admin-section"
+                            key={sectionIndex}
+                          >
+                            <div className="footer-admin-section-head">
+                              <input
+                                value={footerSection.title || ""}
+                                onChange={(e) =>
+                                  updateFooterSection(sectionIndex, {
+                                    title: e.target.value,
+                                  })
+                                }
+                                placeholder="عنوان القسم"
+                              />
+                              <button
+                                type="button"
+                                className="admin-secondary"
+                                onClick={() => {
+                                  const next = [...footerSections];
+                                  next.splice(sectionIndex, 1);
+                                  updateDraft("footerSections", next);
+                                }}
+                              >
+                                حذف القسم
+                              </button>
+                            </div>
+
+                            <div className="footer-admin-links">
+                              {(footerSection.links || []).map(
+                                (link, linkIndex) => (
+                                  <div
+                                    className="footer-admin-link-row"
+                                    key={linkIndex}
+                                  >
+                                    <input
+                                      value={link.label || ""}
+                                      onChange={(e) =>
+                                        updateFooterLink(
+                                          sectionIndex,
+                                          linkIndex,
+                                          { label: e.target.value },
+                                        )
+                                      }
+                                      placeholder="اسم الرابط"
+                                    />
+                                    <input
+                                      value={link.href || ""}
+                                      onChange={(e) =>
+                                        updateFooterLink(
+                                          sectionIndex,
+                                          linkIndex,
+                                          { href: e.target.value },
+                                        )
+                                      }
+                                      placeholder="/account أو #products أو whatsapp"
+                                    />
+                                    <button
+                                      type="button"
+                                      className="admin-secondary"
+                                      onClick={() => {
+                                        const next = [...footerSections];
+                                        const links = [
+                                          ...(next[sectionIndex].links || []),
+                                        ];
+                                        links.splice(linkIndex, 1);
+                                        next[sectionIndex] = {
+                                          ...next[sectionIndex],
+                                          links,
+                                        };
+                                        updateDraft("footerSections", next);
+                                      }}
+                                    >
+                                      حذف
+                                    </button>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              className="admin-primary add-page-btn"
+                              onClick={() => {
+                                const next = [...footerSections];
+                                next[sectionIndex] = {
+                                  ...next[sectionIndex],
+                                  links: [
+                                    ...(next[sectionIndex].links || []),
+                                    { label: "رابط جديد", href: "/" },
+                                  ],
+                                };
+                                updateDraft("footerSections", next);
+                              }}
+                            >
+                              إضافة رابط
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="admin-primary add-page-btn"
+                        onClick={() =>
+                          updateDraft("footerSections", [
+                            ...footerSections,
+                            {
+                              title: "قسم جديد",
+                              links: [{ label: "رابط جديد", href: "/" }],
+                            },
+                          ])
+                        }
+                      >
+                        إضافة قسم في الفوتر
+                      </button>
+                    </div>
                   )}
 
                   {section.heroExtra && (

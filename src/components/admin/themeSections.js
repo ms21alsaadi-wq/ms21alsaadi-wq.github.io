@@ -52,4 +52,12 @@ export const themeSections = [
     descKey: "homeProductsDesc",
     imageKey: "",
   },
+  {
+    id: "footer",
+    label: "الفوتر",
+    titleKey: "footerTitle",
+    descKey: "footerDescription",
+    imageKey: "",
+    footerExtra: true,
+  },
 ];
