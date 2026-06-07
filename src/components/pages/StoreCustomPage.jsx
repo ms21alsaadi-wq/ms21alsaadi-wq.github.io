@@ -36,7 +36,11 @@ function StoreCustomPage({ page, products = [], go }) {
   });
 
   return (
-    <main className="container store-page-view">
+    <main
+      className={`container store-page-view ${
+        page?.source === "footer" ? "footer-store-page-view" : ""
+      }`}
+    >
       <button
         type="button"
         className="primary store-page-back"
