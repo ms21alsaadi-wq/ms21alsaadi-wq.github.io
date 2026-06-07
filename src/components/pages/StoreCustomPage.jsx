@@ -6,6 +6,7 @@ function StoreCustomPage({ page, products = [], go }) {
   const slug = makePageSlug(page?.href || label);
   const keyword = label.toLowerCase();
   const pageContent = String(page?.content || "").trim();
+  const hasRichContent = /<\/?[a-z][\s\S]*>/i.test(pageContent);
   const contentBlocks = pageContent
     .split(/\n{2,}/)
     .map((block) => block.trim())
@@ -56,9 +57,11 @@ function StoreCustomPage({ page, products = [], go }) {
 
       {pageContent && (
         <article className="store-page-content-card">
-          {contentBlocks.map((block, index) => (
-            <p key={index}>{block}</p>
-          ))}
+          {hasRichContent ? (
+            <div dangerouslySetInnerHTML={{ __html: pageContent }} />
+          ) : (
+            contentBlocks.map((block, index) => <p key={index}>{block}</p>)
+          )}
         </article>
       )}
 

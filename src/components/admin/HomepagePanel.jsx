@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { makePageSlug } from "../../utils/helpers.js";
 import { Control } from "./AdminUi.jsx";
 
@@ -10,6 +11,8 @@ export default function HomepagePanel({
   updateDraft,
   uploadSettingImage,
 }) {
+  const [footerEditor, setFooterEditor] = useState(null);
+  const editorRef = useRef(null);
   const defaultFooterSections = [
     {
       title: "روابط المتجر",
@@ -46,6 +49,36 @@ export default function HomepagePanel({
   };
   const footerPageHref = (label) =>
     `/page/${makePageSlug(label || "footer-page")}`;
+  const activeFooterLink =
+    footerEditor &&
+    footerSections[footerEditor.sectionIndex]?.links?.[footerEditor.linkIndex];
+
+  useEffect(() => {
+    if (!editorRef.current || !footerEditor) return;
+    editorRef.current.innerHTML = activeFooterLink?.content || "";
+  }, [footerEditor?.sectionIndex, footerEditor?.linkIndex]);
+
+  const runEditorCommand = (command, value = null) => {
+    editorRef.current?.focus();
+    document.execCommand(command, false, value);
+    if (footerEditor && editorRef.current) {
+      updateFooterLink(footerEditor.sectionIndex, footerEditor.linkIndex, {
+        content: editorRef.current.innerHTML,
+      });
+    }
+  };
+
+  const saveEditorContent = () => {
+    if (!footerEditor || !editorRef.current) return;
+    updateFooterLink(footerEditor.sectionIndex, footerEditor.linkIndex, {
+      content: editorRef.current.innerHTML,
+    });
+  };
+  const addEditorLink = () => {
+    const url = window.prompt("اكتب رابط الصفحة أو الموقع");
+    if (!url) return;
+    runEditorCommand("createLink", url);
+  };
 
   return (
     <section className="homepage-admin-page">
@@ -233,6 +266,18 @@ export default function HomepagePanel({
                                       <button
                                         type="button"
                                         className="admin-secondary"
+                                        onClick={() =>
+                                          setFooterEditor({
+                                            sectionIndex,
+                                            linkIndex,
+                                          })
+                                        }
+                                      >
+                                        المحتوى
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="admin-secondary"
                                         onClick={() => {
                                           const next = [...footerSections];
                                           const links = [
@@ -249,18 +294,6 @@ export default function HomepagePanel({
                                         حذف
                                       </button>
                                     </div>
-                                    <textarea
-                                      value={link.content || ""}
-                                      onChange={(e) =>
-                                        updateFooterLink(
-                                          sectionIndex,
-                                          linkIndex,
-                                          { content: e.target.value },
-                                        )
-                                      }
-                                      placeholder="محتوى الصفحة التي ستظهر عند الضغط على هذا الرابط"
-                                      rows="4"
-                                    />
                                   </div>
                                 ),
                               )}
@@ -640,6 +673,161 @@ export default function HomepagePanel({
           ),
         )}
       </div>
+
+      {footerEditor && (
+        <div className="footer-content-modal">
+          <div
+            className="footer-content-modal-bg"
+            onClick={() => setFooterEditor(null)}
+          />
+          <section className="footer-content-modal-card">
+            <div className="footer-content-modal-head">
+              <div>
+                <span>Footer Page Content</span>
+                <h3>{activeFooterLink?.label || "محتوى الصفحة"}</h3>
+              </div>
+              <button
+                type="button"
+                className="admin-secondary"
+                onClick={() => setFooterEditor(null)}
+              >
+                إغلاق
+              </button>
+            </div>
+
+            <div className="footer-editor-toolbar">
+              <button type="button" onClick={() => runEditorCommand("bold")}>
+                B
+              </button>
+              <button type="button" onClick={() => runEditorCommand("italic")}>
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => runEditorCommand("underline")}
+              >
+                U
+              </button>
+              <select
+                defaultValue="p"
+                onChange={(e) => {
+                  if (e.target.value === "p") {
+                    runEditorCommand("formatBlock", "P");
+                  } else {
+                    runEditorCommand("formatBlock", e.target.value);
+                  }
+                }}
+              >
+                <option value="p">نص</option>
+                <option value="H2">عنوان كبير</option>
+                <option value="H3">عنوان فرعي</option>
+              </select>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  if (!e.target.value) return;
+                  runEditorCommand("fontSize", e.target.value);
+                  e.target.value = "";
+                }}
+              >
+                <option value="">حجم الخط</option>
+                <option value="2">صغير</option>
+                <option value="3">عادي</option>
+                <option value="5">كبير</option>
+                <option value="7">كبير جداً</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => runEditorCommand("insertUnorderedList")}
+              >
+                قائمة
+              </button>
+              <button
+                type="button"
+                onClick={() => runEditorCommand("insertOrderedList")}
+              >
+                أرقام
+              </button>
+              <button
+                type="button"
+                onClick={() => runEditorCommand("justifyRight")}
+              >
+                يمين
+              </button>
+              <button
+                type="button"
+                onClick={() => runEditorCommand("justifyCenter")}
+              >
+                وسط
+              </button>
+              <button
+                type="button"
+                onClick={() => runEditorCommand("justifyLeft")}
+              >
+                يسار
+              </button>
+              <button type="button" onClick={addEditorLink}>
+                رابط
+              </button>
+              <button
+                type="button"
+                onClick={() => runEditorCommand("unlink")}
+              >
+                حذف الرابط
+              </button>
+              <label className="footer-editor-color">
+                لون الخط
+                <input
+                  type="color"
+                  defaultValue="#0f3d2e"
+                  onChange={(e) =>
+                    runEditorCommand("foreColor", e.target.value)
+                  }
+                />
+              </label>
+              <label className="footer-editor-color">
+                تمييز
+                <input
+                  type="color"
+                  defaultValue="#fff3bf"
+                  onChange={(e) =>
+                    runEditorCommand("hiliteColor", e.target.value)
+                  }
+                />
+              </label>
+            </div>
+
+            <div
+              ref={editorRef}
+              className="footer-rich-editor"
+              contentEditable
+              dir="rtl"
+              onInput={saveEditorContent}
+              suppressContentEditableWarning
+            />
+
+            <div className="footer-content-modal-actions">
+              <button
+                type="button"
+                className="admin-secondary"
+                onClick={() => runEditorCommand("removeFormat")}
+              >
+                إزالة التنسيق
+              </button>
+              <button
+                type="button"
+                className="admin-primary"
+                onClick={() => {
+                  saveEditorContent();
+                  setFooterEditor(null);
+                }}
+              >
+                حفظ المحتوى
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
