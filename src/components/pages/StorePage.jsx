@@ -804,7 +804,11 @@ function Store({
         </>
       )}
 
-      <Footer settings={settings} />
+      <Footer
+        settings={settings}
+        go={go}
+        visibleHomePages={visibleHomePages}
+      />
 
       {cartOpen && (
         <CartDrawer

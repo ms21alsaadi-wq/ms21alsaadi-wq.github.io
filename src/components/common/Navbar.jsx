@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Languages, Search, ShoppingBag, User } from "lucide-react";
 import { normalizePageHref } from "../../utils/helpers.js";
 
 function Navbar({
@@ -18,7 +18,7 @@ function Navbar({
 }) {
   return (
     <header
-      className={`store-header ${settings.homeHeaderSticky === false ? "" : "header-sticky-pro"}`}
+      className={`store-header premium-store-header ${settings.homeHeaderSticky === false ? "" : "header-sticky-pro"}`}
       style={{
         background: settings.homeHeaderBg || undefined,
       }}
@@ -86,9 +86,10 @@ function Navbar({
               className="language-toggle"
               type="button"
               title={siteLang === "EN" ? "Language" : "اللغة"}
+              aria-label={siteLang === "EN" ? "Language" : "اللغة"}
               onClick={() => setLangMenuOpen((v) => !v)}
             >
-              🌐
+              <Languages size={19} />
             </button>
 
             {langMenuOpen && (
@@ -131,7 +132,7 @@ function Navbar({
                   : "دخول العميل"
             }
           >
-            👤
+            <User size={19} />
           </button>
 
           <button
@@ -140,7 +141,7 @@ function Navbar({
             onClick={() => setCartOpen(true)}
             title={siteLang === "EN" ? "Cart" : "السلة"}
           >
-            🛒
+            <ShoppingBag size={19} />
             {cartCount > 0 && <span>{cartCount}</span>}
           </button>
         </div>

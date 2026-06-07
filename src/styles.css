@@ -468,21 +468,61 @@ a {
 }
 .footer {
   margin-top: 50px;
-  background: rgba(255, 255, 255, 0.75);
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: linear-gradient(180deg, rgba(255, 253, 247, 0.94), #f5f1e8);
+  border-top: 1px solid rgba(194, 169, 104, 0.24);
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
   gap: 24px;
   padding: 42px 0;
 }
 .footer b {
   font-size: 20px;
+  color: #0f3d2e;
 }
 .footer p {
   color: #71717a;
   line-height: 1.9;
+}
+.footer-brand p {
+  max-width: 280px;
+  font-weight: 800;
+}
+.footer-links,
+.footer-contact {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+.footer-links a,
+.footer-links button,
+.footer-contact a {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  color: #526052;
+  padding: 0;
+  font: inherit;
+  font-weight: 850;
+  text-align: right;
+  text-decoration: none;
+  cursor: pointer;
+}
+.footer-links a:hover,
+.footer-links button:hover,
+.footer-contact a:hover {
+  color: #0f3d2e;
+}
+.footer-contact a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f3d2e;
+}
+.footer-contact small {
+  color: #6b705f;
+  font-weight: 800;
 }
 .cart-overlay {
   position: fixed;
@@ -1015,10 +1055,12 @@ a {
   padding: 7px 10px;
 }
 @media (max-width: 1050px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .hero,
   .feature-grid,
   .filters,
-  .footer-grid,
   .admin,
   .dash-grid,
   .admin-grid {
@@ -2092,6 +2134,14 @@ h3,
   }
 }
 @media (max-width: 560px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+  .footer-links a,
+  .footer-links button,
+  .footer-contact a {
+    width: 100%;
+  }
   .filters,
   .store-results-bar {
     grid-template-columns: 1fr !important;
