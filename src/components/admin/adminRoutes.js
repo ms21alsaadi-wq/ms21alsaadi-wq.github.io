@@ -7,6 +7,7 @@ export const ADMIN_ROUTE_TABS = [
   "orders",
   "customers",
   "coupons",
+  "payments",
   "users",
   "settings",
   "notifications",

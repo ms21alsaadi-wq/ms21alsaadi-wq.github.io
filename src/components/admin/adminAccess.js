@@ -12,6 +12,7 @@ export const tabPermission = {
   orders: "orders",
   customers: "customers",
   coupons: "coupons",
+  payments: "payments",
   settings: "settings",
   notifications: "notifications",
   users: "users",

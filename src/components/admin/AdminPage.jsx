@@ -45,6 +45,7 @@ import CouponsPanel from "./CouponsPanel.jsx";
 import HomepagePanel from "./HomepagePanel.jsx";
 import IdentityPanel from "./IdentityPanel.jsx";
 import OrdersPanel from "./OrdersPanel.jsx";
+import PaymentsPanel from "./PaymentsPanel.jsx";
 import ProductEditorModal from "./ProductEditorModal.jsx";
 import ProductsCommandCenter from "./ProductsCommandCenter.jsx";
 import ReportsPanel from "./ReportsPanel.jsx";
@@ -1652,6 +1653,15 @@ function Admin({
             resetDraftSettings={resetDraftSettings}
             uploadSettingImage={uploadSettingImage}
             setTab={setTab}
+          />
+        )}
+
+        {tab === "payments" && canAccessAdminSection("payments") && (
+          <PaymentsPanel
+            draftSettings={draftSettings}
+            updateDraft={updateDraft}
+            saveDraftSettings={saveDraftSettings}
+            resetDraftSettings={resetDraftSettings}
           />
         )}
 
