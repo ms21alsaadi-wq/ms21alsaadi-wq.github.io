@@ -53,6 +53,7 @@ function Store({
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
+  const [selectedPaymentId, setSelectedPaymentId] = useState("");
 
   useEffect(() => {
     let visitorId = localStorage.getItem("gdVisitorId");
@@ -210,6 +211,62 @@ function Store({
     ? Math.round(subtotal * (Number(appliedCoupon.percent || 0) / 100))
     : 0;
   const total = Math.max(0, subtotal - discount) + shippingFee;
+  const paymentProviders = useMemo(() => {
+    const savedProviders = Array.isArray(settings.paymentProviders)
+      ? settings.paymentProviders
+      : [];
+    return savedProviders.length
+      ? savedProviders
+      : [
+          {
+            id: "cod",
+            name: "الدفع عند الاستلام",
+            badge: "COD",
+            enabled: true,
+            visible: true,
+            mode: "live",
+            minAmount: 0,
+            maxAmount: 0,
+            note: "لا يحتاج بوابة دفع، وسيتم تأكيد الطلب عبر واتساب.",
+          },
+        ];
+  }, [settings.paymentProviders]);
+  const availablePaymentProviders = useMemo(
+    () =>
+      paymentProviders.filter((provider) => {
+        if (!provider.enabled || provider.visible === false) return false;
+        const minAmount = Math.max(0, Number(provider.minAmount || 0));
+        const maxAmount = Math.max(0, Number(provider.maxAmount || 0));
+        if (minAmount && total < minAmount) return false;
+        if (maxAmount && total > maxAmount) return false;
+        return true;
+      }),
+    [paymentProviders, total],
+  );
+  const availablePaymentIds = availablePaymentProviders
+    .map((provider) => provider.id)
+    .join("|");
+  const selectedPaymentProvider =
+    availablePaymentProviders.find(
+      (provider) => provider.id === selectedPaymentId,
+    ) ||
+    availablePaymentProviders[0] ||
+    null;
+
+  useEffect(() => {
+    if (!availablePaymentProviders.length) {
+      if (selectedPaymentId) setSelectedPaymentId("");
+      return;
+    }
+    if (
+      !selectedPaymentId ||
+      !availablePaymentProviders.some(
+        (provider) => provider.id === selectedPaymentId,
+      )
+    ) {
+      setSelectedPaymentId(availablePaymentProviders[0].id);
+    }
+  }, [availablePaymentIds, availablePaymentProviders, selectedPaymentId]);
   const visibleHomePages = (
     settings.homePages || [
       { label: "النباتات", href: "/page/products", visible: true },
@@ -419,6 +476,18 @@ function Store({
       return;
     }
     if (!cart.length) return;
+    if (!selectedPaymentProvider) {
+      setCouponMessage("اختر طريقة الدفع أولاً");
+      return;
+    }
+
+    const onlinePaymentGateways = ["moyasar", "tabby", "tamara"];
+    if (onlinePaymentGateways.includes(selectedPaymentProvider.id)) {
+      setCouponMessage(
+        `${selectedPaymentProvider.name} تحتاج ربط مفاتيح الدفع قبل استخدامها فعلياً. اختر الدفع عند الاستلام أو التحويل البنكي مؤقتاً.`,
+      );
+      return;
+    }
 
     if (settings.checkoutEnabled === false || settings.storeStatus !== "open") {
       setCouponMessage(
@@ -495,6 +564,15 @@ function Store({
       couponCode: appliedCoupon?.code || "",
       couponPercent: appliedCoupon?.percent || 0,
       total,
+      paymentMethodId: selectedPaymentProvider.id,
+      paymentMethodName: selectedPaymentProvider.name,
+      paymentMode: selectedPaymentProvider.mode || "live",
+      paymentStatus:
+        selectedPaymentProvider.id === "cod"
+          ? "cod"
+          : selectedPaymentProvider.id === "bank"
+            ? "awaiting_transfer"
+            : "pending_payment",
       status: "new",
       orderPrefix: settings.orderPrefix || "GD",
       createdAtMs: Date.now(),
@@ -554,7 +632,7 @@ function Store({
       )
       .join("\n\n");
     const orderNumber = `${settings.orderPrefix || "GD"}-${orderRef.id.slice(0, 6).toUpperCase()}`;
-    const message = `طلب جديد من ${settings.storeName || "المتجر"}\n\nرقم الطلب: ${orderNumber}\n\nبيانات العميل:\nالاسم: ${customer.name}\nالجوال: ${customer.phone}\nالإيميل: ${customer.email || authUser.email}\nالمدينة: ${customer.city}\nالعنوان: ${customer.address}\n\nالمنتجات:\n${items}\n\nملخص الطلب:\nالمجموع الفرعي: ${formatPrice(subtotal)} ر.س\nالخصم: ${formatPrice(discount)} ر.س\nالشحن: ${formatPrice(shippingFee)} ر.س\nالإجمالي: ${formatPrice(total)} ر.س\n\nالرجاء تأكيد الطلب وتجهيزه.`;
+    const message = `طلب جديد من ${settings.storeName || "المتجر"}\n\nرقم الطلب: ${orderNumber}\nطريقة الدفع: ${selectedPaymentProvider.name}\n\nبيانات العميل:\nالاسم: ${customer.name}\nالجوال: ${customer.phone}\nالإيميل: ${customer.email || authUser.email}\nالمدينة: ${customer.city}\nالعنوان: ${customer.address}\n\nالمنتجات:\n${items}\n\nملخص الطلب:\nالمجموع الفرعي: ${formatPrice(subtotal)} ر.س\nالخصم: ${formatPrice(discount)} ر.س\nالشحن: ${formatPrice(shippingFee)} ر.س\nالإجمالي: ${formatPrice(total)} ر.س\n\nالرجاء تأكيد الطلب وتجهيزه.`;
     window.open(
       `https://wa.me/${settings.homeHeaderWhatsapp || STORE_WHATSAPP}?text=${encodeURIComponent(message)}`,
       "_blank",
@@ -860,6 +938,10 @@ function Store({
           shippingFee={shippingFee}
           total={total}
           checkoutWhatsApp={checkoutWhatsApp}
+          paymentProviders={availablePaymentProviders}
+          selectedPaymentId={selectedPaymentId}
+          setSelectedPaymentId={setSelectedPaymentId}
+          selectedPaymentProvider={selectedPaymentProvider}
         />
       )}
     </div>

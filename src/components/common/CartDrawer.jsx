@@ -19,6 +19,10 @@ function CartDrawer({
   shippingFee,
   total,
   checkoutWhatsApp,
+  paymentProviders = [],
+  selectedPaymentId,
+  setSelectedPaymentId,
+  selectedPaymentProvider,
 }) {
   const itemCount = cart.reduce((sum, item) => sum + Number(item.qty || 0), 0);
   const hasCustomerDetails = Boolean(
@@ -38,9 +42,22 @@ function CartDrawer({
         }
       : {
           title: "جاهز لإتمام الطلب",
-          text: "بياناتك مكتملة وسيتم إرسال الطلب عبر واتساب.",
+          text: selectedPaymentProvider
+            ? `بياناتك مكتملة وطريقة الدفع المختارة: ${selectedPaymentProvider.name}.`
+            : "بياناتك مكتملة واختر طريقة الدفع قبل الإتمام.",
           status: "ready",
         };
+  const checkoutButtonText = !cart.length
+    ? "أضف منتجات أولاً"
+    : !paymentProviders.length
+      ? "لا توجد طرق دفع مفعلة"
+      : selectedPaymentProvider?.id === "cod"
+        ? "إتمام الطلب - الدفع عند الاستلام"
+        : selectedPaymentProvider?.id === "bank"
+          ? "إتمام الطلب - تحويل بنكي"
+          : selectedPaymentProvider
+            ? `المتابعة إلى ${selectedPaymentProvider.name}`
+            : "اختر طريقة الدفع";
 
   return (
     <div className="cart-overlay">
@@ -141,6 +158,40 @@ function CartDrawer({
             <span>{checkoutReadiness.text}</span>
           </div>
 
+          <div className="cart-payment-methods">
+            <div className="cart-payment-title">
+              <b>طريقة الدفع</b>
+              <span>
+                {paymentProviders.length
+                  ? "اختر الطريقة المناسبة قبل إتمام الطلب"
+                  : "لا توجد طرق دفع مفعلة حالياً"}
+              </span>
+            </div>
+            {paymentProviders.length ? (
+              <div className="cart-payment-grid">
+                {paymentProviders.map((provider) => (
+                  <button
+                    type="button"
+                    key={provider.id}
+                    className={selectedPaymentId === provider.id ? "active" : ""}
+                    onClick={() => setSelectedPaymentId(provider.id)}
+                  >
+                    <span>{provider.badge || provider.name}</span>
+                    <b>{provider.name}</b>
+                    <small>{provider.mode === "test" ? "تجربة" : "فعلي"}</small>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="cart-payment-empty">
+                فعّل طريقة دفع من لوحة الأدمن حتى تظهر هنا.
+              </div>
+            )}
+            {selectedPaymentProvider?.note ? (
+              <p className="cart-payment-note">{selectedPaymentProvider.note}</p>
+            ) : null}
+          </div>
+
           <div className="coupon-box">
             <label>كود الخصم</label>
             <div className="coupon-input-row">
@@ -186,8 +237,11 @@ function CartDrawer({
             </p>
           </div>
 
-          <button disabled={!cart.length} onClick={checkoutWhatsApp}>
-            {cart.length ? "إتمام الطلب عبر واتساب" : "أضف منتجات أولاً"}
+          <button
+            disabled={!cart.length || !paymentProviders.length}
+            onClick={checkoutWhatsApp}
+          >
+            {checkoutButtonText}
           </button>
         </div>
       </aside>
