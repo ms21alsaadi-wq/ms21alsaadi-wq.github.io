@@ -1,4 +1,3 @@
-import { MessageCircle } from "lucide-react";
 import { STORE_WHATSAPP } from "../../data/storeData.js";
 import { makePageSlug, normalizePageHref } from "../../utils/helpers.js";
 
@@ -108,17 +107,10 @@ function Footer({ settings, go, visibleHomePages = [] }) {
           </div>
         ))}
 
-        <div className="footer-contact">
-          <b>تواصل</b>
-          <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
-            <MessageCircle size={18} />
-            واتساب المتجر
-          </a>
-          <p>{settings.footerLocation || "الرياض، السعودية"}</p>
-        </div>
       </div>
 
       <div className="container footer-bottom">
+        <small>{footerCopyright}</small>
         <div className="footer-payments" aria-label="طرق الدفع">
           {paymentMethods.map((method) => (
             <span
@@ -129,7 +121,6 @@ function Footer({ settings, go, visibleHomePages = [] }) {
             </span>
           ))}
         </div>
-        <small>{footerCopyright}</small>
       </div>
     </footer>
   );

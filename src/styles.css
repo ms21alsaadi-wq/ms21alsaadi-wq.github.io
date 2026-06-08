@@ -492,15 +492,13 @@ a {
   max-width: 280px;
   font-weight: 800;
 }
-.footer-links,
-.footer-contact {
+.footer-links {
   display: grid;
   align-content: start;
   gap: 10px;
 }
 .footer-links a,
-.footer-links button,
-.footer-contact a {
+.footer-links button {
   width: fit-content;
   border: 0;
   background: transparent;
@@ -513,19 +511,8 @@ a {
   cursor: pointer;
 }
 .footer-links a:hover,
-.footer-links button:hover,
-.footer-contact a:hover {
+.footer-links button:hover {
   color: #0f3d2e;
-}
-.footer-contact a {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #0f3d2e;
-}
-.footer-contact small {
-  color: #6b705f;
-  font-weight: 800;
 }
 .footer-bottom {
   display: flex;
@@ -534,17 +521,22 @@ a {
   gap: 18px;
   padding: 16px 0 22px;
   border-top: 1px solid rgba(194, 169, 104, 0.26);
+  direction: rtl;
 }
 .footer-bottom small {
   color: #526052;
   font-weight: 900;
   text-align: right;
+  order: 1;
 }
 .footer-payments {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   flex-wrap: wrap;
+  direction: ltr;
+  order: 2;
 }
 .payment-badge {
   min-width: 54px;
@@ -2191,14 +2183,14 @@ h3,
   }
   .footer-bottom {
     flex-direction: column-reverse;
-    align-items: flex-start;
+    align-items: stretch;
   }
   .footer-payments {
     width: 100%;
+    justify-content: flex-start;
   }
   .footer-links a,
-  .footer-links button,
-  .footer-contact a {
+  .footer-links button {
     width: 100%;
   }
   .filters,
