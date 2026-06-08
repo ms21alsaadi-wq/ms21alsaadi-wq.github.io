@@ -1,12 +1,32 @@
 import { makePageSlug } from "../../utils/helpers.js";
 import ProductGrid from "../products/ProductGrid.jsx";
 
+function cleanRichPageContent(content = "") {
+  return String(content || "")
+    .replace(/\sclass="[^"]*"/gi, "")
+    .replace(/\sstyle="([^"]*)"/gi, (_, styleValue) => {
+      const safeStyle = styleValue
+        .split(";")
+        .map((rule) => rule.trim())
+        .filter(Boolean)
+        .filter((rule) =>
+          /^(color|background-color|text-align|font-weight|font-style|text-decoration)\s*:/i.test(
+            rule,
+          ),
+        )
+        .join("; ");
+      return safeStyle ? ` style="${safeStyle}"` : "";
+    })
+    .replace(/\s(width|height|align|valign)="[^"]*"/gi, "");
+}
+
 function StoreCustomPage({ page, products = [], go }) {
   const label = page?.label || "صفحة";
   const slug = makePageSlug(page?.href || label);
   const keyword = label.toLowerCase();
   const pageContent = String(page?.content || "").trim();
   const hasRichContent = /<\/?[a-z][\s\S]*>/i.test(pageContent);
+  const cleanPageContent = cleanRichPageContent(pageContent);
   const contentBlocks = pageContent
     .split(/\n{2,}/)
     .map((block) => block.trim())
@@ -50,19 +70,21 @@ function StoreCustomPage({ page, products = [], go }) {
       </button>
 
       <div className="store-page-hero">
-        <span>{page?.source === "footer" ? "Footer Page" : "Store Page"}</span>
+        {page?.source !== "footer" && <span>Store Page</span>}
         <h1>{label}</h1>
-        <p>
-          {pageContent
-            ? "هذه الصفحة مرتبطة بالفوتر ويمكن تعديل محتواها من لوحة التحكم."
-            : "هذه صفحة مستقلة داخل المتجر ويمكن التحكم باسمها ورابطها من لوحة التحكم."}
-        </p>
+        {page?.source !== "footer" && (
+          <p>
+            {pageContent
+              ? "هذه الصفحة ويمكن تعديل محتواها من لوحة التحكم."
+              : "هذه صفحة مستقلة داخل المتجر ويمكن التحكم باسمها ورابطها من لوحة التحكم."}
+          </p>
+        )}
       </div>
 
       {pageContent && (
         <article className="store-page-content-card">
           {hasRichContent ? (
-            <div dangerouslySetInnerHTML={{ __html: pageContent }} />
+            <div dangerouslySetInnerHTML={{ __html: cleanPageContent }} />
           ) : (
             contentBlocks.map((block, index) => <p key={index}>{block}</p>)
           )}

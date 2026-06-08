@@ -13863,6 +13863,8 @@ button.product-flat-top-btn:hover svg {
 .footer-store-page-view {
   display: grid;
   justify-items: center;
+  align-content: start;
+  width: min(1040px, calc(100% - 32px));
 }
 .store-page-content-card {
   width: min(920px, 100%);
@@ -13876,6 +13878,7 @@ button.product-flat-top-btn:hover svg {
   box-shadow: 0 20px 55px rgba(15, 61, 46, 0.08);
   overflow: hidden;
   text-align: start;
+  direction: rtl;
 }
 .store-page-content-card,
 .store-page-content-card * {
@@ -13884,12 +13887,30 @@ button.product-flat-top-btn:hover svg {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+.store-page-content-card > div {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.store-page-content-card [style*="width"],
+.store-page-content-card [style*="margin"],
+.store-page-content-card [style*="position"],
+.store-page-content-card [style*="left"],
+.store-page-content-card [style*="right"] {
+  width: auto !important;
+  max-width: 100% !important;
+  margin-inline: 0 !important;
+  position: static !important;
+  inset: auto !important;
+}
 .store-page-content-card p {
   margin: 0 0 16px;
   color: #24372c;
   font-weight: 750;
   line-height: 2;
   white-space: normal !important;
+  text-align: inherit;
 }
 .store-page-content-card p:last-child {
   margin-bottom: 0;
@@ -13917,6 +13938,15 @@ button.product-flat-top-btn:hover svg {
 }
 .store-page-content-card div {
   line-height: 2;
+}
+.store-page-content-card span,
+.store-page-content-card font,
+.store-page-content-card strong,
+.store-page-content-card b,
+.store-page-content-card em,
+.store-page-content-card i {
+  max-width: 100%;
+  white-space: normal !important;
 }
 .store-page-content-card a {
   color: #0f3d2e;
