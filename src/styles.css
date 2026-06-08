@@ -527,6 +527,55 @@ a {
   color: #6b705f;
   font-weight: 800;
 }
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 0 22px;
+  border-top: 1px solid rgba(194, 169, 104, 0.26);
+}
+.footer-bottom small {
+  color: #526052;
+  font-weight: 900;
+  text-align: right;
+}
+.footer-payments {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.payment-badge {
+  min-width: 54px;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid rgba(15, 61, 46, 0.12);
+  color: #0f3d2e;
+  font-size: 12px;
+  font-weight: 950;
+  box-shadow: 0 8px 20px rgba(15, 61, 46, 0.05);
+}
+.payment-badge.visa {
+  color: #1a3fa3;
+}
+.payment-badge.mastercard {
+  color: #c2410c;
+}
+.payment-badge.apple {
+  color: #111827;
+}
+.payment-badge.tabby {
+  color: #0f766e;
+}
+.payment-badge.mada {
+  color: #15803d;
+}
 .cart-overlay {
   position: fixed;
   inset: 0;
@@ -2139,6 +2188,13 @@ h3,
 @media (max-width: 560px) {
   .footer-grid {
     grid-template-columns: 1fr;
+  }
+  .footer-bottom {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+  .footer-payments {
+    width: 100%;
   }
   .footer-links a,
   .footer-links button,

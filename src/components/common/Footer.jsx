@@ -37,6 +37,13 @@ function Footer({ settings, go, visibleHomePages = [] }) {
   const footerCopyright =
     settings.footerCopyright ||
     `© ${currentYear} ${settings.storeName || "GREEN DIXAM"}`;
+  const paymentMethods = [
+    { label: "mada", className: "mada" },
+    { label: "VISA", className: "visa" },
+    { label: "Mastercard", className: "mastercard" },
+    { label: "Pay", className: "apple" },
+    { label: "tabby", className: "tabby" },
+  ];
   const isHomeLink = (label = "") =>
     /الرئيسية|الرئيسيه|home/i.test(String(label || ""));
   const resolveFooterHref = (link = {}) => {
@@ -108,8 +115,21 @@ function Footer({ settings, go, visibleHomePages = [] }) {
             واتساب المتجر
           </a>
           <p>{settings.footerLocation || "الرياض، السعودية"}</p>
-          <small>{footerCopyright}</small>
         </div>
+      </div>
+
+      <div className="container footer-bottom">
+        <div className="footer-payments" aria-label="طرق الدفع">
+          {paymentMethods.map((method) => (
+            <span
+              className={`payment-badge ${method.className}`}
+              key={method.className}
+            >
+              {method.label}
+            </span>
+          ))}
+        </div>
+        <small>{footerCopyright}</small>
       </div>
     </footer>
   );
