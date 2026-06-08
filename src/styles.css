@@ -3884,9 +3884,11 @@ h3,
 .orders-pro-stats {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .orders-pro-stats div {
-  min-width: 130px;
+  min-width: 118px;
   background: #fffdf7;
   border: 1px solid rgba(194, 169, 104, 0.25);
   border-radius: 22px;
@@ -4021,6 +4023,24 @@ h3,
 .order-address {
   margin-top: 10px;
 }
+.order-internal-note-preview {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px dashed rgba(15, 61, 46, 0.18);
+  background: rgba(15, 61, 46, 0.04);
+}
+.order-internal-note-preview span {
+  color: #6b8e23;
+  font-size: 12px;
+  font-weight: 900;
+}
+.order-internal-note-preview b {
+  color: #0f3d2e;
+  line-height: 1.7;
+}
 .order-items-pro {
   display: grid;
   gap: 8px;
@@ -4057,10 +4077,12 @@ h3,
 .order-actions-pro {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
   margin-top: 14px;
 }
 .order-actions-pro select {
   flex: 1;
+  min-width: 150px;
   min-height: 46px;
   border-radius: 16px;
   border: 1px solid rgba(194, 169, 104, 0.28);
@@ -4109,6 +4131,43 @@ h3,
 .order-details-btn {
   min-height: 46px;
   border-radius: 16px !important;
+}
+.order-modal-ops {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.order-modal-ops label {
+  display: grid;
+  gap: 8px;
+}
+.order-modal-ops label.wide {
+  grid-column: 1 / -1;
+}
+.order-modal-ops span {
+  color: #6b8e23;
+  font-size: 12px;
+  font-weight: 900;
+}
+.order-modal-ops select,
+.order-modal-ops textarea {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(194, 169, 104, 0.28);
+  background: #fffdf7;
+  color: #0f3d2e;
+  font-weight: 800;
+  padding: 0 12px;
+}
+.order-modal-ops select {
+  min-height: 46px;
+}
+.order-modal-ops textarea {
+  min-height: 110px;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.7;
 }
 .order-modal-backdrop {
   position: fixed;
@@ -4239,7 +4298,8 @@ h3,
   margin-top: 14px;
 }
 @media (max-width: 640px) {
-  .order-modal-info {
+  .order-modal-info,
+  .order-modal-ops {
     grid-template-columns: 1fr;
   }
   .order-modal-head h2 {

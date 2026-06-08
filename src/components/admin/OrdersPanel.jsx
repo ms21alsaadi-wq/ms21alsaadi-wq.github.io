@@ -23,6 +23,28 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
     completed: "مكتمل",
     cancelled: "ملغي",
   };
+  const paymentStatusLabels = {
+    cod: "دفع عند الاستلام",
+    awaiting_transfer: "بانتظار التحويل",
+    pending_payment: "بانتظار الدفع",
+    paid: "مدفوع",
+    failed: "فشل الدفع",
+    refunded: "مسترجع",
+  };
+  const paymentMethodLabel = (order) =>
+    order.paymentMethodName ||
+    order.paymentMethod ||
+    (order.paymentMethodId === "cod"
+      ? "الدفع عند الاستلام"
+      : order.paymentMethodId === "bank"
+        ? "تحويل بنكي"
+        : "غير محدد");
+  const paymentStatusLabel = (order) =>
+    paymentStatusLabels[order.paymentStatus] ||
+    (order.paymentStatus ? order.paymentStatus : "غير محدد");
+  const customerPhone = (order) => order.phone || order.customerPhone || "";
+  const customerCity = (order) => order.city || order.customerCity || "";
+  const customerAddress = (order) => order.address || order.customerAddress || "";
 
   const statusOptions = [
     { value: "all", label: "كل الطلبات" },
@@ -74,7 +96,7 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
   const filteredOrders = normalizedOrders.filter((o) => {
     const statusOk = statusFilter === "all" || o.status === statusFilter;
     const text =
-      `${o.name || ""} ${o.customerName || ""} ${o.email || ""} ${o.customerEmail || ""} ${o.phone || ""} ${o.city || ""} ${o.id || ""}`.toLowerCase();
+      `${o.name || ""} ${o.customerName || ""} ${o.email || ""} ${o.customerEmail || ""} ${customerPhone(o)} ${customerCity(o)} ${paymentMethodLabel(o)} ${o.id || ""}`.toLowerCase();
     return statusOk && isWithinDate(o) && text.includes(search.toLowerCase());
   });
 
@@ -87,6 +109,15 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
     },
     { count: 0, value: 0 },
   );
+  const actionableOrders = normalizedOrders.filter((order) =>
+    ["new", "processing"].includes(order.status),
+  ).length;
+  const paidOrders = normalizedOrders.filter(
+    (order) => order.paymentStatus === "paid",
+  ).length;
+  const awaitingPaymentOrders = normalizedOrders.filter((order) =>
+    ["awaiting_transfer", "pending_payment"].includes(order.paymentStatus),
+  ).length;
 
   const updateShippingInfo = async (orderId, patch) => {
     await setDoc(
@@ -97,6 +128,11 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
       },
       { merge: true },
     );
+    if (selectedOrder?.id === orderId) {
+      setSelectedOrder((current) =>
+        current ? { ...current, ...patch, updatedAt: new Date() } : current,
+      );
+    }
   };
 
   const updateOrderStatus = async (orderId, status) => {
@@ -135,6 +171,8 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
       "phone",
       "city",
       "status",
+      "payment_method",
+      "payment_status",
       "total",
       "coupon",
       "created_at",
@@ -146,9 +184,11 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
       order.id,
       order.name || order.customerName || "",
       order.email || order.customerEmail || "",
-      order.phone || "",
-      order.city || "",
+      customerPhone(order),
+      customerCity(order),
       statusLabels[order.status] || order.status,
+      paymentMethodLabel(order),
+      paymentStatusLabel(order),
       order.total,
       order.couponCode || "",
       formatOrderDate(order.createdAt),
@@ -177,7 +217,9 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
         <div>
           <span>Orders Management</span>
           <h2>إدارة الطلبات</h2>
-          <p>تابع الطلبات، حدث حالتها، وابحث عن طلبات العملاء بسرعة.</p>
+          <p>
+            تابع الطلبات، طريقة الدفع، الشحن، والملاحظات الداخلية من مكان واحد.
+          </p>
         </div>
 
         <div className="orders-pro-stats">
@@ -193,6 +235,18 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
             <b>{totals.new || 0}</b>
             <small>طلبات جديدة</small>
           </div>
+          <div>
+            <b>{actionableOrders}</b>
+            <small>تحتاج متابعة</small>
+          </div>
+          <div>
+            <b>{awaitingPaymentOrders}</b>
+            <small>بانتظار دفع</small>
+          </div>
+          <div>
+            <b>{paidOrders}</b>
+            <small>مدفوعة</small>
+          </div>
         </div>
       </div>
 
@@ -200,7 +254,7 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="ابحث باسم العميل، الإيميل، الجوال، المدينة..."
+          placeholder="ابحث باسم العميل، الإيميل، الجوال، المدينة، طريقة الدفع..."
         />
 
         <button
@@ -269,11 +323,11 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
             <div className="order-pro-info">
               <div>
                 <span>الجوال</span>
-                <b>{order.phone || "غير متوفر"}</b>
+                <b>{customerPhone(order) || "غير متوفر"}</b>
               </div>
               <div>
                 <span>المدينة</span>
-                <b>{order.city || "غير محدد"}</b>
+                <b>{customerCity(order) || "غير محدد"}</b>
               </div>
               <div>
                 <span>الإجمالي</span>
@@ -291,16 +345,31 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
                 <span>عدد المنتجات</span>
                 <b>{order.items.length}</b>
               </div>
+              <div>
+                <span>طريقة الدفع</span>
+                <b>{paymentMethodLabel(order)}</b>
+              </div>
+              <div>
+                <span>حالة الدفع</span>
+                <b>{paymentStatusLabel(order)}</b>
+              </div>
               <div className="wide">
                 <span>تاريخ الطلب</span>
                 <b>{formatOrderDate(order.createdAt)}</b>
               </div>
             </div>
 
-            {order.address && (
+            {customerAddress(order) && (
               <div className="order-address">
                 <span>العنوان</span>
-                <b>{order.address}</b>
+                <b>{customerAddress(order)}</b>
+              </div>
+            )}
+
+            {order.internalNote && (
+              <div className="order-internal-note-preview">
+                <span>ملاحظة داخلية</span>
+                <b>{order.internalNote}</b>
               </div>
             )}
 
@@ -409,6 +478,22 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
                 <option value="completed">مكتمل</option>
                 <option value="cancelled">ملغي</option>
               </select>
+              <select
+                value={order.paymentStatus || ""}
+                onChange={(e) =>
+                  updateShippingInfo(order.id, {
+                    paymentStatus: e.target.value,
+                  })
+                }
+              >
+                <option value="">حالة الدفع</option>
+                <option value="cod">دفع عند الاستلام</option>
+                <option value="awaiting_transfer">بانتظار التحويل</option>
+                <option value="pending_payment">بانتظار الدفع</option>
+                <option value="paid">مدفوع</option>
+                <option value="failed">فشل الدفع</option>
+                <option value="refunded">مسترجع</option>
+              </select>
 
               <button
                 className="danger-action"
@@ -453,7 +538,7 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
               </div>
               <div>
                 <span>الحالة</span>
-                <b>{selectedOrder.status || "new"}</b>
+                <b>{statusLabels[selectedOrder.status] || selectedOrder.status || "جديد"}</b>
               </div>
               <div>
                 <span>العميل</span>
@@ -465,7 +550,7 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
               </div>
               <div>
                 <span>الجوال</span>
-                <b>{selectedOrder.phone || "غير متوفر"}</b>
+                <b>{customerPhone(selectedOrder) || "غير متوفر"}</b>
               </div>
               <div>
                 <span>الإيميل</span>
@@ -492,13 +577,84 @@ function OrdersPanel({ orders, onNotice, t = (key) => key }) {
                 <b>{formatPrice(Number(selectedOrder.total || 0))} ر.س</b>
               </div>
               <div>
+                <span>طريقة الدفع</span>
+                <b>{paymentMethodLabel(selectedOrder)}</b>
+              </div>
+              <div>
+                <span>حالة الدفع</span>
+                <b>{paymentStatusLabel(selectedOrder)}</b>
+              </div>
+              <div>
+                <span>الشحن</span>
+                <b>{formatPrice(Number(selectedOrder.shippingFee || 0))} ر.س</b>
+              </div>
+              <div>
                 <span>تاريخ الطلب</span>
                 <b>{formatOrderDate(selectedOrder.createdAt)}</b>
               </div>
               <div className="wide">
                 <span>العنوان</span>
-                <b>{selectedOrder.address || "غير متوفر"}</b>
+                <b>{customerAddress(selectedOrder) || "غير متوفر"}</b>
               </div>
+            </div>
+
+            <div className="order-modal-ops">
+              <label>
+                <span>حالة الطلب</span>
+                <select
+                  value={selectedOrder.status || "new"}
+                  onChange={(e) => {
+                    updateOrderStatus(selectedOrder.id, e.target.value);
+                    setSelectedOrder((current) =>
+                      current ? { ...current, status: e.target.value } : current,
+                    );
+                  }}
+                >
+                  <option value="new">جديد</option>
+                  <option value="processing">قيد التجهيز</option>
+                  <option value="shipped">تم الشحن</option>
+                  <option value="completed">مكتمل</option>
+                  <option value="cancelled">ملغي</option>
+                </select>
+              </label>
+              <label>
+                <span>حالة الدفع</span>
+                <select
+                  value={selectedOrder.paymentStatus || ""}
+                  onChange={(e) =>
+                    updateShippingInfo(selectedOrder.id, {
+                      paymentStatus: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">غير محدد</option>
+                  <option value="cod">دفع عند الاستلام</option>
+                  <option value="awaiting_transfer">بانتظار التحويل</option>
+                  <option value="pending_payment">بانتظار الدفع</option>
+                  <option value="paid">مدفوع</option>
+                  <option value="failed">فشل الدفع</option>
+                  <option value="refunded">مسترجع</option>
+                </select>
+              </label>
+              <label className="wide">
+                <span>ملاحظة داخلية</span>
+                <textarea
+                  value={selectedOrder.internalNote || ""}
+                  onChange={(e) =>
+                    setSelectedOrder((current) =>
+                      current
+                        ? { ...current, internalNote: e.target.value }
+                        : current,
+                    )
+                  }
+                  onBlur={(e) =>
+                    updateShippingInfo(selectedOrder.id, {
+                      internalNote: e.target.value,
+                    })
+                  }
+                  placeholder="اكتب ملاحظة للفريق فقط، لا تظهر للعميل"
+                />
+              </label>
             </div>
 
             <div className="order-modal-products">
