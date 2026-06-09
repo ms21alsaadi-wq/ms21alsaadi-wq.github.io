@@ -17270,3 +17270,33 @@ button.product-flat-top-btn:hover svg {
   width: 100% !important;
   flex: 0 0 auto !important;
 }
+
+/* Remove older sticky-toggle knob styles so it matches the top-bar switch. */
+.header-sticky-wrapper
+  > .header-sticky-inline-control
+  input[type="checkbox"]
+  + span::after {
+  content: none !important;
+  display: none !important;
+}
+
+.header-sticky-wrapper > .header-sticky-inline-control,
+.topbar-toggle-control {
+  justify-content: flex-start !important;
+}
+
+.header-sticky-wrapper > .header-sticky-inline-control::before,
+.topbar-toggle-control::before {
+  flex: 0 0 44px !important;
+}
+
+.header-sticky-wrapper > .header-sticky-inline-control::after {
+  background: #fff !important;
+  top: 17px !important;
+  right: 18px !important;
+}
+
+.header-sticky-wrapper
+  > .header-sticky-inline-control:has(input:checked)::after {
+  right: 40px !important;
+}
