@@ -29,7 +29,6 @@ import Footer from "../common/Footer.jsx";
 import CartDrawer from "../common/CartDrawer.jsx";
 import HeroSection from "../common/HeroSection.jsx";
 import Feature from "../common/Feature.jsx";
-import StoreReturnPolicy from "../common/StoreReturnPolicy.jsx";
 import ProductDetailPage from "../products/ProductDetailPage.jsx";
 import ProductGrid from "../products/ProductGrid.jsx";
 import Account from "./AccountPage.jsx";
@@ -961,8 +960,6 @@ function Store({
               ))}
             </div>
           </section>
-
-          <StoreReturnPolicy settings={settings} />
         </>
       )}
 

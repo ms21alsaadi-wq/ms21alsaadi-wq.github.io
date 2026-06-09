@@ -292,28 +292,6 @@ function AdminSettingsPanel({
           </div>
 
           <label>
-            مدة الاسترجاع بالأيام
-            <input
-              type="number"
-              min="0"
-              value={numberValue("returnPolicyDays", 7)}
-              onChange={(e) => updateDraft("returnPolicyDays", Number(e.target.value || 0))}
-            />
-          </label>
-
-          <label>
-            نص سياسة الاسترجاع
-            <textarea
-              rows="4"
-              value={textValue(
-                "returnPolicyText",
-                "يمكن طلب الاسترجاع أو الاستبدال خلال 7 أيام من استلام الطلب بشرط أن يكون المنتج بحالته الأصلية.",
-              )}
-              onChange={(e) => updateDraft("returnPolicyText", e.target.value)}
-            />
-          </label>
-
-          <label>
             ملاحظة الخصوصية
             <textarea
               rows="3"
