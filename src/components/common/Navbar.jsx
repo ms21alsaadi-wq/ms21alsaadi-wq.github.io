@@ -21,12 +21,13 @@ function Navbar({
   const pagesStripRef = useRef(null);
   const [headerHeight, setHeaderHeight] = useState(0);
   const [pagesStripHeight, setPagesStripHeight] = useState(0);
+  const [isPagesStripPinned, setIsPagesStripPinned] = useState(false);
   const isStickyHeader = settings.homeHeaderSticky !== false;
   const isStickyPagesStrip = Boolean(settings.homePagesSticky);
   const isFixedPagesStrip = isStickyHeader && isStickyPagesStrip;
 
   useEffect(() => {
-    if (!isStickyHeader || !headerRef.current) {
+    if (!headerRef.current) {
       setHeaderHeight(0);
       return undefined;
     }
@@ -49,7 +50,6 @@ function Navbar({
       observer?.disconnect();
     };
   }, [
-    isStickyHeader,
     settings.homeHeaderTopBar,
     settings.homeTopBarEnabled,
     settings.homeHeaderImage,
@@ -58,7 +58,7 @@ function Navbar({
   ]);
 
   useEffect(() => {
-    if (!isFixedPagesStrip || !pagesStripRef.current) {
+    if (!isStickyPagesStrip || !pagesStripRef.current) {
       setPagesStripHeight(0);
       return undefined;
     }
@@ -80,7 +80,27 @@ function Navbar({
       window.removeEventListener("resize", updatePagesStripHeight);
       observer?.disconnect();
     };
-  }, [isFixedPagesStrip, settings.homePagesTitle, visibleHomePages.length]);
+  }, [isStickyPagesStrip, settings.homePagesTitle, visibleHomePages.length]);
+
+  useEffect(() => {
+    if (!isStickyPagesStrip || isStickyHeader) {
+      setIsPagesStripPinned(false);
+      return undefined;
+    }
+
+    const updatePinnedState = () => {
+      setIsPagesStripPinned(window.scrollY >= headerHeight);
+    };
+
+    updatePinnedState();
+    window.addEventListener("scroll", updatePinnedState, { passive: true });
+    window.addEventListener("resize", updatePinnedState);
+
+    return () => {
+      window.removeEventListener("scroll", updatePinnedState);
+      window.removeEventListener("resize", updatePinnedState);
+    };
+  }, [headerHeight, isStickyHeader, isStickyPagesStrip]);
 
   return (
     <>
@@ -227,8 +247,10 @@ function Navbar({
         className={`home-pages-strip ${
           isFixedPagesStrip
             ? "pages-fixed-pro"
-            : isStickyPagesStrip
-              ? "pages-sticky-pro"
+            : isPagesStripPinned
+              ? "pages-scroll-fixed-pro"
+              : isStickyPagesStrip
+                ? "pages-sticky-pro"
               : ""
         }`}
         style={{
@@ -254,7 +276,7 @@ function Navbar({
           </div>
         </div>
       </section>
-      {isFixedPagesStrip && (
+      {(isFixedPagesStrip || isPagesStripPinned) && (
         <div
           className="home-pages-fixed-spacer"
           style={{ height: pagesStripHeight }}
