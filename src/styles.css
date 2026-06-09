@@ -17277,6 +17277,14 @@ button.product-flat-top-btn:hover svg {
   right: 40px !important;
 }
 
+.store-features-section {
+  margin-top: clamp(44px, 6vw, 86px) !important;
+}
+
+.store-features-section .feature-grid {
+  margin-top: 22px !important;
+}
+
 /* Final hero layout repair. */
 .store .hero-layered {
   min-height: var(--hero-h, 520px) !important;

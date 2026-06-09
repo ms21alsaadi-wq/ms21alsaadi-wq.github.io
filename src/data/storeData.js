@@ -88,6 +88,15 @@ export const defaultSettings = {
 
   homeProductsTitle: "نباتات نادرة ومنتجات فاخرة مختارة بعناية",
   homeProductsDesc: "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا.",
+  homeFeaturesTitle: "مزايا المتجر",
+  homeFeaturesDesc:
+    "تجربة شراء مرتبة وواضحة من اختيار المنتج حتى متابعة الطلب.",
+  homeFeatureOneTitle: "توصيل سريع",
+  homeFeatureOneText: "تغليف فاخر للنباتات مع تغليف يحافظ عليها.",
+  homeFeatureTwoTitle: "حسابات عملاء",
+  homeFeatureTwoText: "يحفظ بياناته وطلباته لتجربة أسهل.",
+  homeFeatureThreeTitle: "طلبات منظمة",
+  homeFeatureThreeText: "كل طلب محفوظ ومنظم داخل لوحة التحكم.",
   footerTitle: "GREEN DIXAM",
   footerDescription: "متجر نباتات وهدايا خضراء بتجربة شراء سهلة.",
   footerLocation: "الرياض، السعودية",

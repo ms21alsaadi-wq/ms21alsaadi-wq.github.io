@@ -155,6 +155,29 @@ function Store({
   });
 
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const featureCards = [
+    {
+      icon: <Truck />,
+      title: settings.homeFeatureOneTitle || "توصيل سريع",
+      text:
+        settings.homeFeatureOneText ||
+        "تغليف فاخر للنباتات مع تغليف يحافظ عليها.",
+    },
+    {
+      icon: <ShieldCheck />,
+      title: settings.homeFeatureTwoTitle || "حسابات عملاء",
+      text:
+        settings.homeFeatureTwoText ||
+        "يحفظ بياناته وطلباته لتجربة أسهل.",
+    },
+    {
+      icon: <RotateCcw />,
+      title: settings.homeFeatureThreeTitle || "طلبات منظمة",
+      text:
+        settings.homeFeatureThreeText ||
+        "كل طلب محفوظ ومنظم داخل لوحة التحكم.",
+    },
+  ];
 
   useEffect(() => {
     try {
@@ -706,24 +729,6 @@ function Store({
         <>
           <HeroSection settings={settings} />
 
-          <section className="container feature-grid">
-            <Feature
-              icon={<Truck />}
-              title="توصيل سريع"
-              text="تغليف فاخر للنباتات مع تغليف يحافظ عليها."
-            />
-            <Feature
-              icon={<ShieldCheck />}
-              title="حسابات عملاء"
-              text=" يحفظ بياناته وطلباته لتجربة أسهل."
-            />
-            <Feature
-              icon={<RotateCcw />}
-              title="طلبات منظمة"
-              text="كل طلب محفوظ ومنظم داخل لوحة التحكم."
-            />
-          </section>
-
           <section className="container plant-categories">
             <div className="section-title">
               <span>Brand Essence</span>
@@ -907,6 +912,27 @@ function Store({
                 </button>
               </div>
             )}
+          </section>
+
+          <section className="container store-features-section">
+            <div className="section-title">
+              <span>Store Benefits</span>
+              <h2>{settings.homeFeaturesTitle || "مزايا المتجر"}</h2>
+              <p className="home-section-desc">
+                {settings.homeFeaturesDesc ||
+                  "تجربة شراء مرتبة وواضحة من اختيار المنتج حتى متابعة الطلب."}
+              </p>
+            </div>
+            <div className="feature-grid">
+              {featureCards.map((feature) => (
+                <Feature
+                  key={feature.title}
+                  icon={feature.icon}
+                  title={feature.title}
+                  text={feature.text}
+                />
+              ))}
+            </div>
           </section>
 
           <StoreReturnPolicy settings={settings} />

@@ -53,6 +53,13 @@ export const themeSections = [
     imageKey: "",
   },
   {
+    id: "features",
+    label: "مزايا المتجر",
+    titleKey: "homeFeaturesTitle",
+    descKey: "homeFeaturesDesc",
+    imageKey: "",
+  },
+  {
     id: "footer",
     label: "الفوتر",
     titleKey: "footerTitle",
