@@ -17324,12 +17324,18 @@ button.product-flat-top-btn:hover svg {
 .store .hero-layered-image-card {
   width: 100% !important;
   min-height: clamp(320px, 42vw, 560px) !important;
-  border-radius: 0 !important;
+  padding: clamp(8px, 1vw, 14px) !important;
+  border-radius: 22px !important;
   overflow: hidden !important;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
+  background:
+    linear-gradient(#fffdf7, #fffdf7) padding-box,
+    linear-gradient(135deg, rgba(194, 169, 104, 0.72), rgba(15, 61, 46, 0.18))
+      border-box !important;
+  border: 1px solid transparent !important;
+  box-shadow:
+    0 24px 60px rgba(15, 61, 46, 0.14),
+    0 10px 24px rgba(194, 169, 104, 0.12) !important;
+  backdrop-filter: blur(8px) !important;
 }
 
 .store .hero-layered-image-card img {
@@ -17339,6 +17345,7 @@ button.product-flat-top-btn:hover svg {
   display: block !important;
   object-fit: cover !important;
   object-position: center !important;
+  border-radius: 16px !important;
 }
 
 .store .hero-banner-mode,
