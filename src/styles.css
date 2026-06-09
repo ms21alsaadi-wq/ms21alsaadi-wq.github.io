@@ -17399,6 +17399,19 @@ button.product-flat-top-btn:hover svg {
   right: 40px !important;
 }
 
+/* Keep the store search icon at the visual end of the search field. */
+.store .header-search {
+  flex-direction: row-reverse !important;
+}
+
+.store .header-search input {
+  text-align: right !important;
+}
+
+.store .header-search .search-icon-submit {
+  order: 2 !important;
+}
+
 /* Remove older sticky-toggle knob styles so it matches the top-bar switch. */
 .header-sticky-wrapper
   > .header-sticky-inline-control
