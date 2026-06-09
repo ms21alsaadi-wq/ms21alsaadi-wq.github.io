@@ -17456,6 +17456,12 @@ button.product-flat-top-btn:hover svg {
   z-index: 9000 !important;
 }
 
+.store .home-pages-strip.pages-sticky-pro {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 9000 !important;
+}
+
 .home-pages-fixed-spacer {
   display: block !important;
   width: 100% !important;

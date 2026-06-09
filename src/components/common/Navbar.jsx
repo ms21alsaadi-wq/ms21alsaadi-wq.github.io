@@ -23,6 +23,7 @@ function Navbar({
   const [pagesStripHeight, setPagesStripHeight] = useState(0);
   const isStickyHeader = settings.homeHeaderSticky !== false;
   const isStickyPagesStrip = Boolean(settings.homePagesSticky);
+  const isFixedPagesStrip = isStickyHeader && isStickyPagesStrip;
 
   useEffect(() => {
     if (!isStickyHeader || !headerRef.current) {
@@ -57,7 +58,7 @@ function Navbar({
   ]);
 
   useEffect(() => {
-    if (!isStickyPagesStrip || !pagesStripRef.current) {
+    if (!isFixedPagesStrip || !pagesStripRef.current) {
       setPagesStripHeight(0);
       return undefined;
     }
@@ -79,7 +80,7 @@ function Navbar({
       window.removeEventListener("resize", updatePagesStripHeight);
       observer?.disconnect();
     };
-  }, [isStickyPagesStrip, settings.homePagesTitle, visibleHomePages.length]);
+  }, [isFixedPagesStrip, settings.homePagesTitle, visibleHomePages.length]);
 
   return (
     <>
@@ -223,7 +224,13 @@ function Navbar({
       )}
       <section
         ref={pagesStripRef}
-        className={`home-pages-strip ${isStickyPagesStrip ? "pages-fixed-pro" : ""}`}
+        className={`home-pages-strip ${
+          isFixedPagesStrip
+            ? "pages-fixed-pro"
+            : isStickyPagesStrip
+              ? "pages-sticky-pro"
+              : ""
+        }`}
         style={{
           "--pages-sticky-top": isStickyHeader ? `${headerHeight}px` : "0px",
         }}
@@ -247,7 +254,7 @@ function Navbar({
           </div>
         </div>
       </section>
-      {isStickyPagesStrip && (
+      {isFixedPagesStrip && (
         <div
           className="home-pages-fixed-spacer"
           style={{ height: pagesStripHeight }}
