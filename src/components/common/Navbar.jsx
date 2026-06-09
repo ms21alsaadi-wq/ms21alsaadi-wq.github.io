@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Languages, Search, ShoppingBag, User } from "lucide-react";
 import { normalizePageHref } from "../../utils/helpers.js";
 
@@ -16,25 +17,63 @@ function Navbar({
   visibleHomePages,
   currentStorePage,
 }) {
+  const headerRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const isStickyHeader = settings.homeHeaderSticky !== false;
+
+  useEffect(() => {
+    if (!isStickyHeader || !headerRef.current) {
+      setHeaderHeight(0);
+      return undefined;
+    }
+
+    const updateHeaderHeight = () => {
+      setHeaderHeight(headerRef.current?.offsetHeight || 0);
+    };
+
+    updateHeaderHeight();
+    window.addEventListener("resize", updateHeaderHeight);
+
+    let observer;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(updateHeaderHeight);
+      observer.observe(headerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateHeaderHeight);
+      observer?.disconnect();
+    };
+  }, [
+    isStickyHeader,
+    settings.homeHeaderTopBar,
+    settings.homeTopBarEnabled,
+    settings.homeHeaderImage,
+    settings.homeHeaderTitle,
+    visibleHomePages.length,
+  ]);
+
   return (
-    <header
-      className={`store-header premium-store-header ${settings.homeHeaderSticky === false ? "" : "header-sticky-pro"}`}
-      style={{
-        background: settings.homeHeaderBg || undefined,
-      }}
-    >
-      {settings.homeTopBarEnabled !== false &&
-        (settings.homeHeaderTopBar || "").trim() && (
-          <div
-            className="top-announcement-bar"
-            style={{
-              background: settings.homeTopBarBg || "#0F3D2E",
-              color: settings.homeTopBarText || "#FFFFFF",
-            }}
-          >
-            <span>{settings.homeHeaderTopBar}</span>
-          </div>
-        )}
+    <>
+      <header
+        ref={headerRef}
+        className={`store-header premium-store-header ${isStickyHeader ? "header-sticky-pro" : ""}`}
+        style={{
+          background: settings.homeHeaderBg || undefined,
+        }}
+      >
+        {settings.homeTopBarEnabled !== false &&
+          (settings.homeHeaderTopBar || "").trim() && (
+            <div
+              className="top-announcement-bar"
+              style={{
+                background: settings.homeTopBarBg || "#0F3D2E",
+                color: settings.homeTopBarText || "#FFFFFF",
+              }}
+            >
+              <span>{settings.homeHeaderTopBar}</span>
+            </div>
+          )}
 
       <div className="container luxe-nav">
         <div className="luxe-nav-right">
@@ -167,7 +206,15 @@ function Navbar({
           </div>
         </div>
       </section>
-    </header>
+      </header>
+      {isStickyHeader && (
+        <div
+          className="store-header-fixed-spacer"
+          style={{ height: headerHeight }}
+          aria-hidden="true"
+        />
+      )}
+    </>
   );
 }
 
