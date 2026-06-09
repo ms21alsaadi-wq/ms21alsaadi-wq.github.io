@@ -649,22 +649,38 @@ export default function HomepagePanel({
                         )}
                       </div>
 
-                      <button
-                        type="button"
-                        className="admin-primary add-page-btn"
-                        onClick={() =>
-                          updateDraft("homePages", [
-                            ...(draftSettings.homePages || []),
-                            {
-                              label: "صفحة جديدة",
-                              href: "/page/new-page",
-                              visible: true,
-                            },
-                          ])
-                        }
-                      >
-                        إضافة صفحة
-                      </button>
+                      <div className="pages-admin-actions">
+                        <label
+                          className="pages-sticky-toggle"
+                          aria-label="تثبيت شريط الصفحات"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={Boolean(draftSettings.homePagesSticky)}
+                            onChange={(e) =>
+                              updateDraft("homePagesSticky", e.target.checked)
+                            }
+                          />
+                          <span>تثبيت شريط الصفحات</span>
+                        </label>
+
+                        <button
+                          type="button"
+                          className="admin-primary add-page-btn"
+                          onClick={() =>
+                            updateDraft("homePages", [
+                              ...(draftSettings.homePages || []),
+                              {
+                                label: "صفحة جديدة",
+                                href: "/page/new-page",
+                                visible: true,
+                              },
+                            ])
+                          }
+                        >
+                          إضافة صفحة
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

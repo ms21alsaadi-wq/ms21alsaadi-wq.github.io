@@ -54,6 +54,7 @@ export const defaultSettings = {
   homeHeaderCtaText: "اطلب الآن",
   homeHeaderSticky: true,
   homePagesTitle: "الصفحات",
+  homePagesSticky: false,
   homePages: [
     { label: "النباتات", href: "/page/products", visible: true },
     { label: "العروض", href: "/page/offers", visible: true },

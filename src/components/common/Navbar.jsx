@@ -185,8 +185,20 @@ function Navbar({
           </button>
         </div>
       </div>
-
-      <section className="home-pages-strip">
+      </header>
+      {isStickyHeader && (
+        <div
+          className="store-header-fixed-spacer"
+          style={{ height: headerHeight }}
+          aria-hidden="true"
+        />
+      )}
+      <section
+        className={`home-pages-strip ${settings.homePagesSticky ? "pages-sticky" : ""}`}
+        style={{
+          "--pages-sticky-top": isStickyHeader ? `${headerHeight}px` : "0px",
+        }}
+      >
         <div className="container home-pages-inner">
           <span>{settings.homePagesTitle || "الصفحات"}</span>
           <div className="home-pages-links">
@@ -206,14 +218,6 @@ function Navbar({
           </div>
         </div>
       </section>
-      </header>
-      {isStickyHeader && (
-        <div
-          className="store-header-fixed-spacer"
-          style={{ height: headerHeight }}
-          aria-hidden="true"
-        />
-      )}
     </>
   );
 }

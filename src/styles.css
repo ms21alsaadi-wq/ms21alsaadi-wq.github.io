@@ -6291,6 +6291,36 @@ h3,
 .add-page-btn {
   justify-self: start;
 }
+.pages-admin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pages-sticky-toggle {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(194, 169, 104, 0.28);
+  background: #fffdf7;
+  color: #0f3d2e;
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+}
+.pages-sticky-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #0f3d2e;
+}
+.pages-sticky-toggle:has(input:checked) {
+  background: rgba(15, 61, 46, 0.08);
+  border-color: rgba(15, 61, 46, 0.28);
+}
 @media (max-width: 900px) {
   .footer-admin-grid,
   .footer-admin-section-head,
@@ -6299,6 +6329,15 @@ h3,
   }
   .page-row-editor {
     grid-template-columns: 1fr;
+  }
+  .pages-admin-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pages-admin-actions .add-page-btn,
+  .pages-sticky-toggle {
+    width: 100%;
+    justify-content: center;
   }
 }
 .footer-content-modal {
@@ -17410,6 +17449,12 @@ button.product-flat-top-btn:hover svg {
 
 .store .header-search .search-icon-submit {
   order: 2 !important;
+}
+
+.store .home-pages-strip.pages-sticky {
+  position: sticky !important;
+  top: var(--pages-sticky-top, 0px) !important;
+  z-index: 9000 !important;
 }
 
 /* Remove older sticky-toggle knob styles so it matches the top-bar switch. */
