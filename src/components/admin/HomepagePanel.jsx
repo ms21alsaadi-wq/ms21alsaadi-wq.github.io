@@ -130,12 +130,12 @@ export default function HomepagePanel({
                         </select>
                       </Control>
 
-                      <div className="topbar-toggle-wrapper header-sticky-wrapper">
-                        <span className="topbar-toggle-label header-sticky-label">
+                      <div className="header-switch-field">
+                        <span className="header-switch-label">
                           تثبيت الهيدر
                         </span>
                         <label
-                          className="topbar-toggle-control header-sticky-inline-control"
+                          className="header-switch-control"
                           aria-label="تثبيت الهيدر"
                         >
                           <input
@@ -549,12 +549,12 @@ export default function HomepagePanel({
                           }
                         />
                       </Control>
-                      <div className="topbar-toggle-wrapper">
-                        <span className="topbar-toggle-label">
+                      <div className="header-switch-field">
+                        <span className="header-switch-label">
                           إظهار الشريط
                         </span>
                         <label
-                          className="topbar-toggle-control"
+                          className="header-switch-control"
                           aria-label="إظهار الشريط العلوي"
                         >
                           <input

@@ -17296,6 +17296,109 @@ button.product-flat-top-btn:hover svg {
   flex: 0 0 auto !important;
 }
 
+/* Rebuilt header settings switches. */
+.header-admin-clean-form .header-switch-field {
+  display: grid !important;
+  grid-template-rows: 24px 52px !important;
+  gap: 6px !important;
+  align-self: end !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.header-admin-clean-form .header-switch-label {
+  display: flex !important;
+  align-items: center !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  color: #0f3d2e !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.header-admin-clean-form .header-switch-control {
+  position: relative !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding: 0 14px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(194, 169, 104, 0.35) !important;
+  background: linear-gradient(135deg, #fffdf7, #f6f1e3) !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease !important;
+}
+
+.header-admin-clean-form .header-switch-control:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 18px rgba(15, 61, 46, 0.08) !important;
+}
+
+.header-admin-clean-form .header-switch-control > span {
+  display: none !important;
+}
+
+.header-admin-clean-form .header-switch-control input[type="checkbox"] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 2 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.header-admin-clean-form .header-switch-control::before {
+  content: "" !important;
+  width: 44px !important;
+  height: 24px !important;
+  flex: 0 0 44px !important;
+  border-radius: 999px !important;
+  background: rgba(15, 61, 46, 0.15) !important;
+  transition: background 0.22s ease !important;
+}
+
+.header-admin-clean-form .header-switch-control::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 17px !important;
+  right: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+  transition: right 0.22s ease !important;
+  pointer-events: none !important;
+}
+
+.header-admin-clean-form
+  .header-switch-control:has(input[type="checkbox"]:checked)::before {
+  background: #0f3d2e !important;
+}
+
+.header-admin-clean-form
+  .header-switch-control:has(input[type="checkbox"]:checked)::after {
+  right: 40px !important;
+}
+
 /* Remove older sticky-toggle knob styles so it matches the top-bar switch. */
 .header-sticky-wrapper
   > .header-sticky-inline-control
