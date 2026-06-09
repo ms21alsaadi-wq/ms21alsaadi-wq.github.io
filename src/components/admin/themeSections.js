@@ -8,6 +8,14 @@ export const themeSections = [
     headerExtra: true,
   },
   {
+    id: "pages",
+    label: "الصفحات",
+    titleKey: "homePagesTitle",
+    descKey: "",
+    imageKey: "",
+    pagesExtra: true,
+  },
+  {
     id: "hero",
     label: "الهيرو",
     titleKey: "homeHeroTitle",
@@ -15,14 +23,6 @@ export const themeSections = [
     imageKey: "homeHeroImage",
     buttonKey: "homeHeroButton",
     heroExtra: true,
-  },
-  {
-    id: "pages",
-    label: "الصفحات",
-    titleKey: "homePagesTitle",
-    descKey: "",
-    imageKey: "",
-    pagesExtra: true,
   },
   {
     id: "plants",
