@@ -650,19 +650,20 @@ export default function HomepagePanel({
                       </div>
 
                       <div className="pages-admin-actions">
-                        <label
-                          className="pages-sticky-toggle"
-                          aria-label="تثبيت شريط الصفحات"
+                        <button
+                          type="button"
+                          className={`admin-secondary pages-sticky-btn ${draftSettings.homePagesSticky ? "active" : ""}`}
+                          onClick={() =>
+                            updateDraft(
+                              "homePagesSticky",
+                              !draftSettings.homePagesSticky,
+                            )
+                          }
                         >
-                          <input
-                            type="checkbox"
-                            checked={Boolean(draftSettings.homePagesSticky)}
-                            onChange={(e) =>
-                              updateDraft("homePagesSticky", e.target.checked)
-                            }
-                          />
-                          <span>تثبيت شريط الصفحات</span>
-                        </label>
+                          {draftSettings.homePagesSticky
+                            ? "إلغاء تثبيت الشريط"
+                            : "تثبيت شريط الصفحات"}
+                        </button>
 
                         <button
                           type="button"

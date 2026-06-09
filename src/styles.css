@@ -6298,12 +6298,12 @@ h3,
   gap: 10px;
   flex-wrap: wrap;
 }
-.pages-sticky-toggle {
+.pages-sticky-btn {
   min-height: 52px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 16px;
+  justify-content: center;
+  padding: 0 18px;
   border-radius: 16px;
   border: 1px solid rgba(194, 169, 104, 0.28);
   background: #fffdf7;
@@ -6312,14 +6312,10 @@ h3,
   cursor: pointer;
   user-select: none;
 }
-.pages-sticky-toggle input {
-  width: 18px;
-  height: 18px;
-  accent-color: #0f3d2e;
-}
-.pages-sticky-toggle:has(input:checked) {
-  background: rgba(15, 61, 46, 0.08);
-  border-color: rgba(15, 61, 46, 0.28);
+.pages-sticky-btn.active {
+  background: #0f3d2e !important;
+  border-color: #0f3d2e !important;
+  color: #fff !important;
 }
 @media (max-width: 900px) {
   .footer-admin-grid,
@@ -6335,7 +6331,7 @@ h3,
     align-items: stretch;
   }
   .pages-admin-actions .add-page-btn,
-  .pages-sticky-toggle {
+  .pages-sticky-btn {
     width: 100%;
     justify-content: center;
   }
