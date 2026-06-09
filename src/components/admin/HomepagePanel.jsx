@@ -130,12 +130,12 @@ export default function HomepagePanel({
                         </select>
                       </Control>
 
-                      <div className="header-sticky-wrapper">
-                        <span className="header-sticky-label">
+                      <div className="topbar-toggle-wrapper header-sticky-wrapper">
+                        <span className="topbar-toggle-label header-sticky-label">
                           تثبيت الهيدر
                         </span>
                         <label
-                          className="header-sticky-inline-control"
+                          className="topbar-toggle-control header-sticky-inline-control"
                           aria-label="تثبيت الهيدر"
                         >
                           <input

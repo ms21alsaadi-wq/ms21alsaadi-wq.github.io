@@ -17242,6 +17242,31 @@ button.product-flat-top-btn:hover svg {
   right: 40px !important;
 }
 
+.topbar-toggle-control.header-sticky-inline-control::before {
+  background: rgba(15, 61, 46, 0.15) !important;
+}
+
+.topbar-toggle-control.header-sticky-inline-control:has(input:checked)::before {
+  background: #0f3d2e !important;
+}
+
+.topbar-toggle-control.header-sticky-inline-control::after {
+  content: "" !important;
+  display: block !important;
+  background: #fff !important;
+  top: 17px !important;
+  right: 18px !important;
+}
+
+.topbar-toggle-control.header-sticky-inline-control:has(input:checked)::after {
+  right: 40px !important;
+}
+
+.topbar-toggle-control.header-sticky-inline-control input + span::after {
+  content: none !important;
+  display: none !important;
+}
+
 .header-sticky-wrapper > .header-sticky-inline-control:hover {
   transform: translateY(-1px) !important;
   box-shadow: 0 8px 18px rgba(15, 61, 46, 0.08) !important;
