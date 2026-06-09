@@ -17285,6 +17285,38 @@ button.product-flat-top-btn:hover svg {
   margin-top: 22px !important;
 }
 
+.features-admin-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.feature-admin-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(194, 169, 104, 0.22);
+  background: #fffdf7;
+}
+
+.feature-admin-card h4 {
+  margin: 0;
+  color: #0f3d2e;
+  font-size: 16px;
+}
+
+.feature-admin-card .control {
+  margin: 0;
+}
+
+@media (max-width: 1050px) {
+  .features-admin-editor {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Final hero layout repair. */
 .store .hero-layered {
   min-height: var(--hero-h, 520px) !important;

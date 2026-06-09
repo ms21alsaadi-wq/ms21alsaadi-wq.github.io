@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { RotateCcw, Search, ShieldCheck, Truck } from "lucide-react";
+import {
+  CreditCard,
+  Gift,
+  Heart,
+  Headphones,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Truck,
+} from "lucide-react";
 import { addDoc, collection, doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase.js";
 import { STORE_WHATSAPP } from "../../data/storeData.js";
@@ -23,6 +34,18 @@ import ProductDetailPage from "../products/ProductDetailPage.jsx";
 import ProductGrid from "../products/ProductGrid.jsx";
 import Account from "./AccountPage.jsx";
 import StoreCustomPage from "./StoreCustomPage.jsx";
+
+const featureIconMap = {
+  truck: Truck,
+  shield: ShieldCheck,
+  rotate: RotateCcw,
+  star: Star,
+  heart: Heart,
+  gift: Gift,
+  card: CreditCard,
+  support: Headphones,
+  sparkles: Sparkles,
+};
 
 function Store({
   settings,
@@ -155,23 +178,27 @@ function Store({
   });
 
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const renderFeatureIcon = (iconName, fallbackName) => {
+    const Icon = featureIconMap[iconName] || featureIconMap[fallbackName] || Truck;
+    return <Icon />;
+  };
   const featureCards = [
     {
-      icon: <Truck />,
+      icon: renderFeatureIcon(settings.homeFeatureOneIcon, "truck"),
       title: settings.homeFeatureOneTitle || "توصيل سريع",
       text:
         settings.homeFeatureOneText ||
         "تغليف فاخر للنباتات مع تغليف يحافظ عليها.",
     },
     {
-      icon: <ShieldCheck />,
+      icon: renderFeatureIcon(settings.homeFeatureTwoIcon, "shield"),
       title: settings.homeFeatureTwoTitle || "حسابات عملاء",
       text:
         settings.homeFeatureTwoText ||
         "يحفظ بياناته وطلباته لتجربة أسهل.",
     },
     {
-      icon: <RotateCcw />,
+      icon: renderFeatureIcon(settings.homeFeatureThreeIcon, "rotate"),
       title: settings.homeFeatureThreeTitle || "طلبات منظمة",
       text:
         settings.homeFeatureThreeText ||

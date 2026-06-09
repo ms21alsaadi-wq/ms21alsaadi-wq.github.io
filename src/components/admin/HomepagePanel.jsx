@@ -52,6 +52,40 @@ export default function HomepagePanel({
   const activeFooterLink =
     footerEditor &&
     footerSections[footerEditor.sectionIndex]?.links?.[footerEditor.linkIndex];
+  const featureIconOptions = [
+    { value: "truck", label: "شاحنة" },
+    { value: "shield", label: "درع" },
+    { value: "rotate", label: "رجوع" },
+    { value: "star", label: "نجمة" },
+    { value: "heart", label: "قلب" },
+    { value: "gift", label: "هدية" },
+    { value: "card", label: "بطاقة" },
+    { value: "support", label: "دعم" },
+    { value: "sparkles", label: "تميز" },
+  ];
+  const featureFields = [
+    {
+      label: "البطاقة الأولى",
+      iconKey: "homeFeatureOneIcon",
+      titleKey: "homeFeatureOneTitle",
+      textKey: "homeFeatureOneText",
+      fallbackIcon: "truck",
+    },
+    {
+      label: "البطاقة الثانية",
+      iconKey: "homeFeatureTwoIcon",
+      titleKey: "homeFeatureTwoTitle",
+      textKey: "homeFeatureTwoText",
+      fallbackIcon: "shield",
+    },
+    {
+      label: "البطاقة الثالثة",
+      iconKey: "homeFeatureThreeIcon",
+      titleKey: "homeFeatureThreeTitle",
+      textKey: "homeFeatureThreeText",
+      fallbackIcon: "rotate",
+    },
+  ];
 
   useEffect(() => {
     if (!editorRef.current || !footerEditor) return;
@@ -164,6 +198,54 @@ export default function HomepagePanel({
                         placeholder="وصف القسم"
                       />
                     </Control>
+                  )}
+
+                  {section.featuresExtra && (
+                    <div className="features-admin-editor">
+                      {featureFields.map((field) => (
+                        <div className="feature-admin-card" key={field.titleKey}>
+                          <h4>{field.label}</h4>
+                          <Control label="الأيقونة">
+                            <select
+                              value={
+                                draftSettings[field.iconKey] ||
+                                field.fallbackIcon
+                              }
+                              onChange={(e) =>
+                                updateDraft(field.iconKey, e.target.value)
+                              }
+                            >
+                              {featureIconOptions.map((option) => (
+                                <option
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </Control>
+                          <Control label="عنوان البطاقة">
+                            <input
+                              value={draftSettings[field.titleKey] || ""}
+                              onChange={(e) =>
+                                updateDraft(field.titleKey, e.target.value)
+                              }
+                              placeholder="عنوان البطاقة"
+                            />
+                          </Control>
+                          <Control label="وصف البطاقة">
+                            <textarea
+                              value={draftSettings[field.textKey] || ""}
+                              onChange={(e) =>
+                                updateDraft(field.textKey, e.target.value)
+                              }
+                              placeholder="وصف مختصر للميزة"
+                            />
+                          </Control>
+                        </div>
+                      ))}
+                    </div>
                   )}
 
                   {section.footerExtra && (

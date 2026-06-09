@@ -58,6 +58,7 @@ export const themeSections = [
     titleKey: "homeFeaturesTitle",
     descKey: "homeFeaturesDesc",
     imageKey: "",
+    featuresExtra: true,
   },
   {
     id: "footer",

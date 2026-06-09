@@ -91,10 +91,13 @@ export const defaultSettings = {
   homeFeaturesTitle: "مزايا المتجر",
   homeFeaturesDesc:
     "تجربة شراء مرتبة وواضحة من اختيار المنتج حتى متابعة الطلب.",
+  homeFeatureOneIcon: "truck",
   homeFeatureOneTitle: "توصيل سريع",
   homeFeatureOneText: "تغليف فاخر للنباتات مع تغليف يحافظ عليها.",
+  homeFeatureTwoIcon: "shield",
   homeFeatureTwoTitle: "حسابات عملاء",
   homeFeatureTwoText: "يحفظ بياناته وطلباته لتجربة أسهل.",
+  homeFeatureThreeIcon: "rotate",
   homeFeatureThreeTitle: "طلبات منظمة",
   homeFeatureThreeText: "كل طلب محفوظ ومنظم داخل لوحة التحكم.",
   footerTitle: "GREEN DIXAM",
