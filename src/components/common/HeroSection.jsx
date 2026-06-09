@@ -11,6 +11,7 @@ function HeroSection({ settings }) {
   const buttonLink = settings.homeHeroButtonLink || "#products";
   const image = settings.homeHeroImage || "";
   const bgImage = settings.homeHeroBgImage || "";
+  const bannerImage = bgImage || image;
   const imagePosition = settings.homeHeroImagePosition || "left";
   const rawVideo = settings.homeHeroVideo || "";
   const video = normalizeVideoUrl(rawVideo);
@@ -74,10 +75,10 @@ function HeroSection({ settings }) {
   if (layout === "banner") {
     return (
       <section className="hero-full-media hero-banner-mode">
-        {image ? (
+        {bannerImage ? (
           <img
             className="hero-full-video"
-            src={image}
+            src={bannerImage}
             alt={title}
             loading="eager"
             decoding="async"

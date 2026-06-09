@@ -17277,6 +17277,131 @@ button.product-flat-top-btn:hover svg {
   right: 40px !important;
 }
 
+/* Final hero layout repair. */
+.store .hero-layered {
+  min-height: var(--hero-h, 520px) !important;
+  display: grid !important;
+  align-items: center !important;
+  padding: clamp(44px, 6vw, 88px) 0 !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.store .hero-layered-inner {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr) !important;
+  gap: clamp(28px, 5vw, 72px) !important;
+  align-items: center !important;
+  min-height: min(560px, var(--hero-h, 520px)) !important;
+}
+
+.store .hero-layered-right .hero-layered-inner {
+  grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1fr) !important;
+}
+
+.store .hero-layered-right .hero-layered-text {
+  order: 2 !important;
+}
+
+.store .hero-layered-right .hero-layered-image-card {
+  order: 1 !important;
+}
+
+.store .hero-layered-left .hero-layered-text {
+  order: 1 !important;
+}
+
+.store .hero-layered-left .hero-layered-image-card {
+  order: 2 !important;
+}
+
+.store .hero-layered-text {
+  display: grid !important;
+  justify-items: start !important;
+  text-align: right !important;
+}
+
+.store .hero-layered-image-card {
+  width: 100% !important;
+  min-height: clamp(320px, 42vw, 560px) !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.store .hero-layered-image-card img {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: clamp(320px, 42vw, 560px) !important;
+  display: block !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.store .hero-banner-mode,
+.store .hero-video-mode {
+  min-height: var(--hero-h, 520px) !important;
+  height: var(--hero-h, 520px) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+}
+
+.store .hero-banner-mode .hero-full-video,
+.store .hero-video-mode .hero-full-video {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.store .hero-banner-mode .hero-media-content,
+.store .hero-video-mode .hero-media-content {
+  position: relative !important;
+  z-index: 3 !important;
+  min-height: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  padding-block: clamp(36px, 6vw, 80px) !important;
+}
+
+@media (max-width: 900px) {
+  .store .hero-layered,
+  .store .hero-banner-mode,
+  .store .hero-video-mode {
+    min-height: auto !important;
+    height: auto !important;
+  }
+
+  .store .hero-layered-inner,
+  .store .hero-layered-right .hero-layered-inner {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+  }
+
+  .store .hero-layered-text,
+  .store .hero-layered-image-card {
+    order: initial !important;
+  }
+
+  .store .hero-layered-image-card,
+  .store .hero-layered-image-card img {
+    min-height: 300px !important;
+  }
+
+  .store .hero-banner-mode .hero-full-video,
+  .store .hero-video-mode .hero-full-video {
+    position: relative !important;
+    min-height: 360px !important;
+  }
+}
+
 .topbar-toggle-control.header-sticky-inline-control::before {
   background: rgba(15, 61, 46, 0.15) !important;
 }
