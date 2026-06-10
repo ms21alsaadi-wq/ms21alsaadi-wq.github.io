@@ -73,9 +73,26 @@ export const defaultSettings = {
   homeHeroButtonLink: "#products",
 
   homePlantSectionsTitle: "اختر طابعك الأخضر",
-  homePlantSectionsDesc:
-    "نباتات داخلية، نباتات سهلة العناية، وأصص وإكسسوارات بطابع فاخر.",
-  homePlantSectionsImage: "",
+  homePlantCategories: [
+    {
+      title: "نباتات داخلية",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "سهلة العناية",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "أصص وإكسسوارات",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80",
+    },
+  ],
 
   homeCareTitle: "عناية هادئة لنباتات تدوم",
   homeCareDesc:

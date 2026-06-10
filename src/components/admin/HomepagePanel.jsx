@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { makePageSlug } from "../../utils/helpers.js";
+import { fileToDataUrl } from "../../utils/media.js";
 import { Control } from "./AdminUi.jsx";
 
 export default function HomepagePanel({
@@ -86,6 +87,43 @@ export default function HomepagePanel({
       fallbackIcon: "rotate",
     },
   ];
+  const defaultPlantCategories = [
+    {
+      title: "نباتات داخلية",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "سهلة العناية",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "أصص وإكسسوارات",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80",
+    },
+  ];
+  const plantCategories = Array.isArray(draftSettings.homePlantCategories)
+    ? draftSettings.homePlantCategories.slice(0, 10)
+    : defaultPlantCategories;
+  const updatePlantCategory = (index, changes) => {
+    const next = [...plantCategories];
+    next[index] = { ...next[index], ...changes };
+    updateDraft("homePlantCategories", next);
+  };
+  const uploadPlantCategoryImage = async (index, file) => {
+    if (!file) return;
+    const image = await fileToDataUrl(file, {
+      maxWidth: 1100,
+      maxHeight: 850,
+      quality: 0.82,
+    });
+    updatePlantCategory(index, { image });
+  };
 
   useEffect(() => {
     if (!editorRef.current || !footerEditor) return;
@@ -188,7 +226,9 @@ export default function HomepagePanel({
                     </>
                   )}
 
-                  {!section.pagesExtra && !section.headerExtra && (
+                  {!section.pagesExtra &&
+                    !section.headerExtra &&
+                    !section.plantCategoriesExtra && (
                     <Control label="الوصف">
                       <textarea
                         value={draftSettings[section.descKey] || ""}
@@ -198,6 +238,105 @@ export default function HomepagePanel({
                         placeholder="وصف القسم"
                       />
                     </Control>
+                    )}
+
+                  {section.plantCategoriesExtra && (
+                    <div className="plant-categories-admin-editor">
+                      <div className="plant-categories-admin-head">
+                        <strong>الأقسام</strong>
+                        <span>{plantCategories.length} / 10</span>
+                      </div>
+
+                      {plantCategories.map((plantCategory, index) => (
+                        <div
+                          className="plant-category-admin-card"
+                          key={index}
+                        >
+                          <Control label="اسم القسم">
+                            <input
+                              value={plantCategory.title || ""}
+                              onChange={(e) =>
+                                updatePlantCategory(index, {
+                                  title: e.target.value,
+                                })
+                              }
+                              placeholder="مثال: نباتات داخلية"
+                            />
+                          </Control>
+                          <Control label="الرابط">
+                            <input
+                              value={plantCategory.href || ""}
+                              onChange={(e) =>
+                                updatePlantCategory(index, {
+                                  href: e.target.value,
+                                })
+                              }
+                              placeholder="#products أو /page/products"
+                            />
+                          </Control>
+                          <Control label="رابط الصورة">
+                            <input
+                              value={plantCategory.image || ""}
+                              onChange={(e) =>
+                                updatePlantCategory(index, {
+                                  image: e.target.value,
+                                })
+                              }
+                              placeholder="https://..."
+                            />
+                          </Control>
+                          <Control label="أو ارفع صورة">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) =>
+                                uploadPlantCategoryImage(
+                                  index,
+                                  e.target.files?.[0],
+                                )
+                              }
+                            />
+                          </Control>
+                          {plantCategory.image && (
+                            <img
+                              className="plant-category-admin-preview"
+                              src={plantCategory.image}
+                              alt={plantCategory.title || "قسم النباتات"}
+                            />
+                          )}
+                          <button
+                            type="button"
+                            className="admin-secondary"
+                            onClick={() => {
+                              const next = [...plantCategories];
+                              next.splice(index, 1);
+                              updateDraft("homePlantCategories", next);
+                            }}
+                          >
+                            حذف القسم
+                          </button>
+                        </div>
+                      ))}
+
+                      <button
+                        type="button"
+                        className="admin-primary add-page-btn"
+                        disabled={plantCategories.length >= 10}
+                        onClick={() =>
+                          updateDraft("homePlantCategories", [
+                            ...plantCategories,
+                            {
+                              title: "قسم جديد",
+                              href: "#products",
+                              image:
+                                "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=900&q=80",
+                            },
+                          ])
+                        }
+                      >
+                        إضافة قسم
+                      </button>
+                    </div>
                   )}
 
                   {section.featuresExtra && (

@@ -28,8 +28,9 @@ export const themeSections = [
     id: "plants",
     label: "أقسام النباتات",
     titleKey: "homePlantSectionsTitle",
-    descKey: "homePlantSectionsDesc",
-    imageKey: "homePlantSectionsImage",
+    descKey: "",
+    imageKey: "",
+    plantCategoriesExtra: true,
   },
   {
     id: "care",

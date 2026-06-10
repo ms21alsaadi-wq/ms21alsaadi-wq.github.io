@@ -323,6 +323,33 @@ function Store({
       { label: "دليل العناية", href: "/page/care-guide", visible: true },
     ]
   ).filter((page) => page.visible !== false);
+  const defaultPlantCategories = [
+    {
+      title: "نباتات داخلية",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "سهلة العناية",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      title: "أصص وإكسسوارات",
+      href: "#products",
+      image:
+        "https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80",
+    },
+  ];
+  const plantCategories = (
+    Array.isArray(settings.homePlantCategories)
+      ? settings.homePlantCategories
+      : defaultPlantCategories
+  )
+    .slice(0, 10)
+    .filter((item) => item?.title && item?.image);
   const footerPages = (settings.footerSections || []).flatMap(
     (section, sectionIndex) =>
       (section.links || [])
@@ -759,60 +786,26 @@ function Store({
             <div className="section-title">
               <span>Brand Essence</span>
               <h2>{settings.homePlantSectionsTitle || "اختر طابعك الأخضر"}</h2>
-              <p className="home-section-desc">
-                {settings.homePlantSectionsDesc ||
-                  "نباتات داخلية، نباتات سهلة العناية، وأصص وإكسسوارات بطابع فاخر."}
-              </p>
             </div>
 
-            {settings.homePlantSectionsImage && (
-              <div className="home-admin-section-image">
-                <img
-                  src={settings.homePlantSectionsImage}
-                  alt="أقسام النباتات"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            )}
-
             <div className="plant-category-grid">
-              <a href="#products" className="plant-category-card">
-                <img
-                  src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80"
-                  alt="نباتات داخلية"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <div>
-                  <b>نباتات داخلية</b>
-                  <span>نباتات راقية للمنازل والمكاتب</span>
-                </div>
-              </a>
-              <a href="#products" className="plant-category-card">
-                <img
-                  src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80"
-                  alt="نباتات سهلة العناية"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <div>
-                  <b>سهلة العناية</b>
-                  <span>اختيارات هادئة وسهلة العناية</span>
-                </div>
-              </a>
-              <a href="#products" className="plant-category-card">
-                <img
-                  src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80"
-                  alt="أصص وإكسسوارات"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <div>
-                  <b>أصص وإكسسوارات</b>
-                  <span>أصص وإكسسوارات بطابع فاخر</span>
-                </div>
-              </a>
+              {plantCategories.map((plantCategory, index) => (
+                <a
+                  key={`${plantCategory.title}-${index}`}
+                  href={plantCategory.href || "#products"}
+                  className="plant-category-card"
+                >
+                  <img
+                    src={plantCategory.image}
+                    alt={plantCategory.title}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div>
+                    <b>{plantCategory.title}</b>
+                  </div>
+                </a>
+              ))}
             </div>
           </section>
 

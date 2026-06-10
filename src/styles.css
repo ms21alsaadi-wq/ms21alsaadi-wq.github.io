@@ -1654,11 +1654,7 @@ a {
   display: block;
   font-size: 26px;
   font-weight: 900;
-  margin-bottom: 6px;
-}
-.plant-category-card span {
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  margin: 0;
 }
 .care-strip {
   margin: 12px auto 34px;
@@ -5672,6 +5668,42 @@ h3,
   font-weight: 700 !important;
   line-height: 1.7 !important;
 }
+.plant-categories-admin-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+}
+.plant-categories-admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fffdf7;
+  border: 1px solid rgba(194, 169, 104, 0.24);
+  color: #0f3d2e;
+  font-weight: 900;
+}
+.plant-category-admin-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fffdf7;
+  border: 1px solid rgba(194, 169, 104, 0.24);
+}
+.plant-category-admin-preview {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid rgba(194, 169, 104, 0.24);
+}
+.plant-category-admin-card .plant-category-admin-preview,
+.plant-category-admin-card button {
+  align-self: end;
+}
 .home-section-desc {
   color: #6b705f !important;
   font-weight: 800 !important;
@@ -5705,6 +5737,9 @@ h3,
 @media (max-width: 850px) {
   .section-form-pro {
     grid-template-columns: 1fr !important;
+  }
+  .plant-category-admin-card {
+    grid-template-columns: 1fr;
   }
   .home-admin-section-image img {
     height: 210px !important;
