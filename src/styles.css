@@ -1613,8 +1613,17 @@ a {
 }
 .plant-category-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 360px);
+  grid-template-columns: none;
   gap: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  padding: 0 2px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 61, 46, 0.32) transparent;
 }
 .plant-category-card {
   position: relative;
@@ -1626,6 +1635,7 @@ a {
   padding: 22px;
   box-shadow: 0 22px 60px rgba(31, 77, 43, 0.12);
   background: #183d28;
+  scroll-snap-align: start;
 }
 .plant-category-card img {
   position: absolute;
@@ -1697,10 +1707,12 @@ a {
   line-height: 1.7;
 }
 @media (max-width: 900px) {
-  .plant-category-grid,
   .care-strip,
   .care-items {
     grid-template-columns: 1fr;
+  }
+  .plant-category-grid {
+    grid-auto-columns: minmax(240px, 82vw);
   }
   .plant-category-card {
     min-height: 220px;
