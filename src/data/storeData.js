@@ -77,18 +77,21 @@ export const defaultSettings = {
     {
       title: "نباتات داخلية",
       href: "#products",
+      imageSize: 100,
       image:
         "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80",
     },
     {
       title: "سهلة العناية",
       href: "#products",
+      imageSize: 100,
       image:
         "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80",
     },
     {
       title: "أصص وإكسسوارات",
       href: "#products",
+      imageSize: 100,
       image:
         "https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80",
     },

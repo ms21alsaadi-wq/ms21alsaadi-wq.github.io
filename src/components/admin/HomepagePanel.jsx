@@ -91,18 +91,21 @@ export default function HomepagePanel({
     {
       title: "نباتات داخلية",
       href: "#products",
+      imageSize: 100,
       image:
         "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=900&q=80",
     },
     {
       title: "سهلة العناية",
       href: "#products",
+      imageSize: 100,
       image:
         "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80",
     },
     {
       title: "أصص وإكسسوارات",
       href: "#products",
+      imageSize: 100,
       image:
         "https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80",
     },
@@ -297,6 +300,22 @@ export default function HomepagePanel({
                               }
                             />
                           </Control>
+                          <Control
+                            label={`حجم الصورة ${plantCategory.imageSize || 100}%`}
+                          >
+                            <input
+                              type="range"
+                              min="80"
+                              max="140"
+                              step="5"
+                              value={plantCategory.imageSize || 100}
+                              onChange={(e) =>
+                                updatePlantCategory(index, {
+                                  imageSize: Number(e.target.value),
+                                })
+                              }
+                            />
+                          </Control>
                           {plantCategory.image && (
                             <img
                               className="plant-category-admin-preview"
@@ -328,6 +347,7 @@ export default function HomepagePanel({
                             {
                               title: "قسم جديد",
                               href: "#products",
+                              imageSize: 100,
                               image:
                                 "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=900&q=80",
                             },
