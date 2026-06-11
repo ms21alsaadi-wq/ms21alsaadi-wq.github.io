@@ -124,6 +124,14 @@ export default function ProductEditorFields({
               />
             </Control>
           </div>
+          <label className="product-featured-toggle">
+            <input
+              name="featured"
+              type="checkbox"
+              defaultChecked={Boolean(editing?.featured)}
+            />
+            <span>منتج الأكثر طلبًا</span>
+          </label>
         </div>
 
         <div className={sectionClass(showImages)} hidden={!showImages}>

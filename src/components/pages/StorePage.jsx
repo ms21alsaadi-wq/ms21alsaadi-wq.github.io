@@ -243,6 +243,30 @@ function Store({
         }),
     [products, searchQuery, brand, category],
   );
+  const bestSellerProducts = useMemo(() => {
+    const orderCounts = new Map();
+    (orders || []).forEach((order) => {
+      (order.items || []).forEach((item) => {
+        const id = item.id || item.productId;
+        if (!id) return;
+        orderCounts.set(id, (orderCounts.get(id) || 0) + Number(item.qty || 1));
+      });
+    });
+
+    return products
+      .filter((product) => (product.status || "active") !== "hidden")
+      .map((product) => ({
+        product,
+        score:
+          (orderCounts.get(product.id) || 0) * 100 +
+          (product.featured ? 40 : 0) +
+          Number(product.rating || 0),
+      }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map((item) => item.product);
+  }, [orders, products]);
   const activeFilterCount =
     (searchQuery.trim() ? 1 : 0) +
     (brand !== "All" ? 1 : 0) +
@@ -890,6 +914,31 @@ function Store({
               </div>
             </div>
           </section>
+
+          {bestSellerProducts.length ? (
+            <section className="container best-sellers-section">
+              <div className="section-title">
+                <span>Most Requested</span>
+                <h2>
+                  {settings.homeBestSellersTitle || "منتجات الأكثر طلبًا"}
+                </h2>
+                <p className="home-section-desc">
+                  {settings.homeBestSellersDesc ||
+                    "اختيارات عليها طلب متكرر ومناسبة للهدايا والمساحات اليومية."}
+                </p>
+              </div>
+              <ProductGrid
+                products={bestSellerProducts}
+                go={go}
+                addToCart={addToCart}
+                favorites={favorites}
+                setFavorites={setFavorites}
+                selectedSize={selectedSize}
+                setSelectedSize={setSelectedSize}
+                className="best-sellers-products-grid"
+              />
+            </section>
+          ) : null}
 
           <section
             className="container care-strip cms-care-strip"

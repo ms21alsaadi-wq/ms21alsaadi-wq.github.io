@@ -107,6 +107,8 @@ export const defaultSettings = {
   homeOfferDesc: "استخدم كوبون GREEN10 واحصل على خصم خاص على أول طلب.",
   homeOfferImage: "",
 
+  homeBestSellersTitle: "منتجات الأكثر طلبًا",
+  homeBestSellersDesc: "اختيارات عليها طلب متكرر ومناسبة للهدايا والمساحات اليومية.",
   homeProductsTitle: "نباتات نادرة ومنتجات فاخرة مختارة بعناية",
   homeProductsDesc: "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا.",
   homeFeaturesTitle: "مزايا المتجر",
