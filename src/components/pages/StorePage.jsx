@@ -353,6 +353,11 @@ function Store({
   )
     .slice(0, 10)
     .filter((item) => item?.title && item?.image);
+  const plantCategoriesAutoplay =
+    settings.homePlantCategoriesAutoplay !== false && plantCategories.length > 1;
+  const visiblePlantCategories = plantCategoriesAutoplay
+    ? [...plantCategories, ...plantCategories]
+    : plantCategories;
   const footerPages = (settings.footerSections || []).flatMap(
     (section, sectionIndex) =>
       (section.links || [])
@@ -791,33 +796,43 @@ function Store({
               <h2>{settings.homePlantSectionsTitle || "اختر طابعك الأخضر"}</h2>
             </div>
 
-            <div className="plant-category-grid">
-              {plantCategories.map((plantCategory, index) => (
-                <a
-                  key={`${plantCategory.title}-${index}`}
-                  href={plantCategory.href || "#products"}
-                  className="plant-category-card"
-                >
-                  <img
-                    src={plantCategory.image}
-                    alt={plantCategory.title}
-                    loading="lazy"
-                    decoding="async"
-                    style={{
-                      "--plant-image-scale": `${Math.max(
-                        0.8,
-                        Math.min(
-                          1.4,
-                          Number(plantCategory.imageSize || 100) / 100,
-                        ),
-                      )}`,
-                    }}
-                  />
-                  <div>
-                    <b>{plantCategory.title}</b>
-                  </div>
-                </a>
-              ))}
+            <div
+              className={`plant-category-grid ${
+                plantCategoriesAutoplay ? "plant-category-grid-auto" : ""
+              }`}
+            >
+              <div className="plant-category-track">
+                {visiblePlantCategories.map((plantCategory, index) => (
+                  <a
+                    key={`${plantCategory.title}-${index}`}
+                    href={plantCategory.href || "#products"}
+                    className="plant-category-card"
+                    aria-hidden={
+                      index >= plantCategories.length ? true : undefined
+                    }
+                    tabIndex={index >= plantCategories.length ? -1 : undefined}
+                  >
+                    <img
+                      src={plantCategory.image}
+                      alt={plantCategory.title}
+                      loading="lazy"
+                      decoding="async"
+                      style={{
+                        "--plant-image-scale": `${Math.max(
+                          0.8,
+                          Math.min(
+                            1.4,
+                            Number(plantCategory.imageSize || 100) / 100,
+                          ),
+                        )}`,
+                      }}
+                    />
+                    <div>
+                      <b>{plantCategory.title}</b>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
           </section>
 

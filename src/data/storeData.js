@@ -73,6 +73,7 @@ export const defaultSettings = {
   homeHeroButtonLink: "#products",
 
   homePlantSectionsTitle: "اختر طابعك الأخضر",
+  homePlantCategoriesAutoplay: true,
   homePlantCategories: [
     {
       title: "نباتات داخلية",

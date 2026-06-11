@@ -249,6 +249,30 @@ export default function HomepagePanel({
                         <strong>الأقسام</strong>
                         <span>{plantCategories.length} / 10</span>
                       </div>
+                      <div className="header-switch-field">
+                        <span className="header-switch-label">
+                          التحريك التلقائي
+                        </span>
+                        <label
+                          className="header-switch-control"
+                          aria-label="التحريك التلقائي لأقسام النباتات"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              draftSettings.homePlantCategoriesAutoplay !==
+                              false
+                            }
+                            onChange={(e) =>
+                              updateDraft(
+                                "homePlantCategoriesAutoplay",
+                                e.target.checked,
+                              )
+                            }
+                          />
+                          <span>التحريك التلقائي</span>
+                        </label>
+                      </div>
 
                       {plantCategories.map((plantCategory, index) => (
                         <div

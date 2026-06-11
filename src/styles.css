@@ -1612,11 +1612,7 @@ a {
   padding: 24px 0 36px;
 }
 .plant-category-grid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(280px, 360px);
-  grid-template-columns: none;
-  gap: 18px;
+  display: block;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
@@ -1624,6 +1620,25 @@ a {
   padding: 0 2px 18px;
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 61, 46, 0.32) transparent;
+}
+.plant-category-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 360px);
+  grid-template-columns: none;
+  gap: 18px;
+  width: max-content;
+  min-width: 100%;
+}
+.plant-category-grid-auto {
+  overflow: hidden;
+  padding-bottom: 18px;
+}
+.plant-category-grid-auto .plant-category-track {
+  animation: plantCategoryAutoScroll 52s linear infinite;
+}
+.plant-category-grid-auto:hover .plant-category-track {
+  animation-play-state: paused;
 }
 .plant-category-card {
   position: relative;
@@ -1659,6 +1674,14 @@ a {
   font-size: 26px;
   font-weight: 900;
   margin: 0;
+}
+@keyframes plantCategoryAutoScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(50%);
+  }
 }
 .care-strip {
   margin: 12px auto 34px;
@@ -1712,6 +1735,9 @@ a {
     grid-template-columns: 1fr;
   }
   .plant-category-grid {
+    padding-bottom: 16px;
+  }
+  .plant-category-track {
     grid-auto-columns: minmax(240px, 82vw);
   }
   .plant-category-card {
