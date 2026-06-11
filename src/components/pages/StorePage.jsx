@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CreditCard,
   Gift,
@@ -76,6 +76,14 @@ function Store({
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
   const [selectedPaymentId, setSelectedPaymentId] = useState("");
+  const plantCategoryScrollerRef = useRef(null);
+  const plantCategoryDragRef = useRef({
+    active: false,
+    dragged: false,
+    pointerId: null,
+    startX: 0,
+    scrollLeft: 0,
+  });
 
   useEffect(() => {
     let visitorId = localStorage.getItem("gdVisitorId");
@@ -358,6 +366,46 @@ function Store({
   const visiblePlantCategories = plantCategoriesAutoplay
     ? [...plantCategories, ...plantCategories]
     : plantCategories;
+  const startPlantCategoryDrag = (event) => {
+    const scroller = plantCategoryScrollerRef.current;
+    if (!scroller) return;
+    plantCategoryDragRef.current = {
+      active: true,
+      dragged: false,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      scrollLeft: scroller.scrollLeft,
+    };
+    scroller.classList.add("is-dragging");
+    scroller.setPointerCapture?.(event.pointerId);
+  };
+  const movePlantCategoryDrag = (event) => {
+    const scroller = plantCategoryScrollerRef.current;
+    const drag = plantCategoryDragRef.current;
+    if (!scroller || !drag.active) return;
+    const distance = event.clientX - drag.startX;
+    if (Math.abs(distance) > 4) drag.dragged = true;
+    scroller.scrollLeft = drag.scrollLeft - distance;
+  };
+  const endPlantCategoryDrag = (event) => {
+    const scroller = plantCategoryScrollerRef.current;
+    const drag = plantCategoryDragRef.current;
+    if (!scroller || !drag.active) return;
+    scroller.classList.remove("is-dragging");
+    if (drag.pointerId != null) {
+      scroller.releasePointerCapture?.(drag.pointerId);
+    }
+    plantCategoryDragRef.current = {
+      ...drag,
+      active: false,
+      pointerId: null,
+    };
+  };
+  const handlePlantCategoryClick = (event) => {
+    if (!plantCategoryDragRef.current.dragged) return;
+    event.preventDefault();
+    plantCategoryDragRef.current.dragged = false;
+  };
   const footerPages = (settings.footerSections || []).flatMap(
     (section, sectionIndex) =>
       (section.links || [])
@@ -797,9 +845,15 @@ function Store({
             </div>
 
             <div
+              ref={plantCategoryScrollerRef}
               className={`plant-category-grid ${
                 plantCategoriesAutoplay ? "plant-category-grid-auto" : ""
               }`}
+              onPointerDown={startPlantCategoryDrag}
+              onPointerMove={movePlantCategoryDrag}
+              onPointerUp={endPlantCategoryDrag}
+              onPointerCancel={endPlantCategoryDrag}
+              onPointerLeave={endPlantCategoryDrag}
             >
               <div className="plant-category-track">
                 {visiblePlantCategories.map((plantCategory, index) => (
@@ -811,6 +865,7 @@ function Store({
                       index >= plantCategories.length ? true : undefined
                     }
                     tabIndex={index >= plantCategories.length ? -1 : undefined}
+                    onClick={handlePlantCategoryClick}
                   >
                     <img
                       src={plantCategory.image}

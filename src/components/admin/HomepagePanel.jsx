@@ -120,12 +120,18 @@ export default function HomepagePanel({
   };
   const uploadPlantCategoryImage = async (index, file) => {
     if (!file) return;
-    const image = await fileToDataUrl(file, {
-      maxWidth: 1100,
-      maxHeight: 850,
-      quality: 0.82,
-    });
-    updatePlantCategory(index, { image });
+    try {
+      const image = await fileToDataUrl(file, {
+        maxWidth: 760,
+        maxHeight: 560,
+        quality: 0.64,
+        mimeType: "image/webp",
+      });
+      updatePlantCategory(index, { image });
+    } catch (error) {
+      console.error("Plant category image upload failed:", error);
+      window.alert("تعذر رفع الصورة. جرّب صورة أصغر أو بصيغة مختلفة.");
+    }
   };
 
   useEffect(() => {
@@ -316,12 +322,13 @@ export default function HomepagePanel({
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) =>
-                                uploadPlantCategoryImage(
+                              onChange={async (e) => {
+                                await uploadPlantCategoryImage(
                                   index,
                                   e.target.files?.[0],
-                                )
-                              }
+                                );
+                                e.target.value = "";
+                              }}
                             />
                           </Control>
                           <Control

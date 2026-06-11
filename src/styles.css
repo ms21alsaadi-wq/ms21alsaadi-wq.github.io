@@ -1620,6 +1620,12 @@ a {
   padding: 0 2px 18px;
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 61, 46, 0.32) transparent;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+}
+.plant-category-grid.is-dragging {
+  cursor: grabbing;
 }
 .plant-category-track {
   display: grid;
@@ -1631,13 +1637,18 @@ a {
   min-width: 100%;
 }
 .plant-category-grid-auto {
-  overflow: hidden;
+  overflow-x: auto;
   padding-bottom: 18px;
+  scrollbar-width: none;
+}
+.plant-category-grid-auto::-webkit-scrollbar {
+  display: none;
 }
 .plant-category-grid-auto .plant-category-track {
   animation: plantCategoryAutoScroll 52s linear infinite;
 }
-.plant-category-grid-auto:hover .plant-category-track {
+.plant-category-grid-auto:hover .plant-category-track,
+.plant-category-grid.is-dragging .plant-category-track {
   animation-play-state: paused;
 }
 .plant-category-card {
