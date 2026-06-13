@@ -2081,16 +2081,10 @@ h3,
 .best-sellers-products-grid.products-grid {
   display: grid !important;
   grid-auto-flow: column;
-  grid-auto-columns: 205px;
+  grid-auto-columns: var(--best-seller-card-width, 205px);
   grid-template-columns: none !important;
   width: max-content;
   gap: 16px !important;
-  animation: bestSellersLoopRight 34s linear infinite;
-  will-change: transform;
-}
-.best-sellers-strip:hover .best-sellers-products-grid,
-.best-sellers-strip.is-dragging .best-sellers-products-grid {
-  animation-play-state: paused;
 }
 .best-sellers-products-grid .product {
   scroll-snap-align: start;
@@ -2118,14 +2112,6 @@ h3,
   min-width: 34px;
   min-height: 34px;
   padding: 6px 8px !important;
-}
-@keyframes bestSellersLoopRight {
-  from {
-    transform: translateX(calc(-50% - 8px));
-  }
-  to {
-    transform: translateX(0);
-  }
 }
 .product-featured-toggle {
   display: flex;

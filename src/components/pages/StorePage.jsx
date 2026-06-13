@@ -279,6 +279,63 @@ function Store({
     bestSellerProducts.length > 1
       ? [...bestSellerProducts, ...bestSellerProducts]
       : bestSellerProducts;
+  useEffect(() => {
+    const scroller = bestSellerScrollerRef.current;
+    if (!scroller || bestSellerProducts.length <= 1) return undefined;
+
+    let timer = 0;
+    let resizeObserver;
+
+    const getTrack = () => scroller.querySelector(".best-sellers-products-grid");
+    const getCard = () => scroller.querySelector(".product");
+    const getGap = (track) =>
+      Number.parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+
+    const syncCarouselMetrics = () => {
+      const track = getTrack();
+      if (!track) return;
+      const gap = getGap(track);
+      const cardWidth = Math.max(170, (scroller.clientWidth - gap * 4) / 5);
+      scroller.style.setProperty("--best-seller-card-width", `${cardWidth}px`);
+
+      window.requestAnimationFrame(() => {
+        const loopWidth = track.scrollWidth / 2;
+        if (loopWidth > 0 && scroller.scrollLeft < 4) {
+          scroller.scrollLeft = loopWidth;
+        }
+      });
+    };
+
+    const moveOneProductRight = () => {
+      if (bestSellerDragRef.current.active) return;
+      const track = getTrack();
+      const card = getCard();
+      if (!track || !card) return;
+      const gap = getGap(track);
+      const step = card.getBoundingClientRect().width + gap;
+      const loopWidth = track.scrollWidth / 2;
+      if (!step || !loopWidth) return;
+
+      if (scroller.scrollLeft <= step + 4) {
+        scroller.scrollLeft += loopWidth;
+      }
+
+      scroller.scrollTo({
+        left: scroller.scrollLeft - step,
+        behavior: "smooth",
+      });
+    };
+
+    syncCarouselMetrics();
+    resizeObserver = new ResizeObserver(syncCarouselMetrics);
+    resizeObserver.observe(scroller);
+    timer = window.setInterval(moveOneProductRight, 3000);
+
+    return () => {
+      window.clearInterval(timer);
+      resizeObserver?.disconnect();
+    };
+  }, [bestSellerProducts.length]);
   const activeFilterCount =
     (searchQuery.trim() ? 1 : 0) +
     (brand !== "All" ? 1 : 0) +
