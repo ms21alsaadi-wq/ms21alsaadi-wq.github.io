@@ -275,29 +275,10 @@ function Store({
       .slice(0, 6)
       .map((item) => item.product);
   }, [orders, products]);
-  useEffect(() => {
-    const scroller = bestSellerScrollerRef.current;
-    if (!scroller || bestSellerProducts.length <= 1) return undefined;
-
-    const moveToNextProduct = () => {
-      if (bestSellerDragRef.current.active) return;
-      const track = scroller.querySelector(".best-sellers-products-grid");
-      const card = track?.querySelector(".product");
-      if (!track || !card) return;
-      const gap = Number.parseFloat(getComputedStyle(track).columnGap || "0");
-      const step = card.getBoundingClientRect().width + gap;
-      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
-      if (maxScroll <= 0) return;
-      const next =
-        scroller.scrollLeft + step >= maxScroll - 8
-          ? 0
-          : scroller.scrollLeft + step;
-      scroller.scrollTo({ left: next, behavior: "smooth" });
-    };
-
-    const timer = window.setInterval(moveToNextProduct, 3200);
-    return () => window.clearInterval(timer);
-  }, [bestSellerProducts.length]);
+  const bestSellerLoopProducts =
+    bestSellerProducts.length > 1
+      ? [...bestSellerProducts, ...bestSellerProducts]
+      : bestSellerProducts;
   const activeFilterCount =
     (searchQuery.trim() ? 1 : 0) +
     (brand !== "All" ? 1 : 0) +
@@ -1013,7 +994,7 @@ function Store({
                 onClickCapture={handleBestSellerClick}
               >
                 <ProductGrid
-                  products={bestSellerProducts}
+                  products={bestSellerLoopProducts}
                   go={go}
                   addToCart={addToCart}
                   favorites={favorites}

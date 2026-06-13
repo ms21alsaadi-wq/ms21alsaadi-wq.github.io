@@ -18,7 +18,7 @@ function ProductGrid({
 }) {
   return (
     <div className={`products-grid ${className}`.trim()}>
-      {products.map((product) => {
+      {products.map((product, index) => {
         const sizes = sizesArray(product.sizes);
         const price = Number(product.price || 0);
         const oldPrice = Number(product.oldPrice || 0);
@@ -33,7 +33,7 @@ function ProductGrid({
         return (
           <article
             className={`product product-link-card${outOfStock ? " out-of-stock" : ""}`}
-            key={product.id}
+            key={`${product.id || product.name}-${index}`}
             role="button"
             tabIndex={0}
             onClick={() => go(productPath(product))}
