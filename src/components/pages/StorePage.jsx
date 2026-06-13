@@ -77,7 +77,15 @@ function Store({
   const [couponMessage, setCouponMessage] = useState("");
   const [selectedPaymentId, setSelectedPaymentId] = useState("");
   const plantCategoryScrollerRef = useRef(null);
+  const bestSellerScrollerRef = useRef(null);
   const plantCategoryDragRef = useRef({
+    active: false,
+    dragged: false,
+    pointerId: null,
+    startX: 0,
+    scrollLeft: 0,
+  });
+  const bestSellerDragRef = useRef({
     active: false,
     dragged: false,
     pointerId: null,
@@ -267,6 +275,29 @@ function Store({
       .slice(0, 6)
       .map((item) => item.product);
   }, [orders, products]);
+  useEffect(() => {
+    const scroller = bestSellerScrollerRef.current;
+    if (!scroller || bestSellerProducts.length <= 1) return undefined;
+
+    const moveToNextProduct = () => {
+      if (bestSellerDragRef.current.active) return;
+      const track = scroller.querySelector(".best-sellers-products-grid");
+      const card = track?.querySelector(".product");
+      if (!track || !card) return;
+      const gap = Number.parseFloat(getComputedStyle(track).columnGap || "0");
+      const step = card.getBoundingClientRect().width + gap;
+      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+      if (maxScroll <= 0) return;
+      const next =
+        scroller.scrollLeft + step >= maxScroll - 8
+          ? 0
+          : scroller.scrollLeft + step;
+      scroller.scrollTo({ left: next, behavior: "smooth" });
+    };
+
+    const timer = window.setInterval(moveToNextProduct, 3200);
+    return () => window.clearInterval(timer);
+  }, [bestSellerProducts.length]);
   const activeFilterCount =
     (searchQuery.trim() ? 1 : 0) +
     (brand !== "All" ? 1 : 0) +
@@ -429,6 +460,47 @@ function Store({
     if (!plantCategoryDragRef.current.dragged) return;
     event.preventDefault();
     plantCategoryDragRef.current.dragged = false;
+  };
+  const startBestSellerDrag = (event) => {
+    const scroller = bestSellerScrollerRef.current;
+    if (!scroller) return;
+    bestSellerDragRef.current = {
+      active: true,
+      dragged: false,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      scrollLeft: scroller.scrollLeft,
+    };
+    scroller.classList.add("is-dragging");
+    scroller.setPointerCapture?.(event.pointerId);
+  };
+  const moveBestSellerDrag = (event) => {
+    const scroller = bestSellerScrollerRef.current;
+    const drag = bestSellerDragRef.current;
+    if (!scroller || !drag.active) return;
+    const distance = event.clientX - drag.startX;
+    if (Math.abs(distance) > 4) drag.dragged = true;
+    scroller.scrollLeft = drag.scrollLeft - distance;
+  };
+  const endBestSellerDrag = () => {
+    const scroller = bestSellerScrollerRef.current;
+    const drag = bestSellerDragRef.current;
+    if (!scroller || !drag.active) return;
+    scroller.classList.remove("is-dragging");
+    if (drag.pointerId != null) {
+      scroller.releasePointerCapture?.(drag.pointerId);
+    }
+    bestSellerDragRef.current = {
+      ...drag,
+      active: false,
+      pointerId: null,
+    };
+  };
+  const handleBestSellerClick = (event) => {
+    if (!bestSellerDragRef.current.dragged) return;
+    event.preventDefault();
+    event.stopPropagation();
+    bestSellerDragRef.current.dragged = false;
   };
   const footerPages = (settings.footerSections || []).flatMap(
     (section, sectionIndex) =>
@@ -807,7 +879,10 @@ function Store({
     "--card": settings.cardColor,
     "--font": `"${settings.fontFamily}", system-ui, sans-serif`,
     "--hero-h": `${settings.heroHeight}px`,
-    "--product-h": `${settings.productImageHeight}px`,
+    "--product-h": `${Math.min(
+      230,
+      Math.max(170, Number(settings.productImageHeight || 220)),
+    )}px`,
     "--home-header-bg": settings.homeHeaderBg || "#F5F1E8",
     "--topbar-bg": settings.homeTopBarBg || "#0F3D2E",
     "--topbar-text": settings.homeTopBarText || "#FFFFFF",
@@ -927,16 +1002,27 @@ function Store({
                     "اختيارات عليها طلب متكرر ومناسبة للهدايا والمساحات اليومية."}
                 </p>
               </div>
-              <ProductGrid
-                products={bestSellerProducts}
-                go={go}
-                addToCart={addToCart}
-                favorites={favorites}
-                setFavorites={setFavorites}
-                selectedSize={selectedSize}
-                setSelectedSize={setSelectedSize}
-                className="best-sellers-products-grid"
-              />
+              <div
+                ref={bestSellerScrollerRef}
+                className="best-sellers-strip"
+                onPointerDown={startBestSellerDrag}
+                onPointerMove={moveBestSellerDrag}
+                onPointerUp={endBestSellerDrag}
+                onPointerCancel={endBestSellerDrag}
+                onPointerLeave={endBestSellerDrag}
+                onClickCapture={handleBestSellerClick}
+              >
+                <ProductGrid
+                  products={bestSellerProducts}
+                  go={go}
+                  addToCart={addToCart}
+                  favorites={favorites}
+                  setFavorites={setFavorites}
+                  selectedSize={selectedSize}
+                  setSelectedSize={setSelectedSize}
+                  className="best-sellers-products-grid"
+                />
+              </div>
             </section>
           ) : null}
 
