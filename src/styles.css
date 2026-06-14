@@ -1617,6 +1617,7 @@ a {
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
   scroll-snap-type: inline mandatory;
+  direction: ltr;
   padding: 0 2px 18px;
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 61, 46, 0.32) transparent;
@@ -1646,6 +1647,7 @@ a {
 }
 .plant-category-card {
   position: relative;
+  direction: rtl;
   min-height: 250px;
   border-radius: 34px;
   overflow: hidden;
