@@ -259,6 +259,15 @@ function Store({
     bestSellerProducts.length > 1
       ? [...bestSellerProducts, ...bestSellerProducts]
       : bestSellerProducts;
+  const hasBestSellersTitle = Object.prototype.hasOwnProperty.call(
+    settings,
+    "homeBestSellersTitle",
+  );
+  const bestSellersTitle = (
+    hasBestSellersTitle
+      ? String(settings.homeBestSellersTitle || "")
+      : "منتجات الأكثر طلبًا"
+  ).trim();
   useEffect(() => {
     const scroller = bestSellerScrollerRef.current;
     if (!scroller || bestSellerProducts.length <= 1) return undefined;
@@ -618,6 +627,42 @@ function Store({
     event.preventDefault();
     event.stopPropagation();
     bestSellerDragRef.current.dragged = false;
+  };
+  const moveBestSellerCarousel = (direction) => {
+    const scroller = bestSellerScrollerRef.current;
+    if (!scroller) return;
+    const track = scroller.querySelector(".best-sellers-products-grid");
+    const card = scroller.querySelector(".product");
+    if (!track || !card) return;
+
+    const gap =
+      Number.parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+    const step = card.getBoundingClientRect().width + gap;
+    const loopWidth = bestSellerProducts.length > 1 ? track.scrollWidth / 2 : 0;
+    if (!step) return;
+
+    if (direction === "right") {
+      if (loopWidth && scroller.scrollLeft <= step + 4) {
+        scroller.scrollLeft += loopWidth;
+      }
+      scroller.scrollTo({
+        left: scroller.scrollLeft - step,
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    if (
+      loopWidth &&
+      scroller.scrollLeft + step >=
+        loopWidth * 2 - scroller.clientWidth - 4
+    ) {
+      scroller.scrollLeft -= loopWidth;
+    }
+    scroller.scrollTo({
+      left: scroller.scrollLeft + step,
+      behavior: "smooth",
+    });
   };
   const footerPages = (settings.footerSections || []).flatMap(
     (section, sectionIndex) =>
@@ -1123,15 +1168,29 @@ function Store({
 
           {bestSellerProducts.length ? (
             <section className="container best-sellers-section">
-              <div className="section-title">
-                <span>Most Requested</span>
-                <h2>
-                  {settings.homeBestSellersTitle || "منتجات الأكثر طلبًا"}
-                </h2>
-                <p className="home-section-desc">
-                  {settings.homeBestSellersDesc ||
-                    "اختيارات عليها طلب متكرر ومناسبة للهدايا والمساحات اليومية."}
-                </p>
+              <div className="plant-section-head best-sellers-head">
+                <div>
+                  {bestSellersTitle ? <h2>{bestSellersTitle}</h2> : null}
+                </div>
+                <div
+                  className="plant-section-arrows"
+                  aria-label="تحريك منتجات الأكثر طلبًا"
+                >
+                  <button
+                    type="button"
+                    onClick={() => moveBestSellerCarousel("right")}
+                    aria-label="تحريك المنتجات يمين"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveBestSellerCarousel("left")}
+                    aria-label="تحريك المنتجات يسار"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                </div>
               </div>
               <div
                 ref={bestSellerScrollerRef}

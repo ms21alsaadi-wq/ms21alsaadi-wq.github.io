@@ -2009,9 +2009,8 @@ h3,
 .best-sellers-section {
   padding: 14px 0 34px;
 }
-.best-sellers-section .section-title {
-  text-align: center;
-  margin-bottom: 24px;
+.best-sellers-head {
+  margin-bottom: 20px;
 }
 .best-sellers-strip {
   overflow-x: hidden;

@@ -33,6 +33,13 @@ export const themeSections = [
     plantCategoriesExtra: true,
   },
   {
+    id: "best-sellers",
+    label: "الأكثر طلبًا",
+    titleKey: "homeBestSellersTitle",
+    descKey: "",
+    imageKey: "",
+  },
+  {
     id: "care",
     label: "شريط العناية",
     titleKey: "homeCareTitle",
