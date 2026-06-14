@@ -5,7 +5,6 @@ import {
   Heart,
   Headphones,
   RotateCcw,
-  Search,
   ShieldCheck,
   Sparkles,
   Star,
@@ -57,8 +56,6 @@ function Store({
   go,
   path,
 }) {
-  const [brand, setBrand] = useState("All");
-  const [category, setCategory] = useState("All");
   const [cart, setCart] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("green-dixam-cart") || "[]");
@@ -227,29 +224,10 @@ function Store({
     } catch {}
   }, [siteLang]);
 
-  const brands = [
-    "All",
-    ...new Set(products.map((p) => p.brand).filter(Boolean)),
-  ];
-  const categories = [
-    "All",
-    ...new Set(products.map((p) => p.category).filter(Boolean)),
-  ];
-  const filtered = useMemo(
+  const visibleProducts = useMemo(
     () =>
-      products
-        .filter((p) => (p.status || "active") !== "hidden")
-        .filter((p) => {
-          const q = searchQuery.toLowerCase().trim();
-          const searchable =
-            `${p.name || ""} ${p.brand || ""} ${p.category || ""} ${p.description || ""}`.toLowerCase();
-          return (
-            (!q || searchable.includes(q)) &&
-            (brand === "All" || p.brand === brand) &&
-            (category === "All" || p.category === category)
-          );
-        }),
-    [products, searchQuery, brand, category],
+      products.filter((product) => (product.status || "active") !== "hidden"),
+    [products],
   );
   const bestSellerProducts = useMemo(() => {
     const orderCounts = new Map();
@@ -336,12 +314,6 @@ function Store({
       resizeObserver?.disconnect();
     };
   }, [bestSellerProducts.length]);
-  const activeFilterCount =
-    (searchQuery.trim() ? 1 : 0) +
-    (brand !== "All" ? 1 : 0) +
-    (category !== "All" ? 1 : 0);
-  const hasActiveFilters = activeFilterCount > 0;
-
   const cartCount = cart.reduce((n, i) => n + Number(i.qty || 0), 0);
   const subtotal = cart.reduce(
     (n, i) => n + Number(i.qty || 0) * Number(i.price || 0),
@@ -702,12 +674,6 @@ function Store({
     setAppliedCoupon(null);
     setCouponCode("");
     setCouponMessage("");
-  }
-
-  function resetStoreFilters() {
-    setSearchQuery("");
-    setBrand("All");
-    setCategory("All");
   }
 
   function hasManagedStock(product) {
@@ -1172,64 +1138,10 @@ function Store({
             </div>
           </section>
 
-          <section className="container filters">
-            <div className="search-box">
-              <Search size={18} />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ابحث عن منتج أو براند..."
-              />
-            </div>
-            <select value={brand} onChange={(e) => setBrand(e.target.value)}>
-              {brands.map((b) => (
-                <option key={b} value={b}>
-                  {b === "All" ? "كل النوع/الموردات" : b}
-                </option>
-              ))}
-            </select>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c === "All" ? "كل النباتات" : c}
-                </option>
-              ))}
-            </select>
-            <button
-              className="store-filter-reset"
-              type="button"
-              disabled={!hasActiveFilters}
-              onClick={resetStoreFilters}
-            >
-              مسح الفلاتر
-            </button>
-          </section>
           <section id="products" className="container product-section">
-            <div className="section-title">
-              <span>Rare Catalogue</span>
-              <h2>
-                {settings.homeProductsTitle ||
-                  "نباتات نادرة ومنتجات فاخرة مختارة بعناية"}
-              </h2>
-              <p className="home-section-desc">
-                {settings.homeProductsDesc ||
-                  "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}
-              </p>
-            </div>
-            <div className="store-results-bar">
-              <b>{filtered.length} منتج</b>
-              <span>
-                {hasActiveFilters
-                  ? "هذه النتائج حسب البحث والفلاتر المختارة."
-                  : "كل المنتجات الظاهرة في المتجر."}
-              </span>
-            </div>
-            {filtered.length ? (
+            {visibleProducts.length ? (
               <ProductGrid
-                products={filtered}
+                products={visibleProducts}
                 go={go}
                 addToCart={addToCart}
                 favorites={favorites}
@@ -1239,11 +1151,8 @@ function Store({
               />
             ) : (
               <div className="store-products-empty">
-                <b>ما لقينا منتجات مطابقة</b>
-                <span>جرّب كلمة بحث مختلفة أو امسح الفلاتر الحالية.</span>
-                <button type="button" onClick={resetStoreFilters}>
-                  عرض كل المنتجات
-                </button>
+                <b>لا توجد منتجات ظاهرة حالياً</b>
+                <span>أضف منتجات أو فعّل ظهور المنتجات من لوحة التحكم.</span>
               </div>
             )}
           </section>
