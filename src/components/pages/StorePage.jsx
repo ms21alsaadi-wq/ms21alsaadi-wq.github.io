@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
   CreditCard,
   Gift,
   Heart,
@@ -431,6 +433,8 @@ function Store({
   const visiblePlantCategories = plantCategoriesAutoplay
     ? [...plantCategories, ...plantCategories]
     : plantCategories;
+  const plantCategoriesTitle =
+    String(settings.homePlantSectionsTitle || "").trim() || "اختر طابعك الأخضر";
   useEffect(() => {
     const scroller = plantCategoryScrollerRef.current;
     if (!scroller || !plantCategoriesAutoplay) return undefined;
@@ -530,6 +534,42 @@ function Store({
     if (!plantCategoryDragRef.current.dragged) return;
     event.preventDefault();
     plantCategoryDragRef.current.dragged = false;
+  };
+  const movePlantCategoryCarousel = (direction) => {
+    const scroller = plantCategoryScrollerRef.current;
+    if (!scroller) return;
+    const track = scroller.querySelector(".plant-category-track");
+    const card = scroller.querySelector(".plant-category-card");
+    if (!track || !card) return;
+
+    const gap =
+      Number.parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+    const step = card.getBoundingClientRect().width + gap;
+    const loopWidth = plantCategoriesAutoplay ? track.scrollWidth / 2 : 0;
+    if (!step) return;
+
+    if (direction === "right") {
+      if (loopWidth && scroller.scrollLeft <= step + 4) {
+        scroller.scrollLeft += loopWidth;
+      }
+      scroller.scrollTo({
+        left: scroller.scrollLeft - step,
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    if (
+      loopWidth &&
+      scroller.scrollLeft + step >=
+        loopWidth * 2 - scroller.clientWidth - 4
+    ) {
+      scroller.scrollLeft -= loopWidth;
+    }
+    scroller.scrollTo({
+      left: scroller.scrollLeft + step,
+      behavior: "smooth",
+    });
   };
   const startBestSellerDrag = (event) => {
     const scroller = bestSellerScrollerRef.current;
@@ -1002,9 +1042,29 @@ function Store({
           <HeroSection settings={settings} />
 
           <section className="container plant-categories">
-            <div className="section-title">
-              <span>Brand Essence</span>
-              <h2>{settings.homePlantSectionsTitle || "اختر طابعك الأخضر"}</h2>
+            <div className="plant-section-head">
+              <div>
+                <h2>{plantCategoriesTitle}</h2>
+              </div>
+              <div
+                className="plant-section-arrows"
+                aria-label="تحريك أقسام النباتات"
+              >
+                <button
+                  type="button"
+                  onClick={() => movePlantCategoryCarousel("right")}
+                  aria-label="تحريك الأقسام يمين"
+                >
+                  <ChevronRight size={22} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => movePlantCategoryCarousel("left")}
+                  aria-label="تحريك الأقسام يسار"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+              </div>
             </div>
 
             <div

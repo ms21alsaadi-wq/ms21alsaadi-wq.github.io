@@ -1529,6 +1529,48 @@ a {
 .plant-categories {
   padding: 24px 0 36px;
 }
+.plant-section-head {
+  direction: rtl;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.plant-section-head h2 {
+  margin: 0;
+  color: #183d28;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.15;
+  font-weight: 900;
+}
+.plant-section-arrows {
+  direction: ltr;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.plant-section-arrows button {
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(194, 169, 104, 0.35);
+  border-radius: 50%;
+  background: rgba(255, 254, 248, 0.92);
+  color: #183d28;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px rgba(31, 77, 43, 0.08);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+.plant-section-arrows button:hover {
+  background: #183d28;
+  color: #fff;
+  transform: translateY(-2px);
+}
 .plant-category-grid {
   display: block;
   overflow-x: auto;
@@ -1649,6 +1691,13 @@ a {
   .care-strip,
   .care-items {
     grid-template-columns: 1fr;
+  }
+  .plant-section-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .plant-section-head h2 {
+    font-size: 30px;
   }
   .plant-category-grid {
     padding-bottom: 16px;
