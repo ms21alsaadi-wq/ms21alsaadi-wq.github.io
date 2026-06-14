@@ -11,6 +11,7 @@ export default function HomepagePanel({
   themeSections,
   updateDraft,
   uploadSettingImage,
+  products = [],
 }) {
   const [footerEditor, setFooterEditor] = useState(null);
   const editorRef = useRef(null);
@@ -87,6 +88,18 @@ export default function HomepagePanel({
       fallbackIcon: "rotate",
     },
   ];
+  const careProductIds = Array.isArray(draftSettings.homeCareProductIds)
+    ? draftSettings.homeCareProductIds
+    : [];
+  const availableCareProducts = products.filter(
+    (product) => (product.status || "active") !== "hidden",
+  );
+  const toggleCareProduct = (productId) => {
+    const next = careProductIds.includes(productId)
+      ? careProductIds.filter((id) => id !== productId)
+      : [...careProductIds, productId];
+    updateDraft("homeCareProductIds", next);
+  };
   const defaultPlantCategories = [
     {
       title: "نباتات داخلية",
@@ -387,6 +400,50 @@ export default function HomepagePanel({
                       >
                         إضافة قسم
                       </button>
+                    </div>
+                  )}
+
+                  {section.careExtra && (
+                    <div className="care-products-admin-editor">
+                      <div className="plant-categories-admin-head">
+                        <strong>منتجات شريط العناية</strong>
+                        <span>{careProductIds.length} محدد</span>
+                      </div>
+                      <Control label="عنوان منتجات العناية">
+                        <input
+                          value={draftSettings.homeCareProductsTitle || ""}
+                          onChange={(e) =>
+                            updateDraft("homeCareProductsTitle", e.target.value)
+                          }
+                          placeholder="مثال: منتجات العناية"
+                        />
+                      </Control>
+                      <div className="care-products-admin-list">
+                        {availableCareProducts.length ? (
+                          availableCareProducts.map((product) => (
+                            <label
+                              className="care-product-admin-row"
+                              key={product.id}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={careProductIds.includes(product.id)}
+                                onChange={() => toggleCareProduct(product.id)}
+                              />
+                              {product.image ? (
+                                <img src={product.image} alt={product.name} />
+                              ) : (
+                                <span />
+                              )}
+                              <b>{product.name || "منتج بدون اسم"}</b>
+                            </label>
+                          ))
+                        ) : (
+                          <p className="admin-muted">
+                            أضيفي منتجات أولاً عشان تختاريها هنا.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
 

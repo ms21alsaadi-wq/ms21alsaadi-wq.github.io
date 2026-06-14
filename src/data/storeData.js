@@ -102,6 +102,8 @@ export const defaultSettings = {
   homeCareDesc:
     "اختر الإضاءة المناسبة، اسقِ النبات بدون إفراط، واستخدم أصيص بتصريف جيد.",
   homeCareImage: "",
+  homeCareProductsTitle: "منتجات العناية",
+  homeCareProductIds: [],
 
   homeOfferTitle: "عرض الإطلاق",
   homeOfferDesc: "استخدم كوبون GREEN10 واحصل على خصم خاص على أول طلب.",

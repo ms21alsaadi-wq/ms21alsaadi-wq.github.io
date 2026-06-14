@@ -77,6 +77,7 @@ function Store({
   const [selectedPaymentId, setSelectedPaymentId] = useState("");
   const plantCategoryScrollerRef = useRef(null);
   const bestSellerScrollerRef = useRef(null);
+  const careProductsScrollerRef = useRef(null);
   const plantCategoryDragRef = useRef({
     active: false,
     dragged: false,
@@ -85,6 +86,13 @@ function Store({
     scrollLeft: 0,
   });
   const bestSellerDragRef = useRef({
+    active: false,
+    dragged: false,
+    pointerId: null,
+    startX: 0,
+    scrollLeft: 0,
+  });
+  const careProductsDragRef = useRef({
     active: false,
     dragged: false,
     pointerId: null,
@@ -268,6 +276,23 @@ function Store({
       ? String(settings.homeBestSellersTitle || "")
       : "منتجات الأكثر طلبًا"
   ).trim();
+  const careProductIds = Array.isArray(settings.homeCareProductIds)
+    ? settings.homeCareProductIds
+    : [];
+  const careProducts = careProductIds
+    .map((id) => visibleProducts.find((product) => product.id === id))
+    .filter(Boolean);
+  const careLoopProducts =
+    careProducts.length > 1 ? [...careProducts, ...careProducts] : careProducts;
+  const hasCareProductsTitle = Object.prototype.hasOwnProperty.call(
+    settings,
+    "homeCareProductsTitle",
+  );
+  const careProductsTitle = (
+    hasCareProductsTitle
+      ? String(settings.homeCareProductsTitle || "")
+      : "منتجات العناية"
+  ).trim();
   useEffect(() => {
     const scroller = bestSellerScrollerRef.current;
     if (!scroller || bestSellerProducts.length <= 1) return undefined;
@@ -325,6 +350,63 @@ function Store({
       resizeObserver?.disconnect();
     };
   }, [bestSellerProducts.length]);
+  useEffect(() => {
+    const scroller = careProductsScrollerRef.current;
+    if (!scroller || careProducts.length <= 1) return undefined;
+
+    let timer = 0;
+    let resizeObserver;
+
+    const getTrack = () => scroller.querySelector(".care-products-grid");
+    const getCard = () => scroller.querySelector(".product");
+    const getGap = (track) =>
+      Number.parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+
+    const syncCarouselMetrics = () => {
+      const track = getTrack();
+      if (!track) return;
+      const gap = getGap(track);
+      const cardWidth = Math.max(170, (scroller.clientWidth - gap * 4) / 5);
+      scroller.style.setProperty("--best-seller-card-width", `${cardWidth}px`);
+
+      window.requestAnimationFrame(() => {
+        const loopWidth = track.scrollWidth / 2;
+        if (loopWidth > 0 && scroller.scrollLeft < 4) {
+          scroller.scrollLeft = loopWidth;
+        }
+      });
+    };
+
+    const moveOneProductRight = () => {
+      if (careProductsDragRef.current.active) return;
+      const track = getTrack();
+      const card = getCard();
+      if (!track || !card) return;
+      const gap = getGap(track);
+      const step = card.getBoundingClientRect().width + gap;
+      const loopWidth = track.scrollWidth / 2;
+      if (!step || !loopWidth) return;
+
+      if (scroller.scrollLeft <= step + 4) {
+        scroller.scrollLeft += loopWidth;
+      }
+
+      scroller.scrollTo({
+        left: scroller.scrollLeft - step,
+        behavior: "smooth",
+      });
+    };
+
+    syncCarouselMetrics();
+    resizeObserver = new ResizeObserver(syncCarouselMetrics);
+    resizeObserver.observe(scroller);
+    timer = window.setInterval(moveOneProductRight, 3000);
+
+    return () => {
+      window.clearInterval(timer);
+      resizeObserver?.disconnect();
+    };
+  }, [careProducts.length]);
   const cartCount = cart.reduce((n, i) => n + Number(i.qty || 0), 0);
   const subtotal = cart.reduce(
     (n, i) => n + Number(i.qty || 0) * Number(i.price || 0),
@@ -628,6 +710,47 @@ function Store({
     event.stopPropagation();
     bestSellerDragRef.current.dragged = false;
   };
+  const startCareProductsDrag = (event) => {
+    const scroller = careProductsScrollerRef.current;
+    if (!scroller) return;
+    careProductsDragRef.current = {
+      active: true,
+      dragged: false,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      scrollLeft: scroller.scrollLeft,
+    };
+    scroller.classList.add("is-dragging");
+    scroller.setPointerCapture?.(event.pointerId);
+  };
+  const moveCareProductsDrag = (event) => {
+    const scroller = careProductsScrollerRef.current;
+    const drag = careProductsDragRef.current;
+    if (!scroller || !drag.active) return;
+    const distance = event.clientX - drag.startX;
+    if (Math.abs(distance) > 4) drag.dragged = true;
+    scroller.scrollLeft = drag.scrollLeft - distance;
+  };
+  const endCareProductsDrag = () => {
+    const scroller = careProductsScrollerRef.current;
+    const drag = careProductsDragRef.current;
+    if (!scroller || !drag.active) return;
+    scroller.classList.remove("is-dragging");
+    if (drag.pointerId != null) {
+      scroller.releasePointerCapture?.(drag.pointerId);
+    }
+    careProductsDragRef.current = {
+      ...drag,
+      active: false,
+      pointerId: null,
+    };
+  };
+  const handleCareProductsClick = (event) => {
+    if (!careProductsDragRef.current.dragged) return;
+    event.preventDefault();
+    event.stopPropagation();
+    careProductsDragRef.current.dragged = false;
+  };
   const moveBestSellerCarousel = (direction) => {
     const scroller = bestSellerScrollerRef.current;
     if (!scroller) return;
@@ -639,6 +762,42 @@ function Store({
       Number.parseFloat(getComputedStyle(track).columnGap || "0") || 0;
     const step = card.getBoundingClientRect().width + gap;
     const loopWidth = bestSellerProducts.length > 1 ? track.scrollWidth / 2 : 0;
+    if (!step) return;
+
+    if (direction === "right") {
+      if (loopWidth && scroller.scrollLeft <= step + 4) {
+        scroller.scrollLeft += loopWidth;
+      }
+      scroller.scrollTo({
+        left: scroller.scrollLeft - step,
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    if (
+      loopWidth &&
+      scroller.scrollLeft + step >=
+        loopWidth * 2 - scroller.clientWidth - 4
+    ) {
+      scroller.scrollLeft -= loopWidth;
+    }
+    scroller.scrollTo({
+      left: scroller.scrollLeft + step,
+      behavior: "smooth",
+    });
+  };
+  const moveCareProductsCarousel = (direction) => {
+    const scroller = careProductsScrollerRef.current;
+    if (!scroller) return;
+    const track = scroller.querySelector(".care-products-grid");
+    const card = scroller.querySelector(".product");
+    if (!track || !card) return;
+
+    const gap =
+      Number.parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+    const step = card.getBoundingClientRect().width + gap;
+    const loopWidth = careProducts.length > 1 ? track.scrollWidth / 2 : 0;
     if (!step) return;
 
     if (direction === "right") {
@@ -1247,6 +1406,56 @@ function Store({
               </div>
             </div>
           </section>
+
+          {careProducts.length ? (
+            <section className="container best-sellers-section care-products-section">
+              <div className="plant-section-head best-sellers-head">
+                <div>
+                  {careProductsTitle ? <h2>{careProductsTitle}</h2> : null}
+                </div>
+                <div
+                  className="plant-section-arrows"
+                  aria-label="تحريك منتجات العناية"
+                >
+                  <button
+                    type="button"
+                    onClick={() => moveCareProductsCarousel("right")}
+                    aria-label="تحريك منتجات العناية يمين"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveCareProductsCarousel("left")}
+                    aria-label="تحريك منتجات العناية يسار"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                </div>
+              </div>
+              <div
+                ref={careProductsScrollerRef}
+                className="best-sellers-strip care-products-strip"
+                onPointerDown={startCareProductsDrag}
+                onPointerMove={moveCareProductsDrag}
+                onPointerUp={endCareProductsDrag}
+                onPointerCancel={endCareProductsDrag}
+                onPointerLeave={endCareProductsDrag}
+                onClickCapture={handleCareProductsClick}
+              >
+                <ProductGrid
+                  products={careLoopProducts}
+                  go={go}
+                  addToCart={addToCart}
+                  favorites={favorites}
+                  setFavorites={setFavorites}
+                  selectedSize={selectedSize}
+                  setSelectedSize={setSelectedSize}
+                  className="best-sellers-products-grid care-products-grid"
+                />
+              </div>
+            </section>
+          ) : null}
 
           <section
             className="container promo"

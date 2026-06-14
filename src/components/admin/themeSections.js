@@ -45,6 +45,7 @@ export const themeSections = [
     titleKey: "homeCareTitle",
     descKey: "homeCareDesc",
     imageKey: "homeCareImage",
+    careExtra: true,
   },
   {
     id: "offer",

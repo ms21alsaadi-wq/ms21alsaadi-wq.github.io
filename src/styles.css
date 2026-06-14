@@ -5750,6 +5750,49 @@ h3,
 .plant-category-admin-card button {
   align-self: end;
 }
+.care-products-admin-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+}
+.care-products-admin-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 340px;
+  overflow: auto;
+  padding: 4px;
+}
+.care-product-admin-row {
+  display: grid;
+  grid-template-columns: auto 52px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #fffdf7;
+  border: 1px solid rgba(194, 169, 104, 0.24);
+  color: #0f3d2e;
+  font-weight: 900;
+}
+.care-product-admin-row img,
+.care-product-admin-row span {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #eef3e7;
+}
+.care-product-admin-row b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-muted {
+  color: #6b705f;
+  font-weight: 800;
+  margin: 0;
+}
 .home-section-desc {
   color: #6b705f !important;
   font-weight: 800 !important;

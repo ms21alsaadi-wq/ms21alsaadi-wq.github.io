@@ -1631,6 +1631,7 @@ function Admin({
             themeSections={themeSections}
             updateDraft={updateDraft}
             uploadSettingImage={uploadSettingImage}
+            products={products}
           />
         )}
 
