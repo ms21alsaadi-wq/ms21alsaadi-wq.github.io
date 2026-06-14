@@ -433,8 +433,15 @@ function Store({
   const visiblePlantCategories = plantCategoriesAutoplay
     ? [...plantCategories, ...plantCategories]
     : plantCategories;
+  const hasPlantCategoriesTitle = Object.prototype.hasOwnProperty.call(
+    settings,
+    "homePlantSectionsTitle",
+  );
   const plantCategoriesTitle =
-    String(settings.homePlantSectionsTitle || "").trim() || "اختر طابعك الأخضر";
+    (hasPlantCategoriesTitle
+      ? String(settings.homePlantSectionsTitle || "")
+      : "اختر طابعك الأخضر"
+    ).trim();
   useEffect(() => {
     const scroller = plantCategoryScrollerRef.current;
     if (!scroller || !plantCategoriesAutoplay) return undefined;
@@ -1044,7 +1051,7 @@ function Store({
           <section className="container plant-categories">
             <div className="plant-section-head">
               <div>
-                <h2>{plantCategoriesTitle}</h2>
+                {plantCategoriesTitle ? <h2>{plantCategoriesTitle}</h2> : null}
               </div>
               <div
                 className="plant-section-arrows"
@@ -1055,14 +1062,14 @@ function Store({
                   onClick={() => movePlantCategoryCarousel("right")}
                   aria-label="تحريك الأقسام يمين"
                 >
-                  <ChevronRight size={22} />
+                  <ChevronRight size={18} />
                 </button>
                 <button
                   type="button"
                   onClick={() => movePlantCategoryCarousel("left")}
                   aria-label="تحريك الأقسام يسار"
                 >
-                  <ChevronLeft size={22} />
+                  <ChevronLeft size={18} />
                 </button>
               </div>
             </div>

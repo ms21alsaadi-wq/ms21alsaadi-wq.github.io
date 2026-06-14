@@ -1534,13 +1534,13 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 22px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 .plant-section-head h2 {
   margin: 0;
   color: #183d28;
-  font-size: clamp(30px, 3vw, 44px);
+  font-size: clamp(24px, 2.4vw, 34px);
   line-height: 1.15;
   font-weight: 900;
 }
@@ -1548,11 +1548,11 @@ a {
   direction: ltr;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 .plant-section-arrows button {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border: 1px solid rgba(194, 169, 104, 0.35);
   border-radius: 50%;
   background: rgba(255, 254, 248, 0.92);
@@ -1697,7 +1697,7 @@ a {
     flex-direction: column;
   }
   .plant-section-head h2 {
-    font-size: 30px;
+    font-size: 24px;
   }
   .plant-category-grid {
     padding-bottom: 16px;
