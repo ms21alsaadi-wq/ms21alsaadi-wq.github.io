@@ -1630,26 +1630,19 @@ a {
 .plant-category-track {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(280px, 360px);
+  grid-auto-columns: var(--plant-category-card-width, 360px);
   grid-template-columns: none;
   gap: 18px;
   width: max-content;
   min-width: 100%;
 }
 .plant-category-grid-auto {
-  overflow-x: auto;
+  overflow-x: hidden;
   padding-bottom: 18px;
   scrollbar-width: none;
 }
 .plant-category-grid-auto::-webkit-scrollbar {
   display: none;
-}
-.plant-category-grid-auto .plant-category-track {
-  animation: plantCategoryAutoScroll 52s linear infinite;
-}
-.plant-category-grid-auto:hover .plant-category-track,
-.plant-category-grid.is-dragging .plant-category-track {
-  animation-play-state: paused;
 }
 .plant-category-card {
   position: relative;
@@ -1685,14 +1678,6 @@ a {
   font-size: 26px;
   font-weight: 900;
   margin: 0;
-}
-@keyframes plantCategoryAutoScroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(50%);
-  }
 }
 .care-strip {
   margin: 12px auto 34px;
@@ -1749,7 +1734,7 @@ a {
     padding-bottom: 16px;
   }
   .plant-category-track {
-    grid-auto-columns: minmax(240px, 82vw);
+    grid-auto-columns: var(--plant-category-card-width, 82vw);
   }
   .plant-category-card {
     min-height: 220px;

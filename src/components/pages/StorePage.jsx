@@ -459,6 +459,66 @@ function Store({
   const visiblePlantCategories = plantCategoriesAutoplay
     ? [...plantCategories, ...plantCategories]
     : plantCategories;
+  useEffect(() => {
+    const scroller = plantCategoryScrollerRef.current;
+    if (!scroller || !plantCategoriesAutoplay) return undefined;
+
+    let timer = 0;
+    let resizeObserver;
+
+    const getTrack = () => scroller.querySelector(".plant-category-track");
+    const getCard = () => scroller.querySelector(".plant-category-card");
+    const getGap = (track) =>
+      Number.parseFloat(getComputedStyle(track).columnGap || "0") || 0;
+
+    const syncCarouselMetrics = () => {
+      const track = getTrack();
+      if (!track) return;
+      const gap = getGap(track);
+      const cardWidth = Math.max(220, (scroller.clientWidth - gap * 2) / 3);
+      scroller.style.setProperty(
+        "--plant-category-card-width",
+        `${cardWidth}px`,
+      );
+
+      window.requestAnimationFrame(() => {
+        const loopWidth = track.scrollWidth / 2;
+        if (loopWidth > 0 && scroller.scrollLeft < 4) {
+          scroller.scrollLeft = loopWidth;
+        }
+      });
+    };
+
+    const moveOneCategoryRight = () => {
+      if (plantCategoryDragRef.current.active) return;
+      const track = getTrack();
+      const card = getCard();
+      if (!track || !card) return;
+      const gap = getGap(track);
+      const step = card.getBoundingClientRect().width + gap;
+      const loopWidth = track.scrollWidth / 2;
+      if (!step || !loopWidth) return;
+
+      if (scroller.scrollLeft <= step + 4) {
+        scroller.scrollLeft += loopWidth;
+      }
+
+      scroller.scrollTo({
+        left: scroller.scrollLeft - step,
+        behavior: "smooth",
+      });
+    };
+
+    syncCarouselMetrics();
+    resizeObserver = new ResizeObserver(syncCarouselMetrics);
+    resizeObserver.observe(scroller);
+    timer = window.setInterval(moveOneCategoryRight, 3000);
+
+    return () => {
+      window.clearInterval(timer);
+      resizeObserver?.disconnect();
+    };
+  }, [plantCategoriesAutoplay, plantCategories.length]);
   const startPlantCategoryDrag = (event) => {
     const scroller = plantCategoryScrollerRef.current;
     if (!scroller) return;
