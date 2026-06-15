@@ -1,17 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  CreditCard,
-  Gift,
-  Heart,
-  Headphones,
-  RotateCcw,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  Truck,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addDoc, collection, doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase.js";
 import { STORE_WHATSAPP } from "../../data/storeData.js";
@@ -29,23 +17,10 @@ import Navbar from "../common/Navbar.jsx";
 import Footer from "../common/Footer.jsx";
 import CartDrawer from "../common/CartDrawer.jsx";
 import HeroSection from "../common/HeroSection.jsx";
-import Feature from "../common/Feature.jsx";
 import ProductDetailPage from "../products/ProductDetailPage.jsx";
 import ProductGrid from "../products/ProductGrid.jsx";
 import Account from "./AccountPage.jsx";
 import StoreCustomPage from "./StoreCustomPage.jsx";
-
-const featureIconMap = {
-  truck: Truck,
-  shield: ShieldCheck,
-  rotate: RotateCcw,
-  star: Star,
-  heart: Heart,
-  gift: Gift,
-  card: CreditCard,
-  support: Headphones,
-  sparkles: Sparkles,
-};
 
 function Store({
   settings,
@@ -200,34 +175,6 @@ function Store({
   });
 
   const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const renderFeatureIcon = (iconName, fallbackName) => {
-    const Icon = featureIconMap[iconName] || featureIconMap[fallbackName] || Truck;
-    return <Icon />;
-  };
-  const featureCards = [
-    {
-      icon: renderFeatureIcon(settings.homeFeatureOneIcon, "truck"),
-      title: settings.homeFeatureOneTitle || "توصيل سريع",
-      text:
-        settings.homeFeatureOneText ||
-        "تغليف فاخر للنباتات مع تغليف يحافظ عليها.",
-    },
-    {
-      icon: renderFeatureIcon(settings.homeFeatureTwoIcon, "shield"),
-      title: settings.homeFeatureTwoTitle || "حسابات عملاء",
-      text:
-        settings.homeFeatureTwoText ||
-        "يحفظ بياناته وطلباته لتجربة أسهل.",
-    },
-    {
-      icon: renderFeatureIcon(settings.homeFeatureThreeIcon, "rotate"),
-      title: settings.homeFeatureThreeTitle || "طلبات منظمة",
-      text:
-        settings.homeFeatureThreeText ||
-        "كل طلب محفوظ ومنظم داخل لوحة التحكم.",
-    },
-  ];
-
   useEffect(() => {
     try {
       localStorage.setItem("green-dixam-lang", siteLang);
@@ -239,6 +186,7 @@ function Store({
       products.filter((product) => (product.status || "active") !== "hidden"),
     [products],
   );
+  const homeProducts = visibleProducts.slice(0, 10);
   const bestSellerProducts = useMemo(() => {
     const orderCounts = new Map();
     (orders || []).forEach((order) => {
@@ -1478,42 +1426,41 @@ function Store({
 
           <section id="products" className="container product-section">
             {visibleProducts.length ? (
-              <ProductGrid
-                products={visibleProducts}
-                go={go}
-                addToCart={addToCart}
-                favorites={favorites}
-                setFavorites={setFavorites}
-                selectedSize={selectedSize}
-                setSelectedSize={setSelectedSize}
-              />
+              <>
+                <div className="products-section-head">
+                  <div>
+                    <h2>
+                      {settings.homeProductsTitle ||
+                        "نباتات نادرة ومنتجات فاخرة مختارة بعناية"}
+                    </h2>
+                    <p>
+                      {settings.homeProductsDesc ||
+                        "منتجات مختارة بعناية لتناسب المنزل والمكتب والهدايا."}
+                    </p>
+                  </div>
+                  {visibleProducts.length > homeProducts.length ? (
+                    <button type="button" onClick={() => go("/page/products")}>
+                      عرض الكل
+                    </button>
+                  ) : null}
+                </div>
+                <ProductGrid
+                  products={homeProducts}
+                  go={go}
+                  addToCart={addToCart}
+                  favorites={favorites}
+                  setFavorites={setFavorites}
+                  selectedSize={selectedSize}
+                  setSelectedSize={setSelectedSize}
+                  className="home-products-grid"
+                />
+              </>
             ) : (
               <div className="store-products-empty">
                 <b>لا توجد منتجات ظاهرة حالياً</b>
                 <span>أضف منتجات أو فعّل ظهور المنتجات من لوحة التحكم.</span>
               </div>
             )}
-          </section>
-
-          <section className="container store-features-section">
-            <div className="section-title">
-              <span>Store Benefits</span>
-              <h2>{settings.homeFeaturesTitle || "مزايا المتجر"}</h2>
-              <p className="home-section-desc">
-                {settings.homeFeaturesDesc ||
-                  "تجربة شراء مرتبة وواضحة من اختيار المنتج حتى متابعة الطلب."}
-              </p>
-            </div>
-            <div className="feature-grid">
-              {featureCards.map((feature) => (
-                <Feature
-                  key={feature.title}
-                  icon={feature.icon}
-                  title={feature.title}
-                  text={feature.text}
-                />
-              ))}
-            </div>
           </section>
         </>
       )}
