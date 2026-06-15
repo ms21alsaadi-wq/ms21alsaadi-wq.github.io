@@ -279,9 +279,13 @@ function Store({
   const careProductIds = Array.isArray(settings.homeCareProductIds)
     ? settings.homeCareProductIds
     : [];
-  const careProducts = careProductIds
+  const selectedCareProducts = careProductIds
     .map((id) => visibleProducts.find((product) => product.id === id))
     .filter(Boolean);
+  const fallbackCareProducts = visibleProducts.slice(0, 6);
+  const careProducts = selectedCareProducts.length
+    ? selectedCareProducts
+    : fallbackCareProducts;
   const careLoopProducts =
     careProducts.length > 1 ? [...careProducts, ...careProducts] : careProducts;
   const hasCareProductsTitle = Object.prototype.hasOwnProperty.call(

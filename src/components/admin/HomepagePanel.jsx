@@ -409,6 +409,10 @@ export default function HomepagePanel({
                         <strong>منتجات شريط العناية</strong>
                         <span>{careProductIds.length} محدد</span>
                       </div>
+                      <p className="admin-muted">
+                        إذا ما اخترتي منتجات، سيظهر الشريط تلقائيًا من منتجات
+                        المتجر النشطة.
+                      </p>
                       <Control label="عنوان منتجات العناية">
                         <input
                           value={draftSettings.homeCareProductsTitle || ""}
