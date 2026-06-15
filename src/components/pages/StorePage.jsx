@@ -523,8 +523,7 @@ function Store({
   )
     .slice(0, 10)
     .filter((item) => item?.title && item?.image);
-  const plantCategoriesAutoplay =
-    settings.homePlantCategoriesAutoplay !== false && plantCategories.length > 1;
+  const plantCategoriesAutoplay = plantCategories.length > 1;
   const visiblePlantCategories = plantCategoriesAutoplay
     ? [...plantCategories, ...plantCategories]
     : plantCategories;
