@@ -57,6 +57,9 @@ function ProductGrid({
               )}
               {showFavorite && setFavorites && (
                 <button
+                  type="button"
+                  aria-label="إضافة للمفضلة"
+                  aria-pressed={favorites.includes(product.id)}
                   onClick={(event) => {
                     event.stopPropagation();
                     setFavorites((prev) =>

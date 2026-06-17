@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Languages, Search, ShoppingBag, User } from "lucide-react";
+import { Heart, Languages, Search, ShoppingBag, User } from "lucide-react";
 import { normalizePageHref } from "../../utils/helpers.js";
 
 function Navbar({
@@ -13,6 +13,7 @@ function Navbar({
   setLangMenuOpen,
   authUser,
   cartCount,
+  favoritesCount = 0,
   setCartOpen,
   visibleHomePages,
   currentStorePage,
@@ -205,6 +206,16 @@ function Navbar({
               </div>
             )}
           </div>
+
+          <button
+            className="luxe-icon-btn luxe-favorites-icon"
+            aria-label={siteLang === "EN" ? "Favorites" : "المفضلة"}
+            onClick={() => go("/favorites")}
+            title={siteLang === "EN" ? "Favorites" : "المفضلة"}
+          >
+            <Heart size={19} />
+            {favoritesCount > 0 && <span>{favoritesCount}</span>}
+          </button>
 
           <button
             className="luxe-icon-btn"

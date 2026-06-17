@@ -45,7 +45,16 @@ function Store({
   }, [cart]);
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState({});
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("green-dixam-favorites") || "[]");
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem("green-dixam-favorites", JSON.stringify(favorites));
+  }, [favorites]);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
@@ -187,6 +196,9 @@ function Store({
     [products],
   );
   const homeProducts = visibleProducts.slice(0, 10);
+  const favoriteProducts = favorites
+    .map((id) => visibleProducts.find((product) => product.id === id))
+    .filter(Boolean);
   const bestSellerProducts = useMemo(() => {
     const orderCounts = new Map();
     (orders || []).forEach((order) => {
@@ -1181,12 +1193,41 @@ function Store({
         setLangMenuOpen={setLangMenuOpen}
         authUser={authUser}
         cartCount={cartCount}
+        favoritesCount={favorites.length}
         setCartOpen={setCartOpen}
         visibleHomePages={visibleHomePages}
         currentStorePage={currentStorePage}
       />
 
-      {isProductPath ? (
+      {path.startsWith("/favorites") ? (
+        <section className="container favorites-page product-section">
+          <div className="products-section-head">
+            <div>
+              <h2>المفضلة</h2>
+              <p>المنتجات التي حفظتيها تظهر هنا.</p>
+            </div>
+            <button type="button" onClick={() => go("/")}>
+              متابعة التسوق
+            </button>
+          </div>
+          {favoriteProducts.length ? (
+            <ProductGrid
+              products={favoriteProducts}
+              go={go}
+              addToCart={addToCart}
+              favorites={favorites}
+              setFavorites={setFavorites}
+              selectedSize={selectedSize}
+              setSelectedSize={setSelectedSize}
+            />
+          ) : (
+            <div className="store-products-empty">
+              <b>المفضلة فارغة حالياً</b>
+              <span>اضغطي على القلب في أي منتج لحفظه هنا.</span>
+            </div>
+          )}
+        </section>
+      ) : isProductPath ? (
         <ProductDetailPage
           product={currentProduct}
           products={products}
