@@ -687,6 +687,7 @@ function Store({
     };
   };
   const handleBestSellerClick = (event) => {
+    if (event.target.closest(".product-favorite-btn")) return;
     if (!bestSellerDragRef.current.dragged) return;
     event.preventDefault();
     event.stopPropagation();
@@ -728,6 +729,7 @@ function Store({
     };
   };
   const handleCareProductsClick = (event) => {
+    if (event.target.closest(".product-favorite-btn")) return;
     if (!careProductsDragRef.current.dragged) return;
     event.preventDefault();
     event.stopPropagation();
