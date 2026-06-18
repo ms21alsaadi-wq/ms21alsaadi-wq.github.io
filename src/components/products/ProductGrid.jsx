@@ -19,6 +19,7 @@ function ProductGrid({
   return (
     <div className={`products-grid ${className}`.trim()}>
       {products.map((product, index) => {
+        const favoriteKey = productPath(product);
         const sizes = sizesArray(product.sizes);
         const price = Number(product.price || 0);
         const oldPrice = Number(product.oldPrice || 0);
@@ -59,18 +60,18 @@ function ProductGrid({
                 <button
                   type="button"
                   aria-label="إضافة للمفضلة"
-                  aria-pressed={favorites.includes(product.id)}
+                  aria-pressed={favorites.includes(favoriteKey)}
                   onClick={(event) => {
                     event.stopPropagation();
                     setFavorites((prev) =>
-                      prev.includes(product.id)
-                        ? prev.filter((id) => id !== product.id)
-                        : [...prev, product.id],
+                      prev.includes(favoriteKey)
+                        ? prev.filter((id) => id !== favoriteKey)
+                        : [...prev, favoriteKey],
                     );
                   }}
                 >
                   <Heart
-                    className={favorites.includes(product.id) ? "heart-on" : ""}
+                    className={favorites.includes(favoriteKey) ? "heart-on" : ""}
                   />
                 </button>
               )}

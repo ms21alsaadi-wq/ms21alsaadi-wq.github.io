@@ -11,7 +11,7 @@ import {
   normalizePageHref,
   sizesArray,
 } from "../../utils/helpers.js";
-import { findProductByPath } from "../SEOManager.jsx";
+import { findProductByPath, productPath } from "../SEOManager.jsx";
 import { getVisitorGeo, trackFunnelStep } from "../../services/analytics.js";
 import Navbar from "../common/Navbar.jsx";
 import Footer from "../common/Footer.jsx";
@@ -197,8 +197,27 @@ function Store({
   );
   const homeProducts = visibleProducts.slice(0, 10);
   const favoriteProducts = favorites
-    .map((id) => visibleProducts.find((product) => product.id === id))
+    .map((favoriteKey) =>
+      visibleProducts.find(
+        (product) =>
+          productPath(product) === favoriteKey || product.id === favoriteKey,
+      ),
+    )
     .filter(Boolean);
+  useEffect(() => {
+    if (!favorites.length || !visibleProducts.length) return;
+    const normalized = favorites
+      .map((favoriteKey) => {
+        const product = visibleProducts.find(
+          (item) => productPath(item) === favoriteKey || item.id === favoriteKey,
+        );
+        return product ? productPath(product) : favoriteKey;
+      })
+      .filter((favoriteKey, index, list) => list.indexOf(favoriteKey) === index);
+    if (normalized.join("|") !== favorites.join("|")) {
+      setFavorites(normalized);
+    }
+  }, [favorites, visibleProducts]);
   const bestSellerProducts = useMemo(() => {
     const orderCounts = new Map();
     (orders || []).forEach((order) => {
